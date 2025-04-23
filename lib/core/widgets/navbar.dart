@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
-import 'package:rebill_flutter/shared/widgets/profile_avatar.dart';
+import 'package:rebill_flutter/core/widgets/profile_avatar.dart';
 
 class Navbar extends StatelessWidget {
   const Navbar({super.key});

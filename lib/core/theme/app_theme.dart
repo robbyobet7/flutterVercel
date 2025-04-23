@@ -54,10 +54,11 @@ class AppTheme {
     brightness: Brightness.dark,
     primaryColor: const Color(0xFF2D33B0),
     colorScheme: ColorScheme.dark(
-      primary: const Color(0xFF2D33B0),
+      primary: const Color(0xFF353DF4),
       secondary: const Color(0xFF5258FF),
       surface: const Color(0xFF1F1F2C),
       error: const Color(0xFFE53935),
+      surfaceContainer: Colors.black.withOpacity(0.2),
     ),
     scaffoldBackgroundColor: const Color(0xFF121220),
     appBarTheme: const AppBarTheme(

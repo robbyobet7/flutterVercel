@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/theme/theme_provider.dart';
 import 'package:rebill_flutter/features/home/widgets/home_features.dart';
-import 'package:rebill_flutter/shared/widgets/navbar.dart';
+import 'package:rebill_flutter/core/widgets/navbar.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
