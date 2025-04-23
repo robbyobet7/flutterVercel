@@ -25,7 +25,7 @@ class HomePage extends ConsumerWidget {
         ),
       ),
       body: SafeArea(
-        child: Column(spacing: 24, children: const [Navbar(), HomeFeatures()]),
+        child: Column(spacing: 12, children: const [Navbar(), HomeFeatures()]),
       ),
     );
   }

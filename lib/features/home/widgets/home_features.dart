@@ -17,18 +17,18 @@ class HomeFeatures extends ConsumerWidget {
 
     if (isLandscape) {
       // Landscape layout with Row
-      return Expanded(
+      return Flexible(
         child: Padding(
-          padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
+          padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
           child: Row(
-            spacing: 24,
+            spacing: 12,
             children: homeFeatures.map((e) => Expanded(child: e)).toList(),
           ),
         ),
       );
     } else {
       // Portrait layout with TabBar at bottom
-      return Expanded(
+      return Flexible(
         child: DefaultTabController(
           length: 3,
           child: Scaffold(
