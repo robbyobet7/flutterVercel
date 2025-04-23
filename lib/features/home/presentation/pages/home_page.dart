@@ -24,7 +24,9 @@ class HomePage extends ConsumerWidget {
               : Icons.light_mode,
         ),
       ),
-      body: Column(spacing: 24, children: const [Navbar(), HomeFeatures()]),
+      body: SafeArea(
+        child: Column(spacing: 24, children: const [Navbar(), HomeFeatures()]),
+      ),
     );
   }
 }
