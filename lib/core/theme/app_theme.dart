@@ -1,0 +1,94 @@
+import 'package:flutter/material.dart';
+
+class AppTheme {
+  // Private constructor to prevent direct instantiation
+  const AppTheme._();
+
+  static const List<BoxShadow> kBoxShadow = [
+    BoxShadow(
+      color: Color.fromRGBO(0, 0, 0, 0.05),
+      offset: Offset(0, 4),
+      blurRadius: 5,
+    ),
+  ];
+
+  // Light theme
+  static final ThemeData lightTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.light,
+    primaryColor: Colors.blue,
+    colorScheme: ColorScheme.light(
+      primary: const Color(0xFF353DF4),
+      // secondary: Colors.blueAccent,
+      surface: Colors.white,
+      error: Colors.red,
+    ),
+    scaffoldBackgroundColor: const Color(0xFFF1F4FD),
+    appBarTheme: const AppBarTheme(
+      elevation: 0,
+      centerTitle: true,
+      backgroundColor: Colors.blue,
+      foregroundColor: Colors.white,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    ),
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold),
+      displayMedium: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+      displaySmall: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+      bodyLarge: TextStyle(fontSize: 16.0),
+      bodyMedium: TextStyle(fontSize: 14.0),
+      bodySmall: TextStyle(fontSize: 12.0),
+    ),
+  );
+
+  // Dark theme
+  static final ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    primaryColor: const Color(0xFF2D33B0),
+    colorScheme: ColorScheme.dark(
+      primary: const Color(0xFF2D33B0),
+      secondary: const Color(0xFF5258FF),
+      surface: const Color(0xFF1F1F2C),
+      error: const Color(0xFFE53935),
+    ),
+    scaffoldBackgroundColor: const Color(0xFF121220),
+    appBarTheme: const AppBarTheme(
+      elevation: 0,
+      centerTitle: true,
+      backgroundColor: Color(0xFF1F1F2C),
+      foregroundColor: Colors.white,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    ),
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
+        fontSize: 28.0,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      displayMedium: TextStyle(
+        fontSize: 24.0,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      displaySmall: TextStyle(
+        fontSize: 20.0,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      bodyLarge: TextStyle(fontSize: 16.0, color: Colors.white),
+      bodyMedium: TextStyle(fontSize: 14.0, color: Colors.white),
+      bodySmall: TextStyle(fontSize: 12.0, color: Colors.white70),
+    ),
+  );
+}
