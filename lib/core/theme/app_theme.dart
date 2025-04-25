@@ -54,7 +54,7 @@ class AppTheme {
     brightness: Brightness.dark,
     primaryColor: const Color(0xFF2D33B0),
     colorScheme: ColorScheme.dark(
-      primary: const Color(0xFF353DF4),
+      primary: const Color(0xFFFF8C00), // Deep Orange
       secondary: const Color(0xFF5258FF),
       surface: const Color(0xFF1F1F2C),
       error: const Color(0xFFE53935),

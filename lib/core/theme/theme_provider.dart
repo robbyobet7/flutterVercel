@@ -29,13 +29,17 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
 
   // Toggle between light and dark themes
   void toggleTheme() {
-    state = state == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    _saveTheme(state);
+    final newTheme =
+        state == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    state = newTheme;
+    // Schedule the save operation to avoid blocking the UI
+    Future.microtask(() => _saveTheme(newTheme));
   }
 
   // Set a specific theme mode
   void setThemeMode(ThemeMode mode) {
     state = mode;
-    _saveTheme(mode);
+    // Schedule the save operation to avoid blocking the UI
+    Future.microtask(() => _saveTheme(mode));
   }
 }

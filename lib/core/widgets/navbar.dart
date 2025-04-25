@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
+import 'package:rebill_flutter/core/theme/theme_provider.dart';
 import 'package:rebill_flutter/core/widgets/profile_avatar.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Navbar extends StatelessWidget {
+class Navbar extends ConsumerWidget {
   const Navbar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -38,14 +40,114 @@ class Navbar extends StatelessWidget {
             NavFeatures(),
             Row(
               children: [
-                IconButton(
+                PopupMenuButton<String>(
                   icon: const Icon(Icons.expand_more),
-                  onPressed: () {
-                    // Handle expand action
+                  tooltip: 'Options',
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  position: PopupMenuPosition.under,
+                  offset: const Offset(0, 8),
+                  color: theme.colorScheme.surface,
+                  onSelected: (value) {
+                    // Handle selection based on value
+                    switch (value) {
+                      case 'printer':
+                        // Handle printer action
+                        break;
+                      case 'darkmode':
+                        // Handle dark mode toggle safely
+                        Future.microtask(() {
+                          final themeNotifier = ref.read(
+                            themeProvider.notifier,
+                          );
+                          themeNotifier.toggleTheme();
+                        });
+                        break;
+                      case 'logout':
+                        // Handle logout action
+                        break;
+                    }
                   },
-                  tooltip: 'Expand',
+                  itemBuilder:
+                      (BuildContext context) => <PopupMenuEntry<String>>[
+                        PopupMenuItem<String>(
+                          value: 'printer',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.print_rounded,
+                                color: theme.colorScheme.primary,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Printer Settings',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'darkmode',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Icons.light_mode_rounded
+                                    : Icons.dark_mode_rounded,
+                                color:
+                                    Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.amber
+                                        : Colors.indigo,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? 'Light Mode'
+                                    : 'Dark Mode',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem<String>(
+                          height: 1, // Minimal height
+                          enabled: false,
+                          child: Divider(
+                            color: theme.colorScheme.outlineVariant,
+                            height: 1,
+                          ),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'logout',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.logout_rounded,
+                                color: theme.colorScheme.error,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Logout',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: theme.colorScheme.error,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                 ),
-
                 ProfileAvatar(),
               ],
             ),

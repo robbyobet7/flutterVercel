@@ -21,10 +21,14 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeProvider);
 
-    // Initialize orientation detection
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      initOrientationDetection(context, ref);
-    });
+    // Use a safer approach for orientation detection
+    if (context.mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          initOrientationDetection(context, ref);
+        }
+      });
+    }
 
     return MaterialApp.router(
       title: AppConstants.appName,

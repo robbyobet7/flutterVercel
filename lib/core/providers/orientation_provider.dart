@@ -27,19 +27,18 @@ class OrientationNotifier extends StateNotifier<bool> {
 
 /// Call this method in the app initialization to set up orientation detection
 void initOrientationDetection(BuildContext context, WidgetRef ref) {
+  // Only proceed if context is still mounted
+  if (!context.mounted) return;
+
   // Initial setup based on current orientation
-  _updateOrientation(context, ref);
+  final mediaQuery = MediaQuery.of(context);
+  final orientation = mediaQuery.orientation;
+  ref.read(orientationProvider.notifier).setOrientation(orientation);
 
   // Add a listener to update when orientation changes
   WidgetsBinding.instance.addPostFrameCallback((_) {
     _setupOrientationListener(ref);
   });
-}
-
-void _updateOrientation(BuildContext context, WidgetRef ref) {
-  final mediaQuery = MediaQuery.of(context);
-  final orientation = mediaQuery.orientation;
-  ref.read(orientationProvider.notifier).setOrientation(orientation);
 }
 
 void _setupOrientationListener(WidgetRef ref) {
