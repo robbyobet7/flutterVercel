@@ -10,8 +10,8 @@ class HomeCurrentBill extends StatelessWidget {
 
     final curBillFeature = [
       {'icon': Icons.receipt, 'title': 'New Bill', 'onPressed': () {}},
-      {'icon': Icons.qr_code, 'title': 'New QR Bill', 'onPressed': () {}},
-      {'icon': Icons.store, 'title': 'New Merchant Bill', 'onPressed': () {}},
+      {'icon': Icons.qr_code, 'title': 'QR Bill', 'onPressed': () {}},
+      {'icon': Icons.store, 'title': 'Merchant Bill', 'onPressed': () {}},
     ];
 
     return Container(
@@ -69,8 +69,10 @@ class CurrentBillCard extends StatelessWidget {
             Icon(feature['icon'], size: 32, color: theme.colorScheme.onPrimary),
             Text(
               feature['title'],
+              textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onPrimary,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],

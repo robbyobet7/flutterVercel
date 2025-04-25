@@ -1,55 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
+import '../providers/bill_search_provider.dart';
+import '../providers/filtered_bills_provider.dart';
+import 'user_bills_dropdown.dart';
 
-class BillDay {
-  final String date;
-  final List<Bill> bills;
-
-  BillDay({required this.date, required this.bills});
-}
-
-class Bill {
-  final String name;
-  final String total;
-  final String status;
-
-  Bill({required this.name, required this.total, required this.status});
-}
-
-class HomeBill extends StatelessWidget {
+class HomeBill extends ConsumerStatefulWidget {
   const HomeBill({super.key});
 
-  // Dummy data for the bills table
-  static final List<BillDay> _dummyBillData = [
-    BillDay(
-      date: 'Today - July 15, 2023',
-      bills: [
-        Bill(name: 'Customer 1', total: '1112050', status: 'Closed'),
-        Bill(name: 'Customer 2', total: '118575', status: 'Open'),
-        Bill(name: 'Customer 3', total: '11210.00', status: 'Open'),
-      ],
-    ),
-    BillDay(
-      date: 'Yesterday - July 14, 2023',
-      bills: [
-        Bill(name: 'Customer 4', total: '115425', status: 'Closed'),
-        Bill(name: 'Customer 5', total: '1118230', status: 'Closed'),
-      ],
-    ),
-    BillDay(
-      date: 'July 12, 2023',
-      bills: [
-        Bill(name: 'Customer 6', total: '119500', status: 'Open'),
-        Bill(name: 'Customer 7', total: '116550', status: 'Open'),
-        Bill(name: 'Customer 8', total: '1114575', status: 'Closed'),
-      ],
-    ),
-  ];
+  @override
+  ConsumerState<HomeBill> createState() => _HomeBillState();
+}
+
+class _HomeBillState extends ConsumerState<HomeBill> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+
+  // Add a color cache to avoid recalculating colors
+  final Map<String, Color> _statusColorCache = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Set initial value
+    _searchController.text = ref.read(billSearchProvider);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
 
   // Helper method to get status color
   Color _getStatusColor(String status, ThemeData theme) {
+    // Return cached value if available
+    if (_statusColorCache.containsKey(status)) {
+      return _statusColorCache[status]!;
+    }
+
+    // Calculate and cache the color
+    final color = _calculateStatusColor(status, theme);
+    _statusColorCache[status] = color;
+    return color;
+  }
+
+  // Original color calculation logic
+  Color _calculateStatusColor(String status, ThemeData theme) {
     switch (status.toLowerCase()) {
       case 'closed':
         return theme.colorScheme.error;
@@ -63,273 +63,326 @@ class HomeBill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final searchQuery = ref.watch(billSearchProvider);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        boxShadow: AppTheme.kBoxShadow,
-        borderRadius: BorderRadius.circular(12),
+    // Get filtered bills directly from provider - fully reactive!
+    final filteredBills = ref.watch(filteredBillsProvider);
+
+    // Keep controller in sync with provider state
+    if (_searchController.text != searchQuery) {
+      _searchController.text = searchQuery;
+      // Position cursor at the end
+      _searchController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _searchController.text.length),
+      );
+    }
+
+    return GestureDetector(
+      // Dismiss keyboard when tapping outside
+      onTap: () => FocusScope.of(context).unfocus(),
+      // Avoid registering as a tap when the user is interacting with children
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          boxShadow: AppTheme.kBoxShadow,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.hardEdge,
+        padding: const EdgeInsets.only(top: 12),
+        child: Column(
+          spacing: 12,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: SizedBox(
+                height: 40,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Bills',
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    AppButton(onPressed: () {}, text: 'Merge Bills'),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Expanded(child: UserBillsDropdown()),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Container(
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        border: Border.all(
+                          color: theme.colorScheme.surfaceContainer,
+                        ),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              focusNode: _searchFocusNode,
+                              // Set autofocus to false to prevent automatic focus
+                              autofocus: false,
+                              decoration: const InputDecoration(
+                                hintText: 'Search Bill...',
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                                isDense: true,
+                              ),
+                              style: theme.textTheme.bodyMedium,
+                              onChanged: (value) {
+                                ref
+                                    .read(billSearchProvider.notifier)
+                                    .updateSearchQuery(value);
+                              },
+                              // Handle tap on the text field explicitly
+                              onTap: () {
+                                // Only handle focus if explicitly tapped
+                                _searchFocusNode.requestFocus();
+                              },
+                            ),
+                          ),
+                          if (searchQuery.isNotEmpty)
+                            GestureDetector(
+                              // Stop the parent gesture detector from receiving this tap
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                ref
+                                    .read(billSearchProvider.notifier)
+                                    .clearSearch();
+                                // Also unfocus to hide keyboard
+                                _searchFocusNode.unfocus();
+                              },
+                              child: const Padding(
+                                padding: EdgeInsets.only(right: 4),
+                                child: Icon(Icons.clear, size: 16),
+                              ),
+                            ),
+                          GestureDetector(
+                            // Stop the parent gesture detector from receiving this tap
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              // Toggle focus - if focused, unfocus, otherwise focus
+                              if (_searchFocusNode.hasFocus) {
+                                _searchFocusNode.unfocus();
+                              } else {
+                                _searchFocusNode.requestFocus();
+                              }
+                            },
+                            child: const Icon(Icons.search, size: 18),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Column(
+                children: [
+                  // Fixed table header that's only rendered once
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainer.withOpacity(
+                        0.5,
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                      ),
+                      border: Border.all(
+                        color: theme.colorScheme.surfaceContainer,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 4,
+                          child: Text(
+                            'Name',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            'Total',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Status',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 1,
+                  ), // Slight gap between header and content
+                  // Scrollable content
+                  Expanded(
+                    child: RepaintBoundary(
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        itemCount: filteredBills.length,
+                        // Add these performance optimization parameters
+                        addAutomaticKeepAlives: false,
+                        addRepaintBoundaries: true,
+                        clipBehavior: Clip.hardEdge,
+                        // Use cacheExtent to pre-render items outside the visible area
+                        cacheExtent: 300,
+                        itemBuilder: (context, index) {
+                          final dayData = filteredBills[index];
+                          // Use KeyedSubtree to maintain state when items move
+                          return KeyedSubtree(
+                            key: ValueKey('day-${dayData.date}'),
+                            child: _buildDaySection(context, dayData, theme),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      clipBehavior: Clip.hardEdge,
-      padding: const EdgeInsets.only(top: 12),
+    );
+  }
+
+  Widget _buildDaySection(
+    BuildContext context,
+    dynamic dayData,
+    ThemeData theme,
+  ) {
+    // Add spacing after each day section except the last one
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Day header with date
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Bills',
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                AppButton(onPressed: () {}, text: 'Merge Bills'),
-              ],
+            padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8),
+            child: Text(
+              dayData.date,
+              textAlign: TextAlign.start,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.5),
+              ),
             ),
           ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      border: Border.all(
-                        color: theme.colorScheme.surfaceContainer,
-                      ),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('My Bills'),
-                        Icon(Icons.expand_more, size: 18),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Container(
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      border: Border.all(
-                        color: theme.colorScheme.surfaceContainer,
-                      ),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Search Bill...'),
-                        Icon(Icons.search, size: 18),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+          // Bills container
+          DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.colorScheme.surfaceContainer),
             ),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: Column(
-              children: [
-                // Fixed table header that's only rendered once
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainer.withOpacity(0.5),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8),
-                    ),
-                    border: Border.all(
-                      color: theme.colorScheme.surfaceContainer,
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 4,
-                        child: Text(
-                          'Name',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          'Total',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          'Status',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 1,
-                ), // Slight gap between header and content
-                // Scrollable content
-                Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: _dummyBillData.length,
-                    separatorBuilder:
-                        (context, index) => const SizedBox(height: 6),
-                    itemBuilder: (context, index) {
-                      final dayData = _dummyBillData[index];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.only(
-                              top: 8,
-                              bottom: 8,
-                              left: 8,
-                            ),
-                            child: Text(
-                              dayData.date,
-                              textAlign: TextAlign.start,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurface.withOpacity(
-                                  0.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: theme.colorScheme.surfaceContainer,
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                // Table rows only (header is now fixed above)
-                                ...dayData.bills.map(
-                                  (bill) => Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        top:
-                                            dayData.bills.indexOf(bill) == 0
-                                                ? BorderSide.none
-                                                : BorderSide(
-                                                  color:
-                                                      theme
-                                                          .colorScheme
-                                                          .surfaceContainer,
-                                                ),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 4,
-                                          child: Text(bill.name),
-                                        ),
-                                        Expanded(
-                                          flex: 3,
-                                          child: Text(
-                                            NumberFormat.currency(
-                                              locale: 'id_ID',
-                                              symbol: '',
-                                              decimalDigits: 0,
-                                            ).format(
-                                              int.tryParse(bill.total) ?? 0,
-                                            ),
-                                            style:
-                                                theme.textTheme.labelLarge
-                                                    ?.copyWith(),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 3,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: _getStatusColor(
-                                                bill.status,
-                                                theme,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            child: Text(
-                                              bill.status,
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color:
-                                                    _getStatusColor(
-                                                              bill.status,
-                                                              theme,
-                                                            ).computeLuminance() >
-                                                            0.5
-                                                        ? Colors.black
-                                                        : Colors.white,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+            child: Column(children: _buildBillItems(dayData.bills, theme)),
           ),
         ],
       ),
     );
+  }
+
+  // Extract bill items building to a separate method
+  List<Widget> _buildBillItems(List<dynamic> bills, ThemeData theme) {
+    // Using List.generate is more efficient than .map() with spread operator
+    return List.generate(bills.length, (index) {
+      final bill = bills[index];
+      // Cache the status color to avoid recalculating it
+      final statusColor = _getStatusColor(bill.status, theme);
+      final isFirstItem = index == 0;
+      final billTotal = int.tryParse(bill.total) ?? 0;
+
+      // Format currency once and cache it
+      final formattedTotal = NumberFormat.currency(
+        locale: 'id_ID',
+        symbol: '',
+        decimalDigits: 0,
+      ).format(billTotal);
+
+      // Determine text color based on background luminance
+      final isLightBackground = statusColor.computeLuminance() > 0.5;
+      final textColor = isLightBackground ? Colors.black : Colors.white;
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            top:
+                isFirstItem
+                    ? BorderSide.none
+                    : BorderSide(color: theme.colorScheme.surfaceContainer),
+          ),
+        ),
+        child: Row(
+          children: [
+            // Bill name
+            Expanded(flex: 4, child: Text(bill.name)),
+            // Bill amount
+            Expanded(
+              flex: 3,
+              child: Text(formattedTotal, style: theme.textTheme.labelLarge),
+            ),
+            // Status indicator
+            Expanded(
+              flex: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  bill.status,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
