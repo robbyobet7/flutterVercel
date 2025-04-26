@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
-import 'package:rebill_flutter/features/home/widgets/home_bill.dart';
-import 'package:rebill_flutter/features/home/widgets/home_current_bill.dart';
-import 'package:rebill_flutter/features/home/widgets/home_products.dart';
+import 'package:rebill_flutter/features/home/presentation/widgets/home_bill.dart';
+import 'package:rebill_flutter/features/home/presentation/widgets/home_current_bill.dart';
+import 'package:rebill_flutter/features/home/presentation/widgets/home_products.dart';
 
 class HomeFeatures extends ConsumerWidget {
   const HomeFeatures({super.key});

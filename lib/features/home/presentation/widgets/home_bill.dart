@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
-import 'package:rebill_flutter/features/home/presentation/widgets/user_bills_dropdown.dart';
-import 'package:rebill_flutter/features/home/providers/bill_search_provider.dart';
-import 'package:rebill_flutter/features/home/providers/filtered_bills_provider.dart';
+import '../../providers/bill_search_provider.dart';
+import '../../providers/filtered_bills_provider.dart';
+import 'user_bills_dropdown.dart';
 
 class HomeBill extends ConsumerStatefulWidget {
   const HomeBill({super.key});

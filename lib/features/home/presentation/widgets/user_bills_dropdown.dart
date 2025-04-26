@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/widgets/app_popup_menu.dart';
-import '../models/user_bill.dart';
-import '../providers/selected_user_bill_provider.dart';
+import '../../models/user_bill.dart';
+import '../../providers/selected_user_bill_provider.dart';
 
 /// A reusable dropdown for selecting users with their respective bills.
 /// This component can be used across different pages for consistency.

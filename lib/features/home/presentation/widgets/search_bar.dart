@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/search_provider.dart';
+import '../../providers/search_provider.dart';
 
 class HomeSearchBar extends ConsumerStatefulWidget {
   const HomeSearchBar({super.key});
