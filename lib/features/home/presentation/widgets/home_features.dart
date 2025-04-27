@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
+import 'package:rebill_flutter/features/main_bill/presentations/pages/main_component_page.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/home_bill.dart';
-import 'package:rebill_flutter/features/home/presentation/widgets/home_current_bill.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/home_products.dart';
 
 class HomeFeatures extends ConsumerWidget {
@@ -13,7 +13,7 @@ class HomeFeatures extends ConsumerWidget {
     final isLandscape = ref.watch(orientationProvider);
     final theme = Theme.of(context);
 
-    const homeFeatures = [HomeProducts(), HomeCurrentBill(), HomeBill()];
+    const homeFeatures = [HomeProducts(), MainPage(), HomeBill()];
 
     if (isLandscape) {
       // Landscape layout with Row
