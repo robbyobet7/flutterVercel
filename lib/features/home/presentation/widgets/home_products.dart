@@ -23,6 +23,7 @@ class HomeProducts extends ConsumerWidget {
       ),
       padding: const EdgeInsets.all(12),
       child: Column(
+        spacing: 12,
         children: [
           Container(
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
@@ -67,9 +68,7 @@ class HomeProducts extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 12),
           const HomeSearchBar(),
-          const SizedBox(height: 12),
           isCategoryMode ? const CategoriesGrid() : const ProductsGrid(),
         ],
       ),

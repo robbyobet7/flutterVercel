@@ -15,9 +15,7 @@ class MainDefaultCard extends ConsumerWidget {
     return Expanded(
       child: ElevatedButton(
         onPressed: () {
-          ref
-              .watch(mainComponentProvider.notifier)
-              .setMainComponent('new_bill');
+          ref.watch(mainComponentProvider.notifier).setMainBill('new_bill');
           ref.watch(newBillProvider.notifier).setNewBill(feature['id']);
         },
         style: ElevatedButton.styleFrom(
