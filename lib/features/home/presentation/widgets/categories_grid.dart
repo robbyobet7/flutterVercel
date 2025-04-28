@@ -91,26 +91,27 @@ class CategoriesGrid extends ConsumerWidget {
     ThemeData theme,
     VoidCallback onTap,
   ) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Ink(
+      child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           boxShadow: AppTheme.kBoxShadow,
-          gradient: LinearGradient(
-            colors: [color.withOpacity(0.7), color],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: color.withOpacity(0.8),
         ),
-        child: Center(
-          child: Text(
-            categoryName,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                categoryName,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ),
