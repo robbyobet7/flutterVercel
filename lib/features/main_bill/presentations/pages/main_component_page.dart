@@ -12,18 +12,20 @@ class MainPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mainBill = ref.watch(mainBillProvider);
 
-    final mainBills = [
+    final mainBillComponents = [
       MainBill(id: '', component: MainDefaultPage()),
       MainBill(id: 'new_bill', component: MainBillPage()),
     ];
 
     // Find the component that matches the current mainBill ID
     // and return its widget component
-    return mainBills
+    return mainBillComponents
         .firstWhere(
           (component) => component.id == mainBill,
           orElse:
-              () => mainBills.first, // Default to first component if not found
+              () =>
+                  mainBillComponents
+                      .first, // Default to first component if not found
         )
         .component;
   }

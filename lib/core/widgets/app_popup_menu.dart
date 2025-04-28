@@ -37,7 +37,7 @@ class AppPopupMenu<T> extends StatefulWidget {
   final Offset offset;
 
   const AppPopupMenu({
-    Key? key,
+    super.key,
     required this.items,
     required this.onSelected,
     this.child,
@@ -45,7 +45,7 @@ class AppPopupMenu<T> extends StatefulWidget {
     this.icon,
     this.position = PopupMenuPosition.under,
     this.offset = const Offset(0, 8),
-  }) : super(key: key);
+  });
 
   @override
   State<AppPopupMenu<T>> createState() => _AppPopupMenuState<T>();
