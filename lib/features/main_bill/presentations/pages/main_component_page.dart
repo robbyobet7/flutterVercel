@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/pages/main_bill_page.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
 import 'package:rebill_flutter/features/main_bill/models/main_bill.dart';
@@ -13,8 +14,15 @@ class MainPage extends ConsumerWidget {
     final mainBill = ref.watch(mainBillProvider);
 
     final mainBillComponents = [
-      MainBill(id: '', component: MainDefaultPage()),
-      MainBill(id: 'new_bill', component: MainBillPage()),
+      MainBill(
+        id: MainBillComponent.defaultComponent,
+        component: MainDefaultPage(),
+      ),
+      MainBill(
+        id: MainBillComponent.newBillComponent,
+        component: MainBillPage(),
+      ),
+      MainBill(id: MainBillComponent.billsComponent, component: MainBillPage()),
     ];
 
     // Find the component that matches the current mainBill ID

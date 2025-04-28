@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
+import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/main_default_card.dart';
 
 class MainDefaultPage extends ConsumerWidget {
@@ -11,9 +12,13 @@ class MainDefaultPage extends ConsumerWidget {
     final theme = Theme.of(context);
 
     final curBillFeature = [
-      {'id': 'new_bill', 'icon': Icons.receipt, 'title': 'New Bill'},
-      {'id': 'qr_bill', 'icon': Icons.qr_code, 'title': 'QR Bill'},
-      {'id': 'merchant_bill', 'icon': Icons.store, 'title': 'Merchant Bill'},
+      {'id': BillType.newBill, 'icon': Icons.receipt, 'title': 'New Bill'},
+      {'id': BillType.qrBill, 'icon': Icons.qr_code, 'title': 'QR Bill'},
+      {
+        'id': BillType.merchantBill,
+        'icon': Icons.store,
+        'title': 'Merchant Bill',
+      },
     ];
 
     return Container(

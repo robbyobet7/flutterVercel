@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
-import 'package:rebill_flutter/features/main_bill/providers/new_bill_provider.dart';
 
 class MainDefaultCard extends ConsumerWidget {
   const MainDefaultCard({super.key, required this.feature});
@@ -11,12 +11,14 @@ class MainDefaultCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final mainBillNotifier = ref.watch(mainBillProvider.notifier);
+    final billTypeNotifier = ref.watch(billTypeProvider.notifier);
 
     return Expanded(
       child: ElevatedButton(
         onPressed: () {
-          ref.watch(mainBillProvider.notifier).setMainBill(feature['id']);
-          ref.watch(newBillProvider.notifier).setNewBill(feature['id']);
+          mainBillNotifier.setMainBill(MainBillComponent.newBillComponent);
+          billTypeNotifier.setBillType(feature['id']);
         },
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(double.infinity, double.infinity),

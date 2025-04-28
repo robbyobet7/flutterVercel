@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
+import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/customer_expandable.dart';
-import 'package:rebill_flutter/features/main_bill/providers/new_bill_provider.dart';
 
 class MainBillPage extends ConsumerWidget {
   const MainBillPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final billType = ref.watch(newBillProvider);
+    final billType = ref.watch(billTypeProvider);
     final theme = Theme.of(context);
 
     final customerTypes = [
@@ -65,7 +65,9 @@ class MainBillPage extends ConsumerWidget {
                           onTap: () {
                             ref
                                 .watch(mainBillProvider.notifier)
-                                .setMainBill('');
+                                .setMainBill(
+                                  MainBillComponent.defaultComponent,
+                                );
                           },
                           child: Icon(
                             Icons.cancel_rounded,
@@ -77,7 +79,7 @@ class MainBillPage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                billType != 'merchant_bill'
+                billType != BillType.merchantBill
                     ? CustomerExpandable(
                       customerTypes: customerTypes,
                       theme: theme,
