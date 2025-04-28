@@ -2,4 +2,8 @@ enum CustomerType { guest, knownIndividual }
 
 enum BillType { newBill, qrBill, merchantBill }
 
-enum MainBillComponent { defaultComponent, newBillComponent, billsComponent }
+enum MainBillComponent {
+  defaultComponent,
+  currentBillComponent,
+  billsComponent,
+}

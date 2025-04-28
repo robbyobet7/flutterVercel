@@ -19,7 +19,7 @@ class MainPage extends ConsumerWidget {
         component: MainDefaultPage(),
       ),
       MainBill(
-        id: MainBillComponent.newBillComponent,
+        id: MainBillComponent.currentBillComponent,
         component: MainBillPage(),
       ),
       MainBill(id: MainBillComponent.billsComponent, component: MainBillPage()),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
+import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/customer_expandable.dart';
@@ -26,9 +27,9 @@ class MainBillPage extends ConsumerWidget {
         'icon': Icons.person_pin_rounded,
         'label': 'Known Individual',
         'onTap':
-            () => ref
-                .read(customerTypeProvider.notifier)
-                .setCustomerType(CustomerType.knownIndividual),
+            () => {
+              AppDialog.showCustom(context, content: KnownIndividualDialog()),
+            },
       },
     ];
     return Column(
@@ -150,5 +151,14 @@ class MainBillPage extends ConsumerWidget {
         ),
       ],
     );
+  }
+}
+
+class KnownIndividualDialog extends StatelessWidget {
+  const KnownIndividualDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text('Are you sure you want to change the customer type?');
   }
 }

@@ -18,7 +18,7 @@ class AppTheme {
     brightness: Brightness.light,
     primaryColor: Colors.blue,
     colorScheme: ColorScheme.light(
-      primary: const Color(0xFF3558A7),
+      primary: const Color(0xFF598DFF),
       surfaceContainer: const Color(0xFFF4F4F4),
       onSurfaceVariant: const Color(0xFF776F70),
       // secondary: Colors.blueAccent,
@@ -54,7 +54,7 @@ class AppTheme {
     brightness: Brightness.dark,
     primaryColor: const Color(0xFF2D33B0),
     colorScheme: ColorScheme.dark(
-      primary: const Color(0xFFD58A94),
+      primary: const Color(0xFF598DFF),
       secondary: const Color(0xFF5258FF),
       surface: const Color(0xFF1F1F2C),
       error: const Color(0xFFE53935),
