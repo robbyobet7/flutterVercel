@@ -11,6 +11,10 @@ class AppDialog extends StatelessWidget {
   /// The content of the dialog.
   final Widget? content;
 
+  final double? width;
+
+  final double? height;
+
   /// Text content of the dialog. Either [content] or [contentText] can be provided.
   final String? contentText;
 
@@ -26,6 +30,9 @@ class AppDialog extends StatelessWidget {
   /// Callback for secondary button.
   final VoidCallback? onSecondaryButtonPressed;
 
+  /// Callback when dialog is closed through any method.
+  final VoidCallback? onClose;
+
   /// Whether dialog can be dismissed by tapping outside or pressing back.
   final bool barrierDismissible;
 
@@ -34,6 +41,9 @@ class AppDialog extends StatelessWidget {
 
   /// Color for the icon.
   final Color? iconColor;
+
+  /// Whether the dialog is custom.
+  final bool? isCustom;
 
   const AppDialog({
     super.key,
@@ -44,9 +54,13 @@ class AppDialog extends StatelessWidget {
     this.secondaryButtonText,
     this.onPrimaryButtonPressed,
     this.onSecondaryButtonPressed,
+    this.onClose,
     this.barrierDismissible = true,
     this.icon,
     this.iconColor,
+    this.isCustom = false,
+    this.width,
+    this.height,
   }) : assert(
          content == null || contentText == null,
          'Either provide content or contentText, not both',
@@ -56,78 +70,101 @@ class AppDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (icon != null) ...[
-              Center(
-                child: Icon(
-                  icon,
-                  size: 48,
-                  color: iconColor ?? theme.colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (title != null) ...[
-              Center(
-                child: Text(
-                  title!,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (content != null)
-              content!
-            else if (contentText != null)
-              Text(
-                contentText!,
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return WillPopScope(
+      onWillPop: () async {
+        if (onClose != null) onClose!();
+        return true;
+      },
+      child: Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          width: width,
+          height: height,
+          child: Padding(
+            padding:
+                isCustom!
+                    ? const EdgeInsets.only(top: 24, left: 24, right: 24)
+                    : const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (secondaryButtonText != null) ...[
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed:
-                          onSecondaryButtonPressed ??
-                          () => Navigator.of(context).pop(false),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: Text(secondaryButtonText!),
+                if (icon != null) ...[
+                  Center(
+                    child: Icon(
+                      icon,
+                      size: 48,
+                      color: iconColor ?? theme.colorScheme.primary,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(height: 16),
                 ],
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed:
-                        onPrimaryButtonPressed ??
-                        () => Navigator.of(context).pop(true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                if (title != null) ...[
+                  Center(
+                    child: Text(
+                      title!,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    child: Text(primaryButtonText ?? 'OK'),
                   ),
+                  const SizedBox(height: 16),
+                ],
+                if (content != null)
+                  content!
+                else if (contentText != null)
+                  Text(
+                    contentText!,
+                    style: theme.textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (secondaryButtonText != null) ...[
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            if (onSecondaryButtonPressed != null) {
+                              onSecondaryButtonPressed!();
+                            }
+                            if (onClose != null) onClose!();
+                            Navigator.of(context).pop(false);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: Text(secondaryButtonText!),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    if (!isCustom!) ...[
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (onPrimaryButtonPressed != null) {
+                              onPrimaryButtonPressed!();
+                            }
+                            if (onClose != null) onClose!();
+                            Navigator.of(context).pop(true);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: theme.colorScheme.onPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: Text(primaryButtonText ?? 'OK'),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -141,6 +178,7 @@ class AppDialog extends StatelessWidget {
     String confirmText = 'Yes',
     String cancelText = 'No',
     IconData? icon,
+    VoidCallback? onClose,
   }) {
     return showDialog<bool>(
       context: context,
@@ -152,6 +190,7 @@ class AppDialog extends StatelessWidget {
             secondaryButtonText: cancelText,
             icon: icon ?? Icons.help_outline_rounded,
             iconColor: Theme.of(context).colorScheme.primary,
+            onClose: onClose,
           ),
     );
   }
@@ -163,6 +202,7 @@ class AppDialog extends StatelessWidget {
     required String message,
     String buttonText = 'OK',
     IconData? icon,
+    VoidCallback? onClose,
   }) {
     return showDialog<void>(
       context: context,
@@ -173,6 +213,7 @@ class AppDialog extends StatelessWidget {
             primaryButtonText: buttonText,
             icon: icon ?? Icons.info_outline_rounded,
             iconColor: Theme.of(context).colorScheme.primary,
+            onClose: onClose,
           ),
     );
   }
@@ -183,6 +224,7 @@ class AppDialog extends StatelessWidget {
     required String title,
     required String message,
     String buttonText = 'OK',
+    VoidCallback? onClose,
   }) {
     return showDialog<void>(
       context: context,
@@ -193,6 +235,7 @@ class AppDialog extends StatelessWidget {
             primaryButtonText: buttonText,
             icon: Icons.error_outline_rounded,
             iconColor: Theme.of(context).colorScheme.error,
+            onClose: onClose,
           ),
     );
   }
@@ -208,6 +251,9 @@ class AppDialog extends StatelessWidget {
     VoidCallback? onSecondaryButtonPressed,
     IconData? icon,
     Color? iconColor,
+    VoidCallback? onClose,
+    double? width,
+    double? height,
   }) {
     return showDialog<T>(
       context: context,
@@ -221,6 +267,10 @@ class AppDialog extends StatelessWidget {
             onSecondaryButtonPressed: onSecondaryButtonPressed,
             icon: icon,
             iconColor: iconColor,
+            isCustom: true,
+            onClose: onClose,
+            width: width,
+            height: height,
           ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/features/home/providers/category_mode_provider.dart';
+import 'package:rebill_flutter/core/providers/product_providers.dart';
 
 class CategoriesGrid extends ConsumerWidget {
   const CategoriesGrid({super.key});
@@ -73,14 +74,11 @@ class CategoriesGrid extends ConsumerWidget {
         itemBuilder: (context, index) {
           final categoryName = categories[index];
           final color = _generateColor(index);
-          return _buildCategoryItem(
-            context,
-            categoryName,
-            color,
-            theme,
-            //implement selectCategory here
-            ref.watch(categoryModeProvider.notifier).toggleCategoryMode,
-          );
+          return _buildCategoryItem(context, categoryName, color, theme, () {
+            // Set the selected category and exit category mode
+            ref.read(selectedCategoryProvider.notifier).state = categoryName;
+            ref.read(categoryModeProvider.notifier).toggleCategoryMode();
+          });
         },
       ),
     );
@@ -93,27 +91,26 @@ class CategoriesGrid extends ConsumerWidget {
     ThemeData theme,
     VoidCallback onTap,
   ) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
-      child: Container(
+      borderRadius: BorderRadius.circular(8),
+      child: Ink(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           boxShadow: AppTheme.kBoxShadow,
-          color: color.withOpacity(0.8),
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.7), color],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                categoryName,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+        child: Center(
+          child: Text(
+            categoryName,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
         ),

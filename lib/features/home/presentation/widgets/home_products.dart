@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/features/home/providers/category_mode_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
+import 'package:rebill_flutter/core/providers/product_providers.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/categories_grid.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/products_grid.dart';
-import 'package:rebill_flutter/features/home/presentation/widgets/search_bar.dart';
+import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 
 class HomeProducts extends ConsumerWidget {
   const HomeProducts({super.key});
@@ -39,18 +40,22 @@ class HomeProducts extends ConsumerWidget {
                   ),
                 ),
                 Row(
+                  spacing: 6,
                   children: [
                     AppButton(
                       onPressed: () {
                         ref
                             .read(categoryModeProvider.notifier)
                             .toggleCategoryMode();
+                        if (isCategoryMode) {
+                          ref.read(selectedCategoryProvider.notifier).state =
+                              null;
+                        }
                       },
                       text:
                           isCategoryMode ? 'View Products' : 'Select Category',
                       backgroundColor: theme.colorScheme.surfaceContainer,
                     ),
-                    const SizedBox(width: 6),
                     Container(
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainer,
@@ -68,7 +73,15 @@ class HomeProducts extends ConsumerWidget {
               ],
             ),
           ),
-          const HomeSearchBar(),
+          AppSearchBar(
+            hintText: 'Search Product...',
+            onSearch: (value) {
+              ref.read(searchQueryProvider.notifier).state = value;
+            },
+            onClear: () {
+              ref.read(searchQueryProvider.notifier).state = '';
+            },
+          ),
           isCategoryMode ? const CategoriesGrid() : const ProductsGrid(),
         ],
       ),

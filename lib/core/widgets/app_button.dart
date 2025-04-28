@@ -5,12 +5,14 @@ class AppButton extends StatelessWidget {
   final Widget? child;
   final Color? backgroundColor;
   final double? width;
+  final bool? disabled;
   final double? height;
   final EdgeInsetsGeometry? padding;
   final BorderRadius? borderRadius;
   final double elevation;
   final TextStyle? textStyle;
   final String text;
+  final BorderSide? borderSide;
   const AppButton({
     super.key,
     required this.onPressed,
@@ -23,6 +25,8 @@ class AppButton extends StatelessWidget {
     this.elevation = 0,
     this.textStyle,
     required this.text,
+    this.disabled = false,
+    this.borderSide,
   });
 
   @override
@@ -30,15 +34,20 @@ class AppButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: disabled == true ? null : onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: backgroundColor ?? theme.colorScheme.surfaceContainer,
+        animationDuration: const Duration(milliseconds: 200),
+        backgroundColor:
+            disabled == true
+                ? theme.colorScheme.onSurface.withOpacity(0.05)
+                : backgroundColor ?? theme.colorScheme.surfaceContainer,
         elevation: elevation,
-        fixedSize: Size(width ?? 120, height ?? double.infinity),
+        fixedSize: Size(width ?? double.infinity, height ?? double.infinity),
         padding:
-            padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+            padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
         shape: RoundedRectangleBorder(
           borderRadius: borderRadius ?? BorderRadius.circular(8),
+          side: borderSide ?? BorderSide.none,
         ),
       ),
       child:

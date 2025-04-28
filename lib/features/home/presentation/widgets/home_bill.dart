@@ -252,7 +252,9 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                   Expanded(
                     child: RepaintBoundary(
                       child: ListView.builder(
-                        physics: const BouncingScrollPhysics(),
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         itemCount: filteredBills.length,
                         // Add these performance optimization parameters
@@ -260,7 +262,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                         addRepaintBoundaries: true,
                         clipBehavior: Clip.hardEdge,
                         // Use cacheExtent to pre-render items outside the visible area
-                        cacheExtent: 300,
+                        cacheExtent: 100,
                         itemBuilder: (context, index) {
                           final dayData = filteredBills[index];
                           // Use KeyedSubtree to maintain state when items move

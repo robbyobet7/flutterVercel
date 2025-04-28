@@ -1,22 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/search_provider.dart';
+import '../../features/home/providers/search_provider.dart';
 
-class HomeSearchBar extends ConsumerStatefulWidget {
-  const HomeSearchBar({super.key});
+class AppSearchBar extends ConsumerStatefulWidget {
+  final String hintText;
+  final Function(String)? onSearch;
+  final Function()? onClear;
+  final StateNotifierProvider<SearchNotifier, String>? searchProvider;
+  final Color? backgroundColor;
+  final BorderRadius? borderRadius;
+  final double height;
+  final EdgeInsetsGeometry padding;
+  final Widget? searchIcon;
+  final Widget? clearIcon;
+
+  const AppSearchBar({
+    super.key,
+    this.hintText = 'Search...',
+    this.onSearch,
+    this.onClear,
+    this.searchProvider,
+    this.backgroundColor,
+    this.borderRadius,
+    this.height = 40,
+    this.padding = const EdgeInsets.symmetric(horizontal: 12),
+    this.searchIcon,
+    this.clearIcon,
+  });
 
   @override
-  ConsumerState<HomeSearchBar> createState() => _HomeSearchBarState();
+  ConsumerState<AppSearchBar> createState() => _AppSearchBarState();
 }
 
-class _HomeSearchBarState extends ConsumerState<HomeSearchBar> {
+class _AppSearchBarState extends ConsumerState<AppSearchBar> {
   final TextEditingController _searchController = TextEditingController();
+  late StateNotifierProvider<SearchNotifier, String> _searchProvider;
 
   @override
   void initState() {
     super.initState();
+    _searchProvider = widget.searchProvider ?? searchProvider;
     // Initialize controller with current search value
-    _searchController.text = ref.read(searchProvider);
+    _searchController.text = ref.read(_searchProvider);
   }
 
   @override
@@ -29,7 +54,7 @@ class _HomeSearchBarState extends ConsumerState<HomeSearchBar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     // Watch search provider to keep UI in sync
-    final searchQuery = ref.watch(searchProvider);
+    final searchQuery = ref.watch(_searchProvider);
 
     // Make sure controller text and provider state stay in sync
     if (_searchController.text != searchQuery) {
@@ -47,24 +72,27 @@ class _HomeSearchBarState extends ConsumerState<HomeSearchBar> {
       behavior: HitTestBehavior.translucent,
       child: Container(
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(8),
+          color: widget.backgroundColor ?? theme.colorScheme.surfaceContainer,
+          borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: widget.padding,
         width: double.infinity,
-        height: 40,
+        height: widget.height,
         child: Row(
           children: [
             Expanded(
               child: TextField(
                 controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: 'Search Product...',
+                decoration: InputDecoration(
+                  hintText: widget.hintText,
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
                 onChanged: (value) {
-                  ref.read(searchProvider.notifier).updateSearchQuery(value);
+                  ref.read(_searchProvider.notifier).updateSearchQuery(value);
+                  if (widget.onSearch != null) {
+                    widget.onSearch!(value);
+                  }
                 },
                 textAlignVertical: TextAlignVertical.center,
               ),
@@ -76,12 +104,17 @@ class _HomeSearchBarState extends ConsumerState<HomeSearchBar> {
                     // Stop the parent gesture detector from receiving this tap
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      ref.read(searchProvider.notifier).clearSearch();
+                      ref.read(_searchProvider.notifier).clearSearch();
+                      if (widget.onClear != null) {
+                        widget.onClear!();
+                      }
                     },
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4),
-                      child: Icon(Icons.clear, size: 20),
-                    ),
+                    child:
+                        widget.clearIcon ??
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 4),
+                          child: Icon(Icons.clear, size: 20),
+                        ),
                   ),
                 GestureDetector(
                   // Stop the parent gesture detector from receiving this tap
@@ -90,9 +123,12 @@ class _HomeSearchBarState extends ConsumerState<HomeSearchBar> {
                     if (_searchController.text.isNotEmpty) {
                       // Trigger search and dismiss keyboard
                       FocusScope.of(context).unfocus();
+                      if (widget.onSearch != null) {
+                        widget.onSearch!(_searchController.text);
+                      }
                     }
                   },
-                  child: const Icon(Icons.search),
+                  child: widget.searchIcon ?? const Icon(Icons.search),
                 ),
               ],
             ),

@@ -23,7 +23,7 @@ class AppTheme {
       onSurfaceVariant: const Color(0xFF776F70),
       // secondary: Colors.blueAccent,
       surface: Colors.white,
-      error: Colors.red,
+      error: const Color(0xFFE53935),
     ),
     scaffoldBackgroundColor: const Color(0xFFF1F4FD),
     appBarTheme: const AppBarTheme(

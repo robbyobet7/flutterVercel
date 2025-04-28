@@ -24,7 +24,7 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
   @override
   Widget build(BuildContext context) {
     final selectedCustomerType = ref.watch(customerTypeProvider);
-
+    final selectedCustomer = ref.watch(knownIndividualProvider);
     return Column(
       children: [
         // Header with expand/collapse functionality
@@ -55,6 +55,8 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
                     Text(
                       selectedCustomerType == CustomerType.guest
                           ? 'Guest'
+                          : selectedCustomer != null
+                          ? selectedCustomer.name
                           : 'Known Individual',
                       style: widget.theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
