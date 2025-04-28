@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class MainComponent {
+class MainBill {
   final String id;
   final Widget component;
 
-  MainComponent({required this.id, required this.component});
+  MainBill({required this.id, required this.component});
 }

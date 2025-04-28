@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rebill_flutter/features/new_bill/presentations/widgets/customer_type_card.dart';
-import 'package:rebill_flutter/features/new_bill/providers/new_bill_provider.dart';
+import 'package:rebill_flutter/features/main_bill/presentations/widgets/customer_type_card.dart';
+import 'package:rebill_flutter/features/main_bill/providers/new_bill_provider.dart';
 
 class CustomerExpandable extends ConsumerStatefulWidget {
   const CustomerExpandable({

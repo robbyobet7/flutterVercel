@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rebill_flutter/features/main_bill/providers/main_component_provider.dart';
-import 'package:rebill_flutter/features/new_bill/providers/new_bill_provider.dart';
+import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
+import 'package:rebill_flutter/features/main_bill/providers/new_bill_provider.dart';
 
 class MainDefaultCard extends ConsumerWidget {
   const MainDefaultCard({super.key, required this.feature});
@@ -15,7 +15,7 @@ class MainDefaultCard extends ConsumerWidget {
     return Expanded(
       child: ElevatedButton(
         onPressed: () {
-          ref.watch(mainComponentProvider.notifier).setMainBill('new_bill');
+          ref.watch(mainBillProvider.notifier).setMainBill(feature['id']);
           ref.watch(newBillProvider.notifier).setNewBill(feature['id']);
         },
         style: ElevatedButton.styleFrom(

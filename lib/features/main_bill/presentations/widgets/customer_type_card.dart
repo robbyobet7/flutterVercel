@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rebill_flutter/features/new_bill/providers/new_bill_provider.dart';
+import 'package:rebill_flutter/features/main_bill/providers/new_bill_provider.dart';
 
 class CustomerTypeCard extends ConsumerWidget {
   const CustomerTypeCard({
