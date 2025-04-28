@@ -15,7 +15,7 @@ final newBillProvider = StateNotifierProvider<NewBillNotifier, String>((ref) {
 });
 
 class CustomerTypeNotifier extends StateNotifier<CustomerType?> {
-  CustomerTypeNotifier() : super(null);
+  CustomerTypeNotifier() : super(CustomerType.guest);
 
   void setCustomerType(CustomerType type) {
     state = type;

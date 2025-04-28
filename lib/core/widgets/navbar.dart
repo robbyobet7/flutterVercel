@@ -209,7 +209,7 @@ class _NavFeaturesState extends State<NavFeatures> {
         builder: (context, constraints) {
           // Calculate if scrolling is needed
           final double totalWidth =
-              _features.length * 68.0; // 60 width + 8 margin
+              _features.length * 120.0; // 60 width + 8 margin
           final bool needsScrolling = totalWidth > constraints.maxWidth;
 
           if (needsScrolling) {

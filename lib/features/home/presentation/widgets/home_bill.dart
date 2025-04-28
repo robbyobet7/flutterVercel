@@ -19,7 +19,6 @@ class _HomeBillState extends ConsumerState<HomeBill> {
   final FocusNode _searchFocusNode = FocusNode();
 
   // Add a color cache to avoid recalculating colors
-  final Map<String, Color> _statusColorCache = {};
 
   @override
   void initState() {
@@ -37,22 +36,19 @@ class _HomeBillState extends ConsumerState<HomeBill> {
 
   // Helper method to get status color
   Color _getStatusColor(String status, ThemeData theme) {
-    // Return cached value if available
-    if (_statusColorCache.containsKey(status)) {
-      return _statusColorCache[status]!;
-    }
-
-    // Calculate and cache the color
-    final color = _calculateStatusColor(status, theme);
-    _statusColorCache[status] = color;
-    return color;
+    // Don't use caching at all - calculate color every time
+    // This ensures theme changes are reflected immediately
+    return _calculateStatusColor(status);
   }
 
   // Original color calculation logic
-  Color _calculateStatusColor(String status, ThemeData theme) {
+  Color _calculateStatusColor(String status) {
+    // Get theme inside the method each time it's called
+    final theme = Theme.of(context);
+
     switch (status.toLowerCase()) {
       case 'closed':
-        return theme.colorScheme.error;
+        return theme.colorScheme.surfaceContainer;
       case 'open':
         return theme.colorScheme.primary;
       default:
