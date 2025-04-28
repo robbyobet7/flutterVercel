@@ -77,3 +77,23 @@ final refreshProductsProvider = Provider<void Function()>((ref) {
     ref.invalidate(availableProductsProvider);
   };
 });
+
+// Provider for all available categories - fetches unique category types from products
+final availableCategoriesProvider = FutureProvider<List<String>>((ref) async {
+  final productService = ref.watch(productServiceProvider);
+  final products = await productService.getAvailableProducts();
+
+  // Extract unique category types from products
+  final Set<String> categories = {};
+
+  for (var product in products) {
+    if (product.productsType != null && product.productsType!.isNotEmpty) {
+      categories.add(product.productsType!);
+    }
+    if (product.type != 'product' && product.type.isNotEmpty) {
+      categories.add(product.type);
+    }
+  }
+
+  return categories.toList()..sort();
+});

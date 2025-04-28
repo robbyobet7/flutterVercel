@@ -41,45 +41,61 @@ class CategoriesGrid extends ConsumerWidget {
     final theme = Theme.of(context);
     final isLandscape = ref.watch(orientationProvider);
 
-    // Category data - color will be generated automatically
-    final categories = [
-      'Food & Beverages',
-      'Electronics',
-      'Clothing',
-      'Health & Beauty',
-      'Home & Living',
-      'Sports',
-      'Books',
-      'Toys',
-      'Stationery',
-      'Digital Goods',
-      'Services',
-      'Others',
-    ];
+    // Watch the categories provider
+    final categoriesAsync = ref.watch(availableCategoriesProvider);
 
     return Expanded(
-      child: GridView.builder(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        cacheExtent: 100,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: isLandscape ? 3 : 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.5,
-        ),
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final categoryName = categories[index];
-          final color = _generateColor(index);
-          return _buildCategoryItem(context, categoryName, color, theme, () {
-            // Set the selected category and exit category mode
-            ref.read(selectedCategoryProvider.notifier).state = categoryName;
-            ref.read(categoryModeProvider.notifier).toggleCategoryMode();
-          });
+      child: categoriesAsync.when(
+        data: (categories) {
+          if (categories.isEmpty) {
+            return Center(
+              child: Text(
+                'No categories available',
+                style: theme.textTheme.bodyMedium,
+              ),
+            );
+          }
+
+          return GridView.builder(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            cacheExtent: 100,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: isLandscape ? 3 : 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.5,
+            ),
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              final categoryName = categories[index];
+              final color = _generateColor(index);
+              return _buildCategoryItem(
+                context,
+                categoryName,
+                color,
+                theme,
+                () {
+                  // Set the selected category and exit category mode
+                  ref.read(selectedCategoryProvider.notifier).state =
+                      categoryName;
+                  ref.read(categoryModeProvider.notifier).toggleCategoryMode();
+                },
+              );
+            },
+          );
         },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error:
+            (error, stackTrace) => Center(
+              child: Text(
+                'Error loading categories: $error',
+                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
+            ),
       ),
     );
   }

@@ -15,7 +15,7 @@ class HomeProducts extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isCategoryMode = ref.watch(categoryModeProvider);
-
+    final selectedCategory = ref.watch(selectedCategoryProvider);
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -44,17 +44,45 @@ class HomeProducts extends ConsumerWidget {
                   children: [
                     AppButton(
                       onPressed: () {
-                        ref
-                            .read(categoryModeProvider.notifier)
-                            .toggleCategoryMode();
+                        if (selectedCategory != null) {
+                          ref.read(selectedCategoryProvider.notifier).state =
+                              null;
+                        } else {
+                          ref
+                              .read(categoryModeProvider.notifier)
+                              .toggleCategoryMode();
+                        }
                         if (isCategoryMode) {
                           ref.read(selectedCategoryProvider.notifier).state =
                               null;
                         }
                       },
-                      text:
-                          isCategoryMode ? 'View Products' : 'Select Category',
+                      text: '',
                       backgroundColor: theme.colorScheme.surfaceContainer,
+                      child: Row(
+                        children: [
+                          selectedCategory != null
+                              ? Row(
+                                children: [
+                                  Icon(
+                                    Icons.cancel,
+                                    size: 14,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
+                              )
+                              : const SizedBox(),
+                          Text(
+                            isCategoryMode
+                                ? 'View Products'
+                                : selectedCategory ?? 'View Category',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Container(
                       decoration: BoxDecoration(
