@@ -1,31 +1,60 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
+import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 
 import 'package:rebill_flutter/features/home/presentation/widgets/product_option.dart';
 
-class ProductDetail extends StatefulWidget {
+class ProductDetail extends ConsumerStatefulWidget {
   const ProductDetail({super.key, required this.product});
 
   final Product product;
 
   @override
-  State<ProductDetail> createState() => _ProductDetailState();
+  ConsumerState<ProductDetail> createState() => _ProductDetailState();
 }
 
-class _ProductDetailState extends State<ProductDetail> {
+class _ProductDetailState extends ConsumerState<ProductDetail> {
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController(
     text: '1',
   );
   int _quantity = 1;
 
+  // Store selected options and extras
+  final Map<String, dynamic> _selectedOptions = {};
+  final Set<String> _selectedExtras = {};
+
   @override
   void initState() {
     super.initState();
     // Initialize with 1 as default quantity
     _quantityController.text = _quantity.toString();
+    _initializeDefaultOptions();
+  }
+
+  void _initializeDefaultOptions() {
+    try {
+      if (widget.product.option != null &&
+          widget.product.option!.startsWith('[')) {
+        final options = List<dynamic>.from(json.decode(widget.product.option!));
+
+        for (final opt in options) {
+          // Set default selection for required options
+          if (opt['required'] == true &&
+              opt['type'] == 'option' &&
+              opt['options'] is List &&
+              (opt['options'] as List).isNotEmpty) {
+            _selectedOptions[opt['uid']] = (opt['options'] as List).first;
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore parsing errors
+    }
   }
 
   @override
@@ -84,6 +113,57 @@ class _ProductDetailState extends State<ProductDetail> {
     });
   }
 
+  // Method to handle option selection
+  void selectOption(String optionId, dynamic choice) {
+    setState(() {
+      _selectedOptions[optionId] = choice;
+    });
+  }
+
+  // Method to toggle extras
+  void toggleExtra(String extraId) {
+    setState(() {
+      if (_selectedExtras.contains(extraId)) {
+        _selectedExtras.remove(extraId);
+      } else {
+        _selectedExtras.add(extraId);
+      }
+    });
+  }
+
+  // Add the current product to cart
+  void _addToCart() {
+    ref
+        .read(cartProvider.notifier)
+        .addProduct(
+          product: widget.product,
+          quantity: _quantity,
+          notes:
+              _notesController.text.isNotEmpty ? _notesController.text : null,
+          selectedOptions:
+              _selectedOptions.isNotEmpty ? _selectedOptions : null,
+          selectedExtras: _selectedExtras.isNotEmpty ? _selectedExtras : null,
+        );
+
+    // Show a brief confirmation
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${widget.product.productsName} added to cart'),
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'VIEW CART',
+          onPressed: () {
+            // Navigate to cart page - implementation would depend on your navigation setup
+            Navigator.pushNamed(context, '/cart');
+          },
+        ),
+      ),
+    );
+
+    // Close the dialog
+    Navigator.pop(context);
+  }
+
   Widget _buildProductImage() {
     final theme = Theme.of(context);
 
@@ -103,7 +183,6 @@ class _ProductDetailState extends State<ProductDetail> {
       child:
           hasValidImage
               ? Image.network(
-                // If it's a relative path, prepend your base URL
                 imagePath.startsWith('/')
                     ? 'https://yourapi.com$imagePath'
                     : imagePath,
@@ -111,7 +190,6 @@ class _ProductDetailState extends State<ProductDetail> {
                 height: double.infinity,
                 width: double.infinity,
                 errorBuilder: (context, error, stackTrace) {
-                  // Fallback to placeholder on error
                   return Image.asset(
                     'assets/images/product_placeholder.webp',
                     fit: BoxFit.cover,
@@ -243,11 +321,7 @@ class _ProductDetailState extends State<ProductDetail> {
                           textStyle: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onPrimary,
                           ),
-                          onPressed: () {
-                            // Add to cart logic would go here
-                            Navigator.pop(context);
-                          },
-
+                          onPressed: _addToCart,
                           text: '',
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,

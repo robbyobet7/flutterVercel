@@ -109,34 +109,6 @@ class ProductOption extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (product.tax != null && product.tax! > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainer,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.receipt_long,
-                                  size: 14,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Tax: ${currencyFormatter.format(product.tax)}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                       ],
                     ),
 
@@ -199,7 +171,7 @@ class ProductOption extends StatelessWidget {
                                     children: [
                                       Text(
                                         discountName,
-                                        style: theme.textTheme.bodySmall
+                                        style: theme.textTheme.labelSmall
                                             ?.copyWith(
                                               fontWeight: FontWeight.bold,
                                               color: theme.colorScheme.error,
