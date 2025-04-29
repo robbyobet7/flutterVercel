@@ -12,6 +12,7 @@ class AppButton extends StatelessWidget {
   final double elevation;
   final TextStyle? textStyle;
   final String text;
+  final TextAlign? textAlign;
   final BorderSide? borderSide;
   const AppButton({
     super.key,
@@ -27,6 +28,7 @@ class AppButton extends StatelessWidget {
     required this.text,
     this.disabled = false,
     this.borderSide,
+    this.textAlign,
   });
 
   @override
@@ -54,6 +56,7 @@ class AppButton extends StatelessWidget {
           child ??
           Text(
             text,
+            textAlign: textAlign ?? TextAlign.center,
             style:
                 textStyle ??
                 theme.textTheme.bodySmall?.copyWith(

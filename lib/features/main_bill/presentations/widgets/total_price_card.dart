@@ -22,42 +22,45 @@ class TotalPriceCard extends ConsumerWidget {
       symbol: '',
       decimalDigits: 0,
     );
-    return AppButton(
-      onPressed: () {},
-      backgroundColor: theme.colorScheme.primary,
-      text: '',
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Total ',
-            style: theme.textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onPrimary,
+    return SizedBox(
+      height: 50,
+      child: AppButton(
+        onPressed: () {},
+        backgroundColor: theme.colorScheme.primary,
+        text: '',
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Total ',
+              style: theme.textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onPrimary,
+              ),
             ),
-          ),
-          Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: 'IDR ',
-                  style: theme.textTheme.displayLarge?.copyWith(
-                    color: theme.colorScheme.onPrimary,
-                    fontWeight: FontWeight.w400,
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'IDR ',
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      color: theme.colorScheme.onPrimary,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
-                ),
-                TextSpan(
-                  text: numberFormat.format(totalRounded),
-                  style: theme.textTheme.displayLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onPrimary,
+                  TextSpan(
+                    text: numberFormat.format(totalRounded),
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onPrimary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

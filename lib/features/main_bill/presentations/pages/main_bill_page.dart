@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
-import 'package:rebill_flutter/core/theme/app_theme.dart';
+import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/pages/known_individual_dialog.dart';
@@ -48,15 +48,15 @@ class MainBillPage extends ConsumerWidget {
       },
     ];
     return Column(
-      spacing: 12,
+      spacing: 6,
       children: [
         Expanded(
           child: Container(
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
-              boxShadow: AppTheme.kBoxShadow,
               borderRadius: BorderRadius.circular(12),
             ),
+            clipBehavior: Clip.hardEdge,
             padding:
                 mainBillComponent != MainBillComponent.defaultComponent
                     ? EdgeInsets.only(top: 12)
@@ -112,6 +112,48 @@ class MainBillPage extends ConsumerWidget {
             ),
           ),
         ),
+        if (cart.items.isNotEmpty)
+          Container(
+            height: 50,
+            child: Row(
+              spacing: 6,
+              children: [
+                Expanded(
+                  child: AppButton(
+                    onPressed: () {},
+                    height: 50,
+                    text: 'Assign Table',
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                    textStyle: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: AppButton(
+                    onPressed: () {},
+                    height: 50,
+                    text: 'Captain Order',
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                    textStyle: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: AppButton(
+                    onPressed: () {},
+                    height: 50,
+                    text: 'Split Bill',
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                    textStyle: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         TotalPriceCard(),
       ],
     );

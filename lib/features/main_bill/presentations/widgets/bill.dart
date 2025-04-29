@@ -73,7 +73,7 @@ class Bill extends ConsumerWidget {
                       horizontal: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      color: theme.colorScheme.surfaceContainer,
                       borderRadius: const BorderRadius.only(),
                     ),
                     child: Row(
@@ -84,7 +84,7 @@ class Bill extends ConsumerWidget {
                             'Name',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.primary,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -94,7 +94,7 @@ class Bill extends ConsumerWidget {
                             'Qty',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.primary,
+                              color: theme.colorScheme.onSurface,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -105,7 +105,7 @@ class Bill extends ConsumerWidget {
                             'Subtotal',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.primary,
+                              color: theme.colorScheme.onSurface,
                             ),
                             textAlign: TextAlign.right,
                           ),

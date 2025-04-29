@@ -19,7 +19,7 @@ class CustomerExpandable extends ConsumerStatefulWidget {
 }
 
 class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
-  bool _isExpanded = true;
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
