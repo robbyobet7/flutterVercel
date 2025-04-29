@@ -7,6 +7,8 @@ import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 
 import 'package:rebill_flutter/features/home/presentation/widgets/product_option.dart';
+import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
 
 class ProductDetail extends ConsumerStatefulWidget {
   const ProductDetail({super.key, required this.product});
@@ -145,22 +147,6 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
           selectedExtras: _selectedExtras.isNotEmpty ? _selectedExtras : null,
         );
 
-    // Show a brief confirmation
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${widget.product.productsName} added to cart'),
-        duration: const Duration(seconds: 2),
-        action: SnackBarAction(
-          label: 'VIEW CART',
-          onPressed: () {
-            // Navigate to cart page - implementation would depend on your navigation setup
-            Navigator.pushNamed(context, '/cart');
-          },
-        ),
-      ),
-    );
-
-    // Close the dialog
     Navigator.pop(context);
   }
 
@@ -222,6 +208,7 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
 
   @override
   Widget build(BuildContext context) {
+    final mainBillComponent = ref.watch(mainBillProvider);
     final theme = Theme.of(context);
     return Expanded(
       child: Column(
@@ -238,115 +225,129 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
           ),
           Container(
             height: 40,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              spacing: 12,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: AppTextField(
-                    showLabel: false,
-                    constraints: BoxConstraints(maxHeight: 40),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 0,
-                    ),
-                    controller: _notesController,
-                    hintText: 'Notes',
-                    labelText: 'Notes',
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Row(
-                    spacing: 12,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-
-                    children: [
-                      Row(
-                        spacing: 12,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainer,
-                              borderRadius: BorderRadius.circular(9999),
-                            ),
-                            child: IconButton(
-                              onPressed: _decrementQuantity,
-                              icon: const Icon(Icons.remove),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 70,
-                            height: 40,
-                            child: AppTextField(
-                              showLabel: false,
-                              textAlign: TextAlign.center,
-                              controller: _quantityController,
-                              onChanged: (_) => _updateQuantityFromField(),
-                              keyboardType: TextInputType.number,
-                              hintText: 'Qty',
-                              labelText: 'Qty',
-                              constraints: BoxConstraints(
-                                maxWidth: 70,
-                                maxHeight: 40,
-                              ),
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 0,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainer,
-                              borderRadius: BorderRadius.circular(9999),
-                            ),
-                            child: IconButton(
-                              onPressed: _incrementQuantity,
-                              icon: const Icon(Icons.add),
-                            ),
-                          ),
-                        ],
+            child:
+                mainBillComponent == MainBillComponent.defaultComponent
+                    ? Center(
+                      child: Text(
+                        'Create new bill to add items',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                      Expanded(
-                        child: AppButton(
-                          height: 50,
-                          backgroundColor: theme.colorScheme.primary,
-                          textStyle: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onPrimary,
+                    )
+                    : Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      spacing: 12,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: AppTextField(
+                            showLabel: false,
+                            constraints: BoxConstraints(maxHeight: 40),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 0,
+                            ),
+                            controller: _notesController,
+                            hintText: 'Notes',
+                            labelText: 'Notes',
                           ),
-                          onPressed: _addToCart,
-                          text: '',
+                        ),
+                        Expanded(
+                          flex: 3,
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            spacing: 6,
+                            spacing: 12,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+
                             children: [
-                              Icon(
-                                Icons.add_shopping_cart,
-                                color: theme.colorScheme.onPrimary,
+                              Row(
+                                spacing: 12,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.surfaceContainer,
+                                      borderRadius: BorderRadius.circular(9999),
+                                    ),
+                                    child: IconButton(
+                                      onPressed: _decrementQuantity,
+                                      icon: const Icon(Icons.remove),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 70,
+                                    height: 40,
+                                    child: AppTextField(
+                                      showLabel: false,
+                                      textAlign: TextAlign.center,
+                                      controller: _quantityController,
+                                      onChanged:
+                                          (_) => _updateQuantityFromField(),
+                                      keyboardType: TextInputType.number,
+                                      hintText: 'Qty',
+                                      labelText: 'Qty',
+                                      constraints: BoxConstraints(
+                                        maxWidth: 70,
+                                        maxHeight: 40,
+                                      ),
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 0,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.surfaceContainer,
+                                      borderRadius: BorderRadius.circular(9999),
+                                    ),
+                                    child: IconButton(
+                                      onPressed: _incrementQuantity,
+                                      icon: const Icon(Icons.add),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                'Add to Cart',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onPrimary,
-                                  fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: AppButton(
+                                  height: 50,
+                                  backgroundColor: theme.colorScheme.primary,
+                                  textStyle: theme.textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: theme.colorScheme.onPrimary,
+                                      ),
+                                  onPressed: _addToCart,
+                                  text: '',
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    spacing: 6,
+                                    children: [
+                                      Icon(
+                                        Icons.add_shopping_cart,
+                                        color: theme.colorScheme.onPrimary,
+                                      ),
+                                      Text(
+                                        'Add to Cart',
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              color:
+                                                  theme.colorScheme.onPrimary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                      ],
+                    ),
           ),
         ],
       ),

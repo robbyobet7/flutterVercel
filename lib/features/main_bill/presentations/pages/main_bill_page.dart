@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/pages/known_individual_dialog.dart';
+import 'package:rebill_flutter/features/main_bill/presentations/widgets/bill.dart';
+import 'package:rebill_flutter/features/main_bill/presentations/widgets/empty_cart.dart';
+import 'package:rebill_flutter/features/main_bill/presentations/widgets/total_price_card.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/customer_expandable.dart';
 
@@ -14,7 +18,8 @@ class MainBillPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final billType = ref.watch(billTypeProvider);
     final theme = Theme.of(context);
-
+    final cart = ref.watch(cartProvider);
+    final mainBillComponent = ref.watch(mainBillProvider);
     final customerTypes = [
       {
         'icon': Icons.person_rounded,
@@ -52,13 +57,17 @@ class MainBillPage extends ConsumerWidget {
               boxShadow: AppTheme.kBoxShadow,
               borderRadius: BorderRadius.circular(12),
             ),
-            padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
+            padding:
+                mainBillComponent != MainBillComponent.defaultComponent
+                    ? EdgeInsets.only(top: 12)
+                    : EdgeInsets.only(top: 12, left: 12, right: 12, bottom: 12),
             child: Column(
               children: [
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                   ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   width: double.infinity,
                   height: 40,
                   child: Row(
@@ -74,6 +83,8 @@ class MainBillPage extends ConsumerWidget {
                         message: 'Cancel',
                         child: GestureDetector(
                           onTap: () {
+                            ref.read(cartProvider.notifier).clearCart();
+
                             ref
                                 .watch(mainBillProvider.notifier)
                                 .setMainBill(
@@ -96,69 +107,12 @@ class MainBillPage extends ConsumerWidget {
                       theme: theme,
                     )
                     : const SizedBox.shrink(),
-
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 12,
-                    children: [
-                      Icon(
-                        Icons.shopping_cart_rounded,
-                        size: 72,
-                        color: theme.colorScheme.primary,
-                      ),
-                      Column(
-                        children: [
-                          Text('No Items in cart'),
-                          Text('Click product on your left to add to cart'),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                cart.items.isEmpty ? EmptyCart() : Bill(),
               ],
             ),
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            boxShadow: AppTheme.kBoxShadow,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total ',
-                style: theme.textTheme.displaySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'IDR ',
-                      style: theme.textTheme.displayLarge?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    TextSpan(
-                      text: '200.000',
-                      style: theme.textTheme.displayLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        TotalPriceCard(),
       ],
     );
   }
