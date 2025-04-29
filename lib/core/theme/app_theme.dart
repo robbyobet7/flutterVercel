@@ -24,6 +24,7 @@ class AppTheme {
       // secondary: Colors.blueAccent,
       surface: Colors.white,
       error: const Color(0xFFE53935),
+      errorContainer: const Color(0xFFE53935).withOpacity(0.1),
     ),
     scaffoldBackgroundColor: const Color(0xFFF1F4FD),
     appBarTheme: const AppBarTheme(

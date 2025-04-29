@@ -19,7 +19,9 @@ class AppTextField extends StatelessWidget {
   final EdgeInsetsGeometry? contentPadding;
   final bool autofocus;
   final bool? showLabel;
+  final BoxConstraints? constraints;
   final bool? required;
+  final TextAlign? textAlign;
   const AppTextField({
     super.key,
     required this.controller,
@@ -41,84 +43,105 @@ class AppTextField extends StatelessWidget {
     this.autofocus = false,
     this.showLabel = true,
     this.required = false,
+    this.textAlign,
+    this.constraints,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 8,
-      children: [
-        Row(
-          children: [
-            Text(
-              labelText ?? '',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+    // Create a widget tree that will dismiss keyboard when tapped outside
+    return GestureDetector(
+      onTap: () {
+        // This will unfocus the current focus and dismiss the keyboard
+        FocusScope.of(context).unfocus();
+      },
+      // Use behavior opaque to intercept all taps even on transparent areas
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          showLabel == true
+              ? Column(
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        labelText ?? '',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.5),
+                        ),
+                      ),
+                      if (required == true)
+                        Text(
+                          '*',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.error,
+                          ),
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                ],
+              )
+              : const SizedBox.shrink(),
+          TextFormField(
+            controller: controller,
+            obscureText: obscureText,
+            textAlign: textAlign ?? TextAlign.start,
+            keyboardType: keyboardType,
+            validator: validator,
+            onChanged: onChanged,
+            readOnly: readOnly,
+            focusNode: focusNode,
+            maxLines: maxLines,
+            minLines: minLines,
+            textInputAction: textInputAction,
+            onTap: onTap,
+            autofocus: autofocus,
+            decoration: InputDecoration(
+              hintText: hintText,
+              constraints: constraints,
+              prefixIcon: prefix,
+              suffixIcon: suffix,
+              fillColor: theme.colorScheme.surfaceContainer,
+              filled: true,
+              contentPadding:
+                  contentPadding ??
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-            ),
-            if (required == true)
-              Text(
-                '*',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.primary,
+                  width: 2.0,
                 ),
               ),
-          ],
-        ),
-        TextFormField(
-          controller: controller,
-          obscureText: obscureText,
-          keyboardType: keyboardType,
-          validator: validator,
-          onChanged: onChanged,
-          readOnly: readOnly,
-          focusNode: focusNode,
-          maxLines: maxLines,
-          minLines: minLines,
-          textInputAction: textInputAction,
-          onTap: onTap,
-          autofocus: autofocus,
-          decoration: InputDecoration(
-            hintText: hintText,
-            prefixIcon: prefix,
-            suffixIcon: suffix,
-            fillColor: theme.colorScheme.surfaceContainer,
-            filled: true,
-            contentPadding:
-                contentPadding ??
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: theme.colorScheme.primary,
-                width: 2.0,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.error,
+                  width: 1.0,
+                ),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: theme.colorScheme.error,
-                width: 1.0,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: theme.colorScheme.error,
-                width: 2.0,
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.error,
+                  width: 2.0,
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

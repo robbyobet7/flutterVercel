@@ -45,6 +45,8 @@ class AppDialog extends StatelessWidget {
   /// Whether the dialog is custom.
   final bool? isCustom;
 
+  final EdgeInsets? padding;
+
   const AppDialog({
     super.key,
     this.title,
@@ -61,6 +63,7 @@ class AppDialog extends StatelessWidget {
     this.isCustom = false,
     this.width,
     this.height,
+    this.padding,
   }) : assert(
          content == null || contentText == null,
          'Either provide content or contentText, not both',
@@ -76,15 +79,13 @@ class AppDialog extends StatelessWidget {
         return true;
       },
       child: Dialog(
+        insetPadding: EdgeInsets.all(24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
           width: width,
           height: height,
           child: Padding(
-            padding:
-                isCustom!
-                    ? const EdgeInsets.only(top: 24, left: 24, right: 24)
-                    : const EdgeInsets.all(24.0),
+            padding: padding ?? const EdgeInsets.all(24.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -119,7 +120,9 @@ class AppDialog extends StatelessWidget {
                     style: theme.textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
-                const SizedBox(height: 24),
+                isCustom!
+                    ? const SizedBox(height: 0)
+                    : const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -254,6 +257,7 @@ class AppDialog extends StatelessWidget {
     VoidCallback? onClose,
     double? width,
     double? height,
+    EdgeInsets? padding,
   }) {
     return showDialog<T>(
       context: context,
@@ -271,6 +275,7 @@ class AppDialog extends StatelessWidget {
             onClose: onClose,
             width: width,
             height: height,
+            padding: padding,
           ),
     );
   }

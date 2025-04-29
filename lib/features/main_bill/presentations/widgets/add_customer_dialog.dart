@@ -5,6 +5,7 @@ import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 import 'package:rebill_flutter/features/main_bill/models/customer.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/pages/known_individual_dialog.dart';
+import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
 
 class AddCustomerDialog extends ConsumerStatefulWidget {
@@ -70,128 +71,148 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
 
     return Form(
       key: _formKey,
-      child: Column(
-        spacing: 16,
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: AppTextField(
-                  controller: _idController,
-                  labelText: 'Customer ID',
-                  hintText: 'Auto-generated if empty',
+      child: Expanded(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppDivider(),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: AppTextField(
-                  controller: _nameController,
-                  labelText: 'Name',
-                  hintText: 'Enter customer name',
-                  required: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Name is required';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-            ],
-          ),
+                child: Column(
+                  spacing: 16,
+                  children: [
+                    SizedBox.shrink(), //spacer only
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AppTextField(
+                            controller: _idController,
+                            labelText: 'Customer ID',
+                            hintText: 'Auto-generated if empty',
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: AppTextField(
+                            controller: _nameController,
+                            labelText: 'Name',
+                            hintText: 'Enter customer name',
+                            required: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Name is required';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
 
-          AppTextField(
-            controller: _addressController,
-            labelText: 'Address',
-            hintText: 'Enter customer address',
-          ),
+                    AppTextField(
+                      controller: _addressController,
+                      labelText: 'Address',
+                      hintText: 'Enter customer address',
+                    ),
 
-          Row(
-            children: [
-              Expanded(
-                child: AppTextField(
-                  controller: _cityController,
-                  labelText: 'City',
-                  hintText: 'Enter city',
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: AppTextField(
-                  controller: _postCodeController,
-                  labelText: 'Post Code',
-                  hintText: 'Enter post code',
-                ),
-              ),
-            ],
-          ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AppTextField(
+                            controller: _cityController,
+                            labelText: 'City',
+                            hintText: 'Enter city',
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: AppTextField(
+                            controller: _postCodeController,
+                            labelText: 'Post Code',
+                            hintText: 'Enter post code',
+                          ),
+                        ),
+                      ],
+                    ),
 
-          Row(
-            children: [
-              Expanded(
-                child: AppTextField(
-                  controller: _emailController,
-                  labelText: 'Email/Social',
-                  hintText: 'Enter email or social',
-                  keyboardType: TextInputType.emailAddress,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: AppTextField(
-                  controller: _phoneController,
-                  labelText: 'Phone',
-                  hintText: 'Enter phone number',
-                  keyboardType: TextInputType.phone,
-                ),
-              ),
-            ],
-          ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AppTextField(
+                            controller: _emailController,
+                            labelText: 'Email/Social',
+                            hintText: 'Enter email or social',
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: AppTextField(
+                            controller: _phoneController,
+                            labelText: 'Phone',
+                            hintText: 'Enter phone number',
+                            keyboardType: TextInputType.phone,
+                          ),
+                        ),
+                      ],
+                    ),
 
-          AppTextField(
-            controller: _affiliateController,
-            labelText: 'Affiliate',
-            hintText: 'Enter affiliate',
-          ),
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              AppButton(
-                onPressed:
-                    () => {
-                      Navigator.pop(context),
-                      AppDialog.showCustom(
-                        context,
-                        content: KnownIndividualDialog(),
-                        title: 'Known Individual',
-                        onClose: () {
-                          ref
-                              .read(knownIndividualProvider.notifier)
-                              .setKnownIndividual(null);
-                        },
+                    AppTextField(
+                      controller: _affiliateController,
+                      labelText: 'Affiliate',
+                      hintText: 'Enter affiliate',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Column(
+              spacing: 16,
+              children: [
+                AppDivider(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    AppButton(
+                      onPressed:
+                          () => {
+                            Navigator.pop(context),
+                            AppDialog.showCustom(
+                              context,
+                              content: KnownIndividualDialog(),
+                              title: 'Known Individual',
+                              onClose: () {
+                                ref
+                                    .read(knownIndividualProvider.notifier)
+                                    .setKnownIndividual(null);
+                              },
+                            ),
+                          },
+                      text: 'Back to Individual',
+                      backgroundColor: theme.colorScheme.errorContainer,
+                      textStyle: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.error,
                       ),
-                    },
-                text: 'Cancel',
-                backgroundColor: theme.colorScheme.error,
-                textStyle: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onError,
+                    ),
+                    const SizedBox(width: 16),
+                    AppButton(
+                      onPressed: _saveCustomer,
+                      text: 'Save Customer',
+                      backgroundColor: theme.colorScheme.primary,
+                      textStyle: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onPrimary,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 16),
-              AppButton(
-                onPressed: _saveCustomer,
-                text: 'Save Customer',
-                backgroundColor: theme.colorScheme.primary,
-                textStyle: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onPrimary,
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

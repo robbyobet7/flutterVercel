@@ -1,0 +1,322 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:rebill_flutter/core/models/product.dart';
+import 'package:rebill_flutter/core/theme/app_theme.dart';
+import 'package:rebill_flutter/features/home/presentation/widgets/option_preview.dart';
+
+class ProductOption extends StatelessWidget {
+  const ProductOption({super.key, required this.product});
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'id',
+      symbol: 'Rp',
+      decimalDigits: 0,
+    );
+
+    // Check if there are multiple discounts available
+    final hasMultipleDiscounts =
+        product.multipleDiscounts != null &&
+        product.multipleDiscounts!.isNotEmpty;
+
+    return Expanded(
+      flex: 3,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: AppTheme.kBoxShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            product.productsName ?? 'Product Name',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            product.productsType ?? 'Category',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onPrimary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceVariant,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                product.hasInfiniteStock
+                                    ? Icons.all_inclusive
+                                    : Icons.inventory_2_outlined,
+                                size: 14,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                product.hasInfiniteStock
+                                    ? 'Unlimited'
+                                    : '${product.availableStock} in stock',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (product.tax != null && product.tax! > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.receipt_long,
+                                  size: 14,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Tax: ${currencyFormatter.format(product.tax)}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+
+                    // Display product options or additional info
+                    if (product.option != null) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        'Product Options',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      OptionPreview(option: product.option!),
+                    ],
+
+                    // Show available discounts if any
+                    if (hasMultipleDiscounts) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        'Available Discounts',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 60,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          cacheExtent: 10,
+                          physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
+                          ),
+                          itemCount: product.multipleDiscounts!.length.clamp(
+                            0,
+                            3,
+                          ),
+                          itemBuilder: (context, index) {
+                            final discount = product.multipleDiscounts![index];
+                            final discountName =
+                                discount['discount_name'] ?? 'Discount';
+                            final discountAmount =
+                                discount['products_discount'] ?? 0;
+                            final needsPin = discount['discount_pin'] == true;
+
+                            return Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.errorContainer,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        discountName,
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: theme.colorScheme.error,
+                                            ),
+                                      ),
+                                      if (needsPin) ...[
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          Icons.lock,
+                                          size: 12,
+                                          color: theme.colorScheme.error,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.discount,
+                                        size: 12,
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        currencyFormatter.format(
+                                          discountAmount,
+                                        ),
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Price section
+            if (product.discountAmount > 0) ...[
+              Row(
+                children: [
+                  Text(
+                    currencyFormatter.format(product.productsPrice),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      decoration: TextDecoration.lineThrough,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      product.productsPrice != null &&
+                              product.productsPrice! > 0
+                          ? '${(product.discountAmount / product.productsPrice! * 100).toStringAsFixed(0)}% OFF'
+                          : 'DISCOUNT',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.error,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+            ],
+
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  currencyFormatter.format(product.finalPrice),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                    height: 1.3,
+                  ),
+                ),
+                const Spacer(),
+                if (product.sold != null && product.sold! > 0) ...[
+                  Icon(
+                    Icons.shopping_bag_outlined,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${product.sold} sold',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

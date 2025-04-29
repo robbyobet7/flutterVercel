@@ -8,6 +8,7 @@ import 'core/theme/theme_provider.dart';
 import 'core/utils/router.dart';
 import 'core/providers/orientation_provider.dart';
 import 'core/utils/app_lifecycle_manager.dart';
+import 'core/widgets/unfocus_on_tap.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,15 +46,17 @@ class MyApp extends ConsumerWidget {
     }
 
     return AppLifecycleManager(
-      child: MaterialApp.router(
-        title: AppConstants.appName,
-        themeMode: themeMode,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        routerDelegate: router.routerDelegate,
-        routeInformationParser: router.routeInformationParser,
-        routeInformationProvider: router.routeInformationProvider,
-        debugShowCheckedModeBanner: false,
+      child: UnfocusOnTap(
+        child: MaterialApp.router(
+          title: AppConstants.appName,
+          themeMode: themeMode,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          routerDelegate: router.routerDelegate,
+          routeInformationParser: router.routeInformationParser,
+          routeInformationProvider: router.routeInformationProvider,
+          debugShowCheckedModeBanner: false,
+        ),
       ),
     );
   }
