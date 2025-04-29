@@ -17,7 +17,9 @@ class UnfocusOnTap extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       // When tapped, dismiss any active focus and hide keyboard
-      onTap: () => FocusScope.of(context).unfocus(),
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
       // HitTestBehavior.translucent ensures taps are caught even if they would
       // normally be absorbed by the widget tree
       behavior: HitTestBehavior.translucent,

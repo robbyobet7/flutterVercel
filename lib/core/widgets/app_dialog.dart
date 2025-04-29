@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// A reusable dialog component that can be customized for various use cases.
 ///
@@ -75,6 +76,8 @@ class AppDialog extends StatelessWidget {
 
     return WillPopScope(
       onWillPop: () async {
+        SystemChannels.textInput.invokeMethod('TextInput.hide');
+
         if (onClose != null) onClose!();
         return true;
       },

@@ -136,6 +136,9 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                               focusNode: _searchFocusNode,
                               // Set autofocus to false to prevent automatic focus
                               autofocus: false,
+                              onTapOutside: (value) {
+                                FocusManager.instance.primaryFocus?.unfocus();
+                              },
                               decoration: const InputDecoration(
                                 hintText: 'Search Bill...',
                                 border: InputBorder.none,

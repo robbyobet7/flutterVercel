@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/home/providers/search_provider.dart';
 
@@ -34,7 +35,7 @@ class AppSearchBar extends ConsumerStatefulWidget {
 
 class _AppSearchBarState extends ConsumerState<AppSearchBar> {
   final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _searchFocusNode = FocusNode(canRequestFocus: false);
   late StateNotifierProvider<SearchNotifier, String> _searchProvider;
 
   @override
@@ -86,6 +87,9 @@ class _AppSearchBarState extends ConsumerState<AppSearchBar> {
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 autofocus: false,
+                onTapOutside: (value) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
                 decoration: InputDecoration(
                   hintText: widget.hintText,
                   border: InputBorder.none,
