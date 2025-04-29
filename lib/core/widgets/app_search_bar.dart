@@ -34,6 +34,7 @@ class AppSearchBar extends ConsumerStatefulWidget {
 
 class _AppSearchBarState extends ConsumerState<AppSearchBar> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   late StateNotifierProvider<SearchNotifier, String> _searchProvider;
 
   @override
@@ -47,6 +48,7 @@ class _AppSearchBarState extends ConsumerState<AppSearchBar> {
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -68,7 +70,6 @@ class _AppSearchBarState extends ConsumerState<AppSearchBar> {
     return GestureDetector(
       // Dismiss keyboard when tapping outside
       onTap: () => FocusScope.of(context).unfocus(),
-      // Avoid registering as a tap when the user is interacting with children
       behavior: HitTestBehavior.translucent,
       child: Container(
         decoration: BoxDecoration(
@@ -83,6 +84,8 @@ class _AppSearchBarState extends ConsumerState<AppSearchBar> {
             Expanded(
               child: TextField(
                 controller: _searchController,
+                focusNode: _searchFocusNode,
+                autofocus: false,
                 decoration: InputDecoration(
                   hintText: widget.hintText,
                   border: InputBorder.none,
@@ -93,6 +96,10 @@ class _AppSearchBarState extends ConsumerState<AppSearchBar> {
                   if (widget.onSearch != null) {
                     widget.onSearch!(value);
                   }
+                },
+                // Only handle focus events when explicitly tapped
+                onTap: () {
+                  // No automatic focus behavior
                 },
                 textAlignVertical: TextAlignVertical.center,
               ),
@@ -105,6 +112,8 @@ class _AppSearchBarState extends ConsumerState<AppSearchBar> {
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
                       ref.read(_searchProvider.notifier).clearSearch();
+                      // Also unfocus to hide keyboard
+                      _searchFocusNode.unfocus();
                       if (widget.onClear != null) {
                         widget.onClear!();
                       }
@@ -122,9 +131,16 @@ class _AppSearchBarState extends ConsumerState<AppSearchBar> {
                   onTap: () {
                     if (_searchController.text.isNotEmpty) {
                       // Trigger search and dismiss keyboard
-                      FocusScope.of(context).unfocus();
+                      _searchFocusNode.unfocus();
                       if (widget.onSearch != null) {
                         widget.onSearch!(_searchController.text);
+                      }
+                    } else {
+                      // Toggle focus behavior
+                      if (_searchFocusNode.hasFocus) {
+                        _searchFocusNode.unfocus();
+                      } else {
+                        _searchFocusNode.requestFocus();
                       }
                     }
                   },
