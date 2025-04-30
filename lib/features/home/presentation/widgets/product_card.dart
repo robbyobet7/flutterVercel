@@ -27,7 +27,7 @@ class ProductCard extends StatelessWidget {
           width: MediaQuery.of(context).size.width * .7,
           height:
               (product.multipleDiscounts!.isEmpty && product.option == null)
-                  ? MediaQuery.of(context).size.height * .4
+                  ? MediaQuery.of(context).size.height * .43
                   : MediaQuery.of(context).size.height,
           padding: const EdgeInsets.all(12),
         );

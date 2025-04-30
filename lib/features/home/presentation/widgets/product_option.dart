@@ -32,13 +32,12 @@ class ProductOption extends ConsumerWidget {
         product.multipleDiscounts != null &&
         product.multipleDiscounts!.isNotEmpty;
 
-    // Get active discount from provider or product
-    final activeDiscount =
-        ref.watch(productProvider).activeDiscounts[product.id];
+    // Get active discount from provider
+    ref.watch(productProvider);
 
-    final finalPrice = ref
-        .read(productProvider.notifier)
-        .getDiscountedPrice(product);
+    // Get product prices
+    final productNotifier = ref.watch(productProvider.notifier);
+    final finalPrice = productNotifier.getTotalPrice(product);
 
     return Expanded(
       flex: 3,
@@ -130,25 +129,21 @@ class ProductOption extends ConsumerWidget {
                     ),
 
                     // Display product options or additional info
-                    if (product.option != null) ...[
+                    if (product.option != null && product.id != null) ...[
                       const SizedBox(height: 16),
-                      Text(
-                        'Product Options',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      OptionPreview(
+                        option: product.option!,
+                        productId: product.id!,
                       ),
-                      const SizedBox(height: 8),
-                      OptionPreview(option: product.option!),
                     ],
 
                     // Show available discounts if any
-                    if (hasMultipleDiscounts) ...[
+                    if (hasMultipleDiscounts && product.id != null) ...[
                       const SizedBox(height: 16),
                       Text(
                         'Available Discounts',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -168,21 +163,20 @@ class ProductOption extends ConsumerWidget {
                             final discountAmount = discount.total ?? 0;
                             final needsPin = discount.discountPin == true;
 
+                            // Check if this discount is active
+                            final isActive = productNotifier
+                                .hasSpecificDiscount(
+                                  product.id!,
+                                  discount.id ?? -1,
+                                );
+
                             return GestureDetector(
                               onTap: () {
-                                if (product.id != null) {
-                                  // First make sure this product is selected
-                                  ref
-                                      .read(productProvider.notifier)
-                                      .selectProduct(product.id!);
-                                  // Then apply the discount
-                                  ref
-                                      .read(productProvider.notifier)
-                                      .applyDiscountToProduct(
-                                        product.id!,
-                                        discount,
-                                      );
-                                }
+                                // Toggle the discount
+                                productNotifier.toggleProductDiscount(
+                                  product.id!,
+                                  discount,
+                                );
                               },
                               child: Container(
                                 margin: const EdgeInsets.only(right: 8),
@@ -192,7 +186,7 @@ class ProductOption extends ConsumerWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color:
-                                      discount == activeDiscount
+                                      isActive
                                           ? theme.colorScheme.errorContainer
                                           : theme.colorScheme.surfaceContainer,
                                   borderRadius: BorderRadius.circular(8),
@@ -210,7 +204,7 @@ class ProductOption extends ConsumerWidget {
                                               ?.copyWith(
                                                 fontWeight: FontWeight.bold,
                                                 color:
-                                                    discount == activeDiscount
+                                                    isActive
                                                         ? theme
                                                             .colorScheme
                                                             .error
@@ -225,7 +219,7 @@ class ProductOption extends ConsumerWidget {
                                             Icons.lock,
                                             size: 12,
                                             color:
-                                                discount == activeDiscount
+                                                isActive
                                                     ? theme.colorScheme.error
                                                     : theme
                                                         .colorScheme
@@ -270,70 +264,41 @@ class ProductOption extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             // Price section
-            if (activeDiscount != null) ...[
-              Row(
+            Container(
+              height: 60,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    currencyFormatter.format(product.productsPrice),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      decoration: TextDecoration.lineThrough,
-                      color: theme.colorScheme.onSurfaceVariant,
+                    currencyFormatter.format(finalPrice),
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                      height: 1.3,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                  const Spacer(),
+                  if (product.sold != null && product.sold! > 0) ...[
+                    Icon(
+                      Icons.shopping_bag_outlined,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.errorContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      activeDiscount.total != null &&
-                              activeDiscount.total is num &&
-                              product.productsPrice != null
-                          ? '${((activeDiscount.total as num).toDouble() / product.productsPrice! * 100).toStringAsFixed(0)}% OFF'
-                          : 'DISCOUNT',
+                    const SizedBox(width: 4),
+                    Text(
+                      '${product.sold} sold',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.error,
-                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 4),
-            ],
-
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  currencyFormatter.format(finalPrice),
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
-                    height: 1.3,
-                  ),
-                ),
-                const Spacer(),
-                if (product.sold != null && product.sold! > 0) ...[
-                  Icon(
-                    Icons.shopping_bag_outlined,
-                    size: 16,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${product.sold} sold',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ],
             ),
           ],
         ),
