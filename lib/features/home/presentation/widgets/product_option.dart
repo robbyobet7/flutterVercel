@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/models/product.dart';
-import 'package:rebill_flutter/core/providers/product_providers.dart';
+import 'package:rebill_flutter/core/providers/product_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/option_preview.dart';
 
@@ -13,6 +13,13 @@ class ProductOption extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Select this product when the widget builds
+    if (product.id != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(productProvider.notifier).selectProduct(product.id!);
+      });
+    }
+
     final theme = Theme.of(context);
     final currencyFormatter = NumberFormat.currency(
       locale: 'id',
@@ -27,21 +34,11 @@ class ProductOption extends ConsumerWidget {
 
     // Get active discount from provider or product
     final activeDiscount =
-        ref.watch(activeDiscountProvider) ?? product.activeDiscount;
+        ref.watch(productProvider).activeDiscounts[product.id];
 
-    // Calculate the final price based on the active discount
-    double finalPrice =
-        product.productsPrice != null ? product.productsPrice! : 0;
-    if (activeDiscount != null && activeDiscount.total != null) {
-      finalPrice = finalPrice - (activeDiscount.total as num).toDouble();
-    } else {
-      finalPrice = product.defaultPrice;
-    }
-
-    // Update the final price provider with the new value
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(finalPriceProvider.notifier).update((state) => finalPrice);
-    });
+    final finalPrice = ref
+        .read(productProvider.notifier)
+        .getDiscountedPrice(product);
 
     return Expanded(
       flex: 3,
@@ -173,9 +170,19 @@ class ProductOption extends ConsumerWidget {
 
                             return GestureDetector(
                               onTap: () {
-                                ref
-                                    .read(activeDiscountProvider.notifier)
-                                    .state = discount;
+                                if (product.id != null) {
+                                  // First make sure this product is selected
+                                  ref
+                                      .read(productProvider.notifier)
+                                      .selectProduct(product.id!);
+                                  // Then apply the discount
+                                  ref
+                                      .read(productProvider.notifier)
+                                      .applyDiscountToProduct(
+                                        product.id!,
+                                        discount,
+                                      );
+                                }
                               },
                               child: Container(
                                 margin: const EdgeInsets.only(right: 8),
@@ -263,7 +270,7 @@ class ProductOption extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             // Price section
-            if (product.discountAmount > 0) ...[
+            if (activeDiscount != null) ...[
               Row(
                 children: [
                   Text(
@@ -284,9 +291,10 @@ class ProductOption extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      product.productsPrice != null &&
-                              product.productsPrice! > 0
-                          ? '${(product.discountAmount / product.productsPrice! * 100).toStringAsFixed(0)}% OFF'
+                      activeDiscount.total != null &&
+                              activeDiscount.total is num &&
+                              product.productsPrice != null
+                          ? '${((activeDiscount.total as num).toDouble() / product.productsPrice! * 100).toStringAsFixed(0)}% OFF'
                           : 'DISCOUNT',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.error,

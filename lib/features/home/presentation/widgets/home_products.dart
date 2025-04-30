@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/features/home/providers/category_mode_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
-import 'package:rebill_flutter/core/providers/product_providers.dart';
+import 'package:rebill_flutter/core/providers/products_providers.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/categories_grid.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/products_grid.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';

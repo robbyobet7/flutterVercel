@@ -160,24 +160,9 @@ class Product {
   // Helper to check if product is in stock
   bool get isInStock => hasInfiniteStock || availableStock > 0;
 
-  // Helper to get actual discount amount
-  int get discountAmount {
-    if (productsDiscount != null && productsDiscount! > 0) {
-      return activeDiscount?.total;
-    }
-    return 0;
-  }
-
   // Get the final price after discount
   double get defaultPrice {
-    if (productsPrice == null) return 0;
-    return productsPrice! - discountAmount;
-  }
-
-  ProductDiscount? get activeDiscount {
-    return multipleDiscounts?.firstWhere(
-      (discount) => discount.id == discountId,
-    );
+    return productsPrice ?? 0;
   }
 }
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
-import 'package:rebill_flutter/core/providers/product_providers.dart';
+import 'package:rebill_flutter/core/providers/products_providers.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/product_card.dart';
 
 class ProductsGrid extends ConsumerWidget {
