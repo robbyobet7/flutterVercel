@@ -97,3 +97,8 @@ final availableCategoriesProvider = FutureProvider<List<String>>((ref) async {
 
   return categories.toList()..sort();
 });
+
+// Provider for the active discount
+final activeDiscountProvider = StateProvider<ProductDiscount?>((ref) => null);
+
+final finalPriceProvider = StateProvider<double?>((ref) => null);

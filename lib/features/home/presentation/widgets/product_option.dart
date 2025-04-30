@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/models/product.dart';
+import 'package:rebill_flutter/core/providers/product_providers.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/option_preview.dart';
 
-class ProductOption extends StatelessWidget {
+class ProductOption extends ConsumerWidget {
   const ProductOption({super.key, required this.product});
 
   final Product product;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final currencyFormatter = NumberFormat.currency(
       locale: 'id',
@@ -22,6 +24,24 @@ class ProductOption extends StatelessWidget {
     final hasMultipleDiscounts =
         product.multipleDiscounts != null &&
         product.multipleDiscounts!.isNotEmpty;
+
+    // Get active discount from provider or product
+    final activeDiscount =
+        ref.watch(activeDiscountProvider) ?? product.activeDiscount;
+
+    // Calculate the final price based on the active discount
+    double finalPrice =
+        product.productsPrice != null ? product.productsPrice! : 0;
+    if (activeDiscount != null && activeDiscount.total != null) {
+      finalPrice = finalPrice - (activeDiscount.total as num).toDouble();
+    } else {
+      finalPrice = product.defaultPrice;
+    }
+
+    // Update the final price provider with the new value
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(finalPriceProvider.notifier).update((state) => finalPrice);
+    });
 
     return Expanded(
       flex: 3,
@@ -143,73 +163,94 @@ class ProductOption extends StatelessWidget {
                           physics: const BouncingScrollPhysics(
                             parent: AlwaysScrollableScrollPhysics(),
                           ),
-                          itemCount: product.multipleDiscounts!.length.clamp(
-                            0,
-                            3,
-                          ),
+                          itemCount: product.multipleDiscounts!.length,
                           itemBuilder: (context, index) {
                             final discount = product.multipleDiscounts![index];
                             final discountName =
-                                discount['discount_name'] ?? 'Discount';
-                            final discountAmount =
-                                discount['products_discount'] ?? 0;
-                            final needsPin = discount['discount_pin'] == true;
+                                discount.discountName ?? 'Discount';
+                            final discountAmount = discount.total ?? 0;
+                            final needsPin = discount.discountPin == true;
 
-                            return Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.errorContainer,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        discountName,
-                                        style: theme.textTheme.labelSmall
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              color: theme.colorScheme.error,
-                                            ),
-                                      ),
-                                      if (needsPin) ...[
-                                        const SizedBox(width: 4),
+                            return GestureDetector(
+                              onTap: () {
+                                ref
+                                    .read(activeDiscountProvider.notifier)
+                                    .state = discount;
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      discount == activeDiscount
+                                          ? theme.colorScheme.errorContainer
+                                          : theme.colorScheme.surfaceContainer,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          discountName,
+                                          style: theme.textTheme.labelSmall
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                color:
+                                                    discount == activeDiscount
+                                                        ? theme
+                                                            .colorScheme
+                                                            .error
+                                                        : theme
+                                                            .colorScheme
+                                                            .onSurface,
+                                              ),
+                                        ),
+                                        if (needsPin) ...[
+                                          const SizedBox(width: 4),
+                                          Icon(
+                                            Icons.lock,
+                                            size: 12,
+                                            color:
+                                                discount == activeDiscount
+                                                    ? theme.colorScheme.error
+                                                    : theme
+                                                        .colorScheme
+                                                        .onSurface,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
                                         Icon(
-                                          Icons.lock,
+                                          Icons.discount,
                                           size: 12,
-                                          color: theme.colorScheme.error,
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          currencyFormatter.format(
+                                            discountAmount,
+                                          ),
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                         ),
                                       ],
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.discount,
-                                        size: 12,
-                                        color: theme.colorScheme.onSurface,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        currencyFormatter.format(
-                                          discountAmount,
-                                        ),
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },
@@ -262,7 +303,7 @@ class ProductOption extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  currencyFormatter.format(product.finalPrice),
+                  currencyFormatter.format(finalPrice),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.primary,

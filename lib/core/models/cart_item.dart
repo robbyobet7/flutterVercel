@@ -21,7 +21,7 @@ class CartItem {
   double get basePrice => product.productsPrice ?? 0;
 
   // Calculate the price after applying product discounts
-  double get discountedPrice => product.finalPrice;
+  double get discountedPrice => product.defaultPrice;
 
   // Calculate the tax for this item
   double get tax => (product.tax ?? 0) * quantity;

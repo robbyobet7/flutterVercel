@@ -23,7 +23,7 @@ class Product {
   final int? discountRules;
   final int? discountId;
   final bool? discountPin;
-  final List<dynamic>? multipleDiscounts;
+  final List<ProductDiscount>? multipleDiscounts;
   final String? option;
   final String type;
   final String? productImage;
@@ -85,7 +85,16 @@ class Product {
       discountRules: json['discount_rules'],
       discountId: json['discount_id'],
       discountPin: json['discount_pin'],
-      multipleDiscounts: json['multipleDiscounts'],
+      multipleDiscounts:
+          json['multipleDiscounts'] != null
+              ? List<ProductDiscount>.from(
+                (json['multipleDiscounts'] as List).map(
+                  (discount) => ProductDiscount.fromJson(
+                    discount as Map<String, dynamic>,
+                  ),
+                ),
+              )
+              : null,
       option: json['option'],
       type: json['type'] ?? 'product',
       productImage: json['product_image'],
@@ -123,7 +132,8 @@ class Product {
     if (discountId != null) data['discount_id'] = discountId;
     if (discountPin != null) data['discount_pin'] = discountPin;
     if (multipleDiscounts != null) {
-      data['multipleDiscounts'] = multipleDiscounts;
+      data['multipleDiscounts'] =
+          multipleDiscounts!.map((discount) => discount.toJson()).toList();
     }
     if (option != null) data['option'] = option;
     data['type'] = type;
@@ -151,17 +161,23 @@ class Product {
   bool get isInStock => hasInfiniteStock || availableStock > 0;
 
   // Helper to get actual discount amount
-  double get discountAmount {
+  int get discountAmount {
     if (productsDiscount != null && productsDiscount! > 0) {
-      return productsDiscount!;
+      return activeDiscount?.total;
     }
     return 0;
   }
 
   // Get the final price after discount
-  double get finalPrice {
+  double get defaultPrice {
     if (productsPrice == null) return 0;
     return productsPrice! - discountAmount;
+  }
+
+  ProductDiscount? get activeDiscount {
+    return multipleDiscounts?.firstWhere(
+      (discount) => discount.id == discountId,
+    );
   }
 }
 
