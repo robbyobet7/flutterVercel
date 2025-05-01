@@ -239,8 +239,9 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                                                   'name': product.productsName,
                                                   'price':
                                                       product.productsPrice,
+                                                  'isComplimentary': true,
                                                 },
-                                                'complimentary',
+                                                'option',
                                               );
                                           Navigator.of(context).pop();
                                         },

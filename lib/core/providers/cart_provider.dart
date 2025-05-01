@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/cart_item.dart';
-import 'package:rebill_flutter/core/models/product.dart';
+import 'package:rebill_flutter/core/models/customized_product.dart';
 
 /// Class representing the full state of a cart
 class CartState {
@@ -99,14 +99,14 @@ class CartNotifier extends StateNotifier<CartState> {
 
   // Add a product to the cart with specified quantity, notes, and options
   void addProduct({
-    required Product product,
+    required CustomizedProduct customizedProduct,
     required int quantity,
     String? notes,
     Map<String, dynamic>? selectedOptions,
     Set<String>? selectedExtras,
   }) {
     final cartItem = CartItem(
-      product: product,
+      customizedProduct: customizedProduct,
       quantity: quantity,
       notes: notes,
       selectedOptions: selectedOptions,
@@ -144,7 +144,7 @@ class CartNotifier extends StateNotifier<CartState> {
     final item = items[index];
 
     // Check if incrementing would exceed available stock
-    final product = item.product;
+    final product = item.customizedProduct.product;
     if (!product.hasInfiniteStock && item.quantity >= product.availableStock) {
       return; // Don't increment beyond available stock
     }
@@ -181,7 +181,7 @@ class CartNotifier extends StateNotifier<CartState> {
     final item = items[index];
 
     // Check if the new quantity exceeds available stock
-    final product = item.product;
+    final product = item.customizedProduct.product;
     if (!product.hasInfiniteStock && quantity > product.availableStock) {
       quantity = product.availableStock;
     }

@@ -51,7 +51,7 @@ class Bill extends ConsumerWidget {
                     children: [
                       Expanded(child: Text('Bill No.')),
                       Text(': '),
-                      Expanded(flex: 2, child: Text('1234-567890')),
+                      Expanded(flex: 2, child: Text('1234-467890')),
                     ],
                   ),
                 ],
@@ -79,7 +79,7 @@ class Bill extends ConsumerWidget {
                     child: Row(
                       children: [
                         Expanded(
-                          flex: 2,
+                          flex: 3,
                           child: Text(
                             'Name',
                             style: theme.textTheme.bodyMedium?.copyWith(
@@ -89,7 +89,7 @@ class Bill extends ConsumerWidget {
                           ),
                         ),
                         Expanded(
-                          flex: 2,
+                          flex: 3,
                           child: Text(
                             'Qty',
                             style: theme.textTheme.bodyMedium?.copyWith(
@@ -124,23 +124,107 @@ class Bill extends ConsumerWidget {
                             horizontal: 12,
                           ),
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                flex: 2,
+                                flex: 3,
                                 child: Tooltip(
                                   message:
-                                      item.product.productsName ??
+                                      item
+                                          .customizedProduct
+                                          .product
+                                          .productsName ??
                                       'Unnamed Product',
-                                  child: Text(
-                                    item.product.productsName ??
-                                        'Unnamed Product',
-                                    style: theme.textTheme.bodyMedium,
-                                    overflow: TextOverflow.ellipsis,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item
+                                                .customizedProduct
+                                                .product
+                                                .productsName ??
+                                            'Unnamed Product',
+                                        style: theme.textTheme.bodyMedium,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      if (item.customizedProduct.discount !=
+                                          null)
+                                        Container(
+                                          width: double.infinity,
+                                          child: Row(
+                                            spacing: 2,
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  '${item.customizedProduct.discount!.discountName!} (-${currencyFormatter.format(item.customizedProduct.discount!.total)})',
+                                                  style: theme
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(fontSize: 8),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
+                                      if (item.customizedProduct.options !=
+                                          null)
+                                        Container(
+                                          constraints: BoxConstraints(
+                                            maxWidth: double.infinity,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children:
+                                                item.customizedProduct.options!.entries.map((
+                                                  option,
+                                                ) {
+                                                  final isComplimentary =
+                                                      option
+                                                          .value['isComplimentary'] ==
+                                                      true;
+                                                  return Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          isComplimentary
+                                                              ? '${option.value['name']} (FREE)'
+                                                              : '${option.value['name']} (+${option.value['price']})',
+                                                          style: theme
+                                                              .textTheme
+                                                              .bodySmall
+                                                              ?.copyWith(
+                                                                fontSize: 8,
+                                                                color:
+                                                                    isComplimentary
+                                                                        ? theme
+                                                                            .colorScheme
+                                                                            .primary
+                                                                        : null,
+                                                              ),
+                                                          maxLines: 1,
+                                                          overflow:
+                                                              TextOverflow
+                                                                  .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                }).toList(),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ),
                               Expanded(
-                                flex: 2,
+                                flex: 3,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [

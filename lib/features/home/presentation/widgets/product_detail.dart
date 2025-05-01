@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
+import 'package:rebill_flutter/core/providers/product_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 
@@ -135,19 +136,38 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
 
   // Add the current product to cart
   void _addToCart() {
-    ref
-        .read(cartProvider.notifier)
-        .addProduct(
-          product: widget.product,
-          quantity: _quantity,
-          notes:
-              _notesController.text.isNotEmpty ? _notesController.text : null,
-          selectedOptions:
-              _selectedOptions.isNotEmpty ? _selectedOptions : null,
-          selectedExtras: _selectedExtras.isNotEmpty ? _selectedExtras : null,
-        );
+    try {
+      final customizedProduct = ref
+          .read(productProvider.notifier)
+          .getProductCustomizationData(
+            widget.product.id!,
+            fallbackProduct: widget.product,
+          );
 
-    Navigator.pop(context);
+      if (customizedProduct != null) {
+        print(customizedProduct.options);
+
+        ref
+            .read(cartProvider.notifier)
+            .addProduct(
+              customizedProduct: customizedProduct,
+              quantity: _quantity,
+              notes:
+                  _notesController.text.isNotEmpty
+                      ? _notesController.text
+                      : null,
+              selectedOptions:
+                  _selectedOptions.isNotEmpty ? _selectedOptions : null,
+              selectedExtras:
+                  _selectedExtras.isNotEmpty ? _selectedExtras : null,
+            );
+        Navigator.pop(context);
+      } else {
+        print('Failed to get customized product data');
+      }
+    } catch (e) {
+      print('Error adding to cart: $e');
+    }
   }
 
   Widget _buildProductImage() {

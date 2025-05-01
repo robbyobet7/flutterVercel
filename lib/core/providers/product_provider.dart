@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/models/customized_product.dart';
 import 'dart:convert';
 import '../models/product.dart';
 import 'package:intl/intl.dart';
@@ -64,8 +65,25 @@ class ProductNotifier extends StateNotifier<ProductState> {
   // Get a product by ID
   Product? getProductById(int id) {
     try {
-      return state.products.firstWhere((product) => product.id == id);
+      if (state.products.isEmpty) {
+        print(
+          'getProductById: Product list is empty. Cannot find product with ID $id',
+        );
+        return null;
+      }
+
+      try {
+        return state.products.firstWhere((product) => product.id == id);
+      } catch (e) {
+        // Log available product IDs for debugging
+        final availableIds = state.products.map((p) => p.id).toList();
+        print(
+          'getProductById: Product with ID $id not found. Available product IDs: $availableIds',
+        );
+        return null;
+      }
     } catch (e) {
+      print('getProductById: Error finding product with ID $id: $e');
       return null;
     }
   }
@@ -437,7 +455,10 @@ class ProductNotifier extends StateNotifier<ProductState> {
         if (option.type == 'option' && option.value is Map) {
           // For dropdown options
           final optionPrice = option.value['price'];
-          if (optionPrice != null) {
+          final isComplimentary = option.value['isComplimentary'] == true;
+
+          // Skip adding price for complimentary items
+          if (optionPrice != null && !isComplimentary) {
             double priceToAdd = 0;
             if (optionPrice is int) {
               priceToAdd = optionPrice.toDouble();
@@ -680,7 +701,10 @@ class ProductNotifier extends StateNotifier<ProductState> {
       if (option.type == 'option' && option.value is Map) {
         // For dropdown options
         final optionPrice = option.value['price'];
-        if (optionPrice != null) {
+        final isComplimentary = option.value['isComplimentary'] == true;
+
+        // Skip adding price for complimentary items
+        if (optionPrice != null && !isComplimentary) {
           double priceToAdd = 0;
           if (optionPrice is int) {
             priceToAdd = optionPrice.toDouble();
@@ -967,14 +991,61 @@ class ProductNotifier extends StateNotifier<ProductState> {
     return state.activeDiscounts[productId];
   }
 
+  // Verify if a product with the given ID exists in the state
+  bool hasProduct(int id) {
+    if (state.products.isEmpty) {
+      print('hasProduct: Product list is empty');
+      return false;
+    }
+
+    final exists = state.products.any((product) => product.id == id);
+    if (!exists) {
+      final availableIds = state.products.map((p) => p.id).toList();
+      print(
+        'hasProduct: Product with ID $id not found. Available IDs: $availableIds',
+      );
+    }
+
+    return exists;
+  }
+
   // Get all customization data for a product (useful for cart operations)
-  Map<String, dynamic> getProductCustomizationData(int productId) {
-    final customizationData = <String, dynamic>{};
+  // This is a safer version that can use a provided product if the ID lookup fails
+  CustomizedProduct? getProductCustomizationData(
+    int productId, {
+    Product? fallbackProduct,
+  }) {
+    // Get the product first
+    Product? product = getProductById(productId);
+
+    // If product not found by ID, use the fallback if provided
+    if (product == null) {
+      print('Product with ID $productId not found in state');
+      if (fallbackProduct != null && fallbackProduct.id == productId) {
+        print(
+          'Using fallback product for ID $productId: ${fallbackProduct.productsName}',
+        );
+        product = fallbackProduct;
+      } else {
+        return null;
+      }
+    }
+
+    // Calculate pricing information
+    final basePrice = product.productsPrice ?? 0.0;
+    final discountedPrice = getDiscountedPrice(product);
+    final optionsPrice = getOptionsPrice(product);
+    final totalPrice = getTotalPrice(product);
+
+    // Get discount if any
+    final discount = getActiveDiscount(productId);
 
     // Get selected options
     final options = getSelectedOptions(productId);
+    Map<String, dynamic>? optionsData;
+
     if (options.isNotEmpty) {
-      final optionsData = <String, dynamic>{};
+      optionsData = <String, dynamic>{};
 
       for (final entry in options.entries) {
         final optionId = entry.key;
@@ -988,32 +1059,19 @@ class ProductNotifier extends StateNotifier<ProductState> {
           optionsData[optionId] = option.value;
         }
       }
-
-      customizationData['options'] = optionsData;
     }
 
-    // Get active discount
-    final discount = getActiveDiscount(productId);
-    if (discount != null) {
-      customizationData['discount'] = {
-        'id': discount.id,
-        'name': discount.discountName,
-        'type': discount.discountType,
-        'amount': discount.amount,
-        'total': discount.total,
-      };
-    }
-
-    // Add pricing information
-    final product = getProductById(productId);
-    if (product != null) {
-      customizationData['basePrice'] = product.productsPrice;
-      customizationData['discountedPrice'] = getDiscountedPrice(product);
-      customizationData['optionsPrice'] = getOptionsPrice(product);
-      customizationData['totalPrice'] = getTotalPrice(product);
-    }
-
-    return customizationData;
+    // Create and return the CustomizedProduct
+    return CustomizedProduct(
+      id: productId,
+      basePrice: basePrice,
+      optionsPrice: optionsPrice > 0 ? optionsPrice : null,
+      discountedPrice: discountedPrice != basePrice ? discountedPrice : null,
+      totalPrice: totalPrice,
+      discount: discount,
+      options: optionsData,
+      product: product,
+    );
   }
 
   // Check if a product has any customizations (options or discounts)
