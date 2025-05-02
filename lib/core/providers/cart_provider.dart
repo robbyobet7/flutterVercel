@@ -43,10 +43,8 @@ class CartState {
   double get totalProductDiscount {
     return items.fold(0, (sum, item) {
       // Calculate discount for this item by comparing base price and total price
-      double itemBasePrice = item.customizedProduct.basePrice;
-      double itemTotalPrice = item.customizedProduct.totalPrice;
       double discountPerItem =
-          itemBasePrice > itemTotalPrice ? itemBasePrice - itemTotalPrice : 0;
+          item.customizedProduct.discount?.total.toDouble() ?? 0.0;
       return sum + (discountPerItem * item.quantity);
     });
   }
