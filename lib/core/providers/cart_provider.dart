@@ -37,6 +37,20 @@ class CartState {
     return (subtotal + serviceFee) * (taxPercentage / 100);
   }
 
+  //here
+
+  // Calculate the total product discount of all items in cart
+  double get totalProductDiscount {
+    return items.fold(0, (sum, item) {
+      // Calculate discount for this item by comparing base price and total price
+      double itemBasePrice = item.customizedProduct.basePrice;
+      double itemTotalPrice = item.customizedProduct.totalPrice;
+      double discountPerItem =
+          itemBasePrice > itemTotalPrice ? itemBasePrice - itemTotalPrice : 0;
+      return sum + (discountPerItem * item.quantity);
+    });
+  }
+
   // Calculate any additional discount
   double get discountAmount {
     if (additionalDiscount == null) return 0;
@@ -85,7 +99,10 @@ class CartNotifier extends StateNotifier<CartState> {
     final index = items.indexWhere(
       (cartItem) =>
           cartItem == item &&
-          cartItem.customizedProduct.options == item.customizedProduct.options,
+          cartItem.customizedProduct.options ==
+              item.customizedProduct.options &&
+          cartItem.customizedProduct.discount ==
+              item.customizedProduct.discount,
     );
 
     if (index >= 0) {
@@ -260,4 +277,9 @@ final cartDiscountProvider = Provider<double>((ref) {
 // Provider for the cart grand total
 final cartTotalProvider = Provider<double>((ref) {
   return ref.watch(cartProvider).total;
+});
+
+// Provider for the total product discount
+final cartProductDiscountProvider = Provider<double>((ref) {
+  return ref.watch(cartProvider).totalProductDiscount;
 });

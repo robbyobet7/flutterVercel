@@ -28,6 +28,7 @@ class Bill extends ConsumerWidget {
     final roundingAmount =
         roundUpToThousand(totalBeforeRounding) - totalBeforeRounding;
     final total = totalBeforeRounding + roundingAmount;
+    final totalDiscount = cart.totalProductDiscount;
 
     return Expanded(
       child: SingleChildScrollView(
@@ -342,6 +343,26 @@ class Bill extends ConsumerWidget {
                     padding: const EdgeInsets.all(12),
                     child: Column(
                       children: [
+                        // Discounts row
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Product Discounts',
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                              Text(
+                                "-${currencyFormatter.format(totalDiscount)}",
+                                style: theme.textTheme.bodyMedium,
+                                textAlign: TextAlign.right,
+                              ),
+                            ],
+                          ),
+                        ),
+
                         // Subtotal row
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
