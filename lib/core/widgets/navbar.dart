@@ -78,7 +78,7 @@ class Navbar extends ConsumerWidget {
                             children: [
                               Icon(
                                 Icons.print_rounded,
-                                color: theme.colorScheme.primary,
+                                color: theme.colorScheme.onSurface,
                                 size: 20,
                               ),
                               const SizedBox(width: 12),
@@ -99,11 +99,7 @@ class Navbar extends ConsumerWidget {
                                 Theme.of(context).brightness == Brightness.dark
                                     ? Icons.light_mode_rounded
                                     : Icons.dark_mode_rounded,
-                                color:
-                                    Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? Colors.amber
-                                        : Colors.indigo,
+                                color: theme.colorScheme.onSurface,
                                 size: 20,
                               ),
                               const SizedBox(width: 12),
@@ -119,11 +115,11 @@ class Navbar extends ConsumerWidget {
                           ),
                         ),
                         PopupMenuItem<String>(
-                          height: 1, // Minimal height
+                          height: .5, // Minimal height
                           enabled: false,
                           child: Divider(
                             color: theme.colorScheme.outlineVariant,
-                            height: 1,
+                            height: .5,
                           ),
                         ),
                         PopupMenuItem<String>(
@@ -213,7 +209,7 @@ class _NavFeaturesState extends State<NavFeatures> {
         builder: (context, constraints) {
           // Calculate if scrolling is needed
           final double totalWidth =
-              _features.length * 68.0; // 60 width + 8 margin
+              _features.length * 120.0; // 60 width + 8 margin
           final bool needsScrolling = totalWidth > constraints.maxWidth;
 
           if (needsScrolling) {

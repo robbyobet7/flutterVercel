@@ -18,12 +18,14 @@ class AppTheme {
     brightness: Brightness.light,
     primaryColor: Colors.blue,
     colorScheme: ColorScheme.light(
-      primary: const Color(0xFF353DF4),
+      primary: const Color(0xFF598DFF),
       surfaceContainer: const Color(0xFFF4F4F4),
       onSurfaceVariant: const Color(0xFF776F70),
       // secondary: Colors.blueAccent,
       surface: Colors.white,
-      error: Colors.red,
+      error: const Color(0xFFE53935),
+      errorContainer: const Color(0xFFE53935).withOpacity(0.1),
+      primaryContainer: const Color(0xFF598DFF).withOpacity(0.2),
     ),
     scaffoldBackgroundColor: const Color(0xFFF1F4FD),
     appBarTheme: const AppBarTheme(
@@ -54,7 +56,7 @@ class AppTheme {
     brightness: Brightness.dark,
     primaryColor: const Color(0xFF2D33B0),
     colorScheme: ColorScheme.dark(
-      primary: const Color(0xFFFF8C00), // Deep Orange
+      primary: const Color(0xFF598DFF),
       secondary: const Color(0xFF5258FF),
       surface: const Color(0xFF1F1F2C),
       error: const Color(0xFFE53935),
