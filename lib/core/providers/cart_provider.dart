@@ -82,7 +82,11 @@ class CartNotifier extends StateNotifier<CartState> {
     final items = [...state.items];
 
     // Check if the item already exists in the cart
-    final index = items.indexWhere((cartItem) => cartItem == item);
+    final index = items.indexWhere(
+      (cartItem) =>
+          cartItem == item &&
+          cartItem.customizedProduct.options == item.customizedProduct.options,
+    );
 
     if (index >= 0) {
       // Update quantity if the item exists
