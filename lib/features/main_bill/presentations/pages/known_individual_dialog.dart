@@ -293,9 +293,9 @@ class KnownIndividualDialog extends ConsumerWidget {
                                     .setCustomerType(
                                       CustomerType.knownIndividual,
                                     );
-                                // ref
-                                //     .read(knownIndividualProvider.notifier)
-                                //     .setKnownIndividual(tempSelectedCustomer);
+                                ref
+                                    .read(knownIndividualProvider.notifier)
+                                    .setKnownIndividual(tempSelectedCustomer);
                                 Navigator.pop(context);
                               },
                       text: 'Select',

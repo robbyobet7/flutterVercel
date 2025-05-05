@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/models/customers.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
-import 'package:rebill_flutter/features/main_bill/models/customer.dart';
 
 class MainBillNotifier extends StateNotifier<MainBillComponent> {
   MainBillNotifier() : super(MainBillComponent.defaultComponent);
@@ -42,15 +42,15 @@ final billTypeProvider = StateNotifierProvider<BillTypeNotifier, BillType?>((
   return BillTypeNotifier();
 });
 
-class KnownIndividualNotifier extends StateNotifier<Customer?> {
+class KnownIndividualNotifier extends StateNotifier<CustomerModel?> {
   KnownIndividualNotifier() : super(null);
 
-  void setKnownIndividual(Customer? individual) {
+  void setKnownIndividual(CustomerModel? individual) {
     state = individual;
   }
 }
 
 final knownIndividualProvider =
-    StateNotifierProvider<KnownIndividualNotifier, Customer?>((ref) {
+    StateNotifierProvider<KnownIndividualNotifier, CustomerModel?>((ref) {
       return KnownIndividualNotifier();
     });

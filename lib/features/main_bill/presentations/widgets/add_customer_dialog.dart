@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/models/customers.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
-import 'package:rebill_flutter/features/main_bill/models/customer.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/pages/known_individual_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
@@ -44,17 +44,12 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
       // Create a new customer object
       // Note: address, city, and postCode aren't in the Customer model
       // We're storing address in email field temporarily for demonstration
-      final customer = Customer(
-        id:
-            _idController.text.isEmpty
-                ? 'CUS${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}'
-                : _idController.text,
-        name: _nameController.text,
-        email: _emailController.text,
+      final customer = CustomerModel(
+        customerId: 0,
+        customerName: _nameController.text,
+        emailSocial: _emailController.text,
         phone: _phoneController.text,
         affiliate: _affiliateController.text,
-        joinDate: DateTime.now().toString().split(' ')[0], // Current date
-        balance: '0.00', // Default balance
       );
 
       // Store additional fields in user metadata or extended profile
