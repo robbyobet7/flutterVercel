@@ -438,10 +438,26 @@ class BillModel {
     };
   }
 
-  // Parse a list of bills from JSON string
+  // Static method to parse bills from JSON string
   static List<BillModel> parseBills(String jsonString) {
-    final List<dynamic> jsonList = json.decode(jsonString);
-    return jsonList.map((json) => BillModel.fromJson(json)).toList();
+    try {
+      print('📄 Parsing bills JSON...');
+      final List<dynamic> parsed = jsonDecode(jsonString);
+      print('📊 JSON decoded successfully with ${parsed.length} entries');
+
+      return parsed.map<BillModel>((json) {
+        try {
+          return BillModel.fromJson(json);
+        } catch (e) {
+          print('⚠️ Error parsing individual bill: $e');
+          print('⚠️ Problem JSON: ${json['bill_id']}');
+          rethrow;
+        }
+      }).toList();
+    } catch (e) {
+      print('❌ Error parsing bills: $e');
+      return [];
+    }
   }
 
   // Helper methods
