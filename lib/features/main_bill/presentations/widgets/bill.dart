@@ -24,7 +24,8 @@ class Bill extends ConsumerWidget {
     final subtotal = cart.subtotal;
     final serviceFee = cart.serviceFee;
     final tax = cart.taxTotal;
-    final totalBeforeRounding = subtotal + serviceFee + tax;
+    final gratuity = cart.gratuity;
+    final totalBeforeRounding = subtotal + serviceFee + tax + gratuity;
     final roundingAmount =
         roundUpToThousand(totalBeforeRounding) - totalBeforeRounding;
     final total = totalBeforeRounding + roundingAmount;
@@ -129,28 +130,18 @@ class Bill extends ConsumerWidget {
                               Expanded(
                                 flex: 3,
                                 child: Tooltip(
-                                  message:
-                                      item
-                                          .customizedProduct
-                                          .product
-                                          .productsName ??
-                                      'Unnamed Product',
+                                  message: item.name,
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        item
-                                                .customizedProduct
-                                                .product
-                                                .productsName ??
-                                            'Unnamed Product',
+                                        item.name,
                                         style: theme.textTheme.bodyMedium,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      if (item.customizedProduct.discount !=
-                                          null)
+                                      if (item.discount > 0)
                                         Container(
                                           width: double.infinity,
                                           child: Row(
@@ -158,7 +149,7 @@ class Bill extends ConsumerWidget {
                                             children: [
                                               Expanded(
                                                 child: Text(
-                                                  '${item.customizedProduct.discount!.discountName!} (-${currencyFormatter.format(item.customizedProduct.discount!.total)})',
+                                                  '${item.discountName ?? "Discount"} (-${currencyFormatter.format(item.discount * item.quantity)})',
                                                   style: theme
                                                       .textTheme
                                                       .bodySmall
@@ -172,8 +163,8 @@ class Bill extends ConsumerWidget {
                                           ),
                                         ),
 
-                                      if (item.customizedProduct.options !=
-                                          null)
+                                      if (item.options != null &&
+                                          item.options!.isNotEmpty)
                                         Container(
                                           constraints: BoxConstraints(
                                             maxWidth: double.infinity,
@@ -182,20 +173,17 @@ class Bill extends ConsumerWidget {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children:
-                                                item.customizedProduct.options!.entries.map((
-                                                  option,
-                                                ) {
+                                                item.options!.map((option) {
                                                   final isComplimentary =
-                                                      option
-                                                          .value['isComplimentary'] ==
-                                                      true;
+                                                      option.type ==
+                                                      'complimentary';
                                                   return Row(
                                                     children: [
                                                       Expanded(
                                                         child: Text(
                                                           isComplimentary
-                                                              ? '${option.value['name']} (FREE)'
-                                                              : '${option.value['name']} (+${option.value['price']})',
+                                                              ? '${option.name} (FREE)'
+                                                              : '${option.name} (+${currencyFormatter.format(option.price)})',
                                                           style: theme
                                                               .textTheme
                                                               .bodySmall
@@ -217,6 +205,24 @@ class Bill extends ConsumerWidget {
                                                     ],
                                                   );
                                                 }).toList(),
+                                          ),
+                                        ),
+
+                                      if (item.productNotes != null &&
+                                          item.productNotes!.isNotEmpty)
+                                        Container(
+                                          constraints: BoxConstraints(
+                                            maxWidth: double.infinity,
+                                          ),
+                                          child: Text(
+                                            'Note: ${item.productNotes}',
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  fontSize: 8,
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                     ],
@@ -342,25 +348,26 @@ class Bill extends ConsumerWidget {
                     padding: const EdgeInsets.all(12),
                     child: Column(
                       children: [
-                        // // Discounts row
-                        // Padding(
-                        //   padding: const EdgeInsets.only(bottom: 8),
-                        //   child: Row(
-                        //     children: [
-                        //       Expanded(
-                        //         child: Text(
-                        //           'Product Discounts',
-                        //           style: theme.textTheme.bodyMedium,
-                        //         ),
-                        //       ),
-                        //       Text(
-                        //         "-${currencyFormatter.format(totalDiscount)}",
-                        //         style: theme.textTheme.bodyMedium,
-                        //         textAlign: TextAlign.right,
-                        //       ),
-                        //     ],
-                        //   ),
-                        // ),
+                        // Product Discounts row
+                        if (cart.totalProductDiscount > 0)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Product Discounts',
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ),
+                                Text(
+                                  "-${currencyFormatter.format(cart.totalProductDiscount)}",
+                                  style: theme.textTheme.bodyMedium,
+                                  textAlign: TextAlign.right,
+                                ),
+                              ],
+                            ),
+                          ),
 
                         // Subtotal row
                         Padding(
@@ -402,6 +409,27 @@ class Bill extends ConsumerWidget {
                           ),
                         ),
 
+                        // Gratuity row
+                        if (gratuity > 0)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Gratuity (${cart.gratuityPercentage.toStringAsFixed(0)}%)',
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ),
+                                Text(
+                                  currencyFormatter.format(gratuity),
+                                  style: theme.textTheme.bodyMedium,
+                                  textAlign: TextAlign.right,
+                                ),
+                              ],
+                            ),
+                          ),
+
                         // Tax row
                         if (tax > 0)
                           Padding(
@@ -424,7 +452,7 @@ class Bill extends ConsumerWidget {
                           ),
 
                         // Rounding row
-                        if (roundingAmount > 0)
+                        if (roundingAmount != 0)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Row(

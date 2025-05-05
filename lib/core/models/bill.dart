@@ -1,142 +1,7 @@
 import 'dart:convert';
-
-class OrderItem {
-  final int id;
-  final String name;
-  final double price;
-  final double quantity;
-  final String type;
-  final double purchprice;
-  final double includedtax;
-  final dynamic options;
-  final String category;
-  final dynamic categoryBillPrinter;
-  final String? productNotes;
-  final double originalPrice;
-  final double originalPurchprice;
-  final String? discountType;
-  final dynamic discountValue;
-  final double discount;
-  final String? discountName;
-  final dynamic discountProducts;
-  final dynamic discountRules;
-  final String? discountType2;
-  final dynamic discountId;
-  final String? productDiscountType;
-  final bool? isCashProductDiscount;
-  final double? totalDiscountRules;
-
-  OrderItem({
-    required this.id,
-    required this.name,
-    required this.price,
-    required this.quantity,
-    required this.type,
-    required this.purchprice,
-    required this.includedtax,
-    this.options,
-    required this.category,
-    this.categoryBillPrinter,
-    this.productNotes,
-    required this.originalPrice,
-    required this.originalPurchprice,
-    this.discountType,
-    this.discountValue,
-    this.discount = 0,
-    this.discountName,
-    this.discountProducts,
-    this.discountRules,
-    this.discountType2,
-    this.discountId,
-    this.productDiscountType,
-    this.isCashProductDiscount,
-    this.totalDiscountRules,
-  });
-
-  factory OrderItem.fromJson(Map<String, dynamic> json) {
-    return OrderItem(
-      id: json['id'],
-      name: json['name'],
-      price:
-          (json['price'] is int)
-              ? (json['price'] as int).toDouble()
-              : json['price'],
-      quantity:
-          (json['quantity'] is int)
-              ? (json['quantity'] as int).toDouble()
-              : json['quantity'],
-      type: json['type'],
-      purchprice:
-          (json['purchprice'] is int)
-              ? (json['purchprice'] as int).toDouble()
-              : json['purchprice'],
-      includedtax:
-          (json['includedtax'] is int)
-              ? (json['includedtax'] as int).toDouble()
-              : json['includedtax'] ?? 0,
-      options: json['options'],
-      category: json['category'],
-      categoryBillPrinter: json['category_bill_printer'],
-      productNotes: json['productNotes'],
-      originalPrice:
-          (json['original_price'] is int)
-              ? (json['original_price'] as int).toDouble()
-              : json['original_price'],
-      originalPurchprice:
-          (json['original_purchprice'] is int)
-              ? (json['original_purchprice'] as int).toDouble()
-              : json['original_purchprice'],
-      discountType: json['discount_type'],
-      discountValue: json['discount_value'],
-      discount:
-          (json['discount'] is int)
-              ? (json['discount'] as int).toDouble()
-              : (json['discount'] ?? 0).toDouble(),
-      discountName: json['discount_name'],
-      discountProducts: json['discount_products'],
-      discountRules: json['discount_rules'],
-      discountType2: json['discount_type2'],
-      discountId: json['discount_id'],
-      productDiscountType: json['productDiscountType'],
-      isCashProductDiscount: json['isCashProductDiscount'],
-      totalDiscountRules:
-          json['totaldiscountrules'] != null
-              ? (json['totaldiscountrules'] is int)
-                  ? (json['totaldiscountrules'] as int).toDouble()
-                  : json['totaldiscountrules']
-              : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'price': price,
-      'quantity': quantity,
-      'type': type,
-      'purchprice': purchprice,
-      'includedtax': includedtax,
-      'options': options,
-      'category': category,
-      'category_bill_printer': categoryBillPrinter,
-      'productNotes': productNotes,
-      'original_price': originalPrice,
-      'original_purchprice': originalPurchprice,
-      'discount_type': discountType,
-      'discount_value': discountValue,
-      'discount': discount,
-      'discount_name': discountName,
-      'discount_products': discountProducts,
-      'discount_rules': discountRules,
-      'discount_type2': discountType2,
-      'discount_id': discountId,
-      'productDiscountType': productDiscountType,
-      'isCashProductDiscount': isCashProductDiscount,
-      'totaldiscountrules': totalDiscountRules,
-    };
-  }
-}
+import 'package:rebill_flutter/core/models/cart_item.dart';
+import 'package:rebill_flutter/core/providers/cart_provider.dart';
+import 'package:flutter/services.dart';
 
 class RefundItem {
   final int id;
@@ -320,7 +185,7 @@ class BillModel {
   final dynamic tableName;
   final bool fromProcessBill;
   final Refund? refund;
-  final List<OrderItem>? items;
+  final List<CartItem>? items;
 
   BillModel({
     required this.billId,
@@ -389,12 +254,12 @@ class BillModel {
   });
 
   factory BillModel.fromJson(Map<String, dynamic> json) {
-    List<OrderItem>? orderItems;
+    List<CartItem>? orderItems;
     if (json['order_collection'] != null) {
       try {
         final List<dynamic> parsedItems = jsonDecode(json['order_collection']);
         orderItems =
-            parsedItems.map((item) => OrderItem.fromJson(item)).toList();
+            parsedItems.map((item) => CartItem.fromJson(item)).toList();
       } catch (e) {
         print('Error parsing order collection: $e');
       }
@@ -590,5 +455,42 @@ class BillModel {
     if (isRefunded) return 'Refunded';
     if (isPaid) return 'Paid';
     return 'Open';
+  }
+
+  // Add bill items to a cart
+  void addItemsToCart(CartNotifier cartNotifier) {
+    if (items != null && items!.isNotEmpty) {
+      for (var item in items!) {
+        cartNotifier.addItem(item);
+      }
+    } else if (orderCollection.isNotEmpty) {
+      cartNotifier.addItemsFromBill(orderCollection);
+    }
+
+    // Set tax, service fee, and gratuity percentages
+    double serviceFeePercent = double.tryParse(servicefee) ?? 5.0;
+    double taxPercent = double.tryParse(vat) ?? 10.0;
+    double gratuityPercent = double.tryParse(gratuity) ?? 0.0;
+
+    cartNotifier.updateServiceFeePercentage(serviceFeePercent);
+    cartNotifier.updateTaxPercentage(taxPercent);
+    cartNotifier.updateGratuityPercentage(gratuityPercent);
+  }
+
+  // Helper method to load a bill into cart
+  void loadIntoCart(CartNotifier cartNotifier) {
+    cartNotifier.loadBill(this);
+  }
+
+  // Static method to load bills from an asset file
+  static Future<List<BillModel>> loadBillsFromAsset(String assetPath) async {
+    try {
+      // Use AssetBundle to load the asset file content
+      final jsonString = await rootBundle.loadString(assetPath);
+      return parseBills(jsonString);
+    } catch (e) {
+      print('Error loading bills from asset: $e');
+      return [];
+    }
   }
 }

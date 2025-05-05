@@ -6,6 +6,7 @@ import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/product_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
+import 'package:rebill_flutter/core/models/cart_item.dart';
 
 import 'package:rebill_flutter/features/home/presentation/widgets/product_option.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
@@ -137,34 +138,81 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
   // Add the current product to cart
   void _addToCart() {
     try {
-      final customizedProduct = ref
-          .read(productProvider.notifier)
-          .getProductCustomizationData(
-            widget.product.id!,
-            fallbackProduct: widget.product,
+      // Convert product options to CartItemOption format if needed
+      List<CartItemOption>? productOptions;
+
+      if (_selectedOptions.isNotEmpty || _selectedExtras.isNotEmpty) {
+        productOptions = [];
+
+        // Add selected dropdown options
+        _selectedOptions.forEach((optionId, value) {
+          if (value is Map<String, dynamic>) {
+            productOptions!.add(
+              CartItemOption(
+                optionName: value['group'] ?? 'Option',
+                name: value['name'] ?? 'Unknown',
+                type: 'option',
+                price:
+                    value['price'] != null
+                        ? (value['price'] is int
+                            ? (value['price'] as int).toDouble()
+                            : (value['price'] as double))
+                        : 0.0,
+                purchPrice:
+                    value['purchPrice'] != null
+                        ? (value['purchPrice'] is int
+                            ? (value['purchPrice'] as int).toDouble()
+                            : (value['purchPrice'] as double))
+                        : 0.0,
+                relationItem: value['relation_item'],
+              ),
+            );
+          }
+        });
+
+        // Add selected extras (complimentary items)
+        _selectedExtras.forEach((extraId) {
+          // Get the extra details from the product configuration
+          try {
+            final options = json.decode(widget.product.option ?? '[]') as List;
+            for (var group in options) {
+              if (group['type'] == 'extra') {
+                final extras = group['options'] as List;
+                for (var extra in extras) {
+                  if (extra['uid'] == extraId) {
+                    productOptions!.add(
+                      CartItemOption(
+                        name: extra['name'] ?? 'Extra',
+                        type: 'complimentary',
+                        price: 0.0,
+                        purchPrice: 0.0,
+                        productId: extra['product_id'],
+                        productStock: extra['product_stock'],
+                        productType: extra['product_type'],
+                      ),
+                    );
+                    break;
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            print('Error processing extras: $e');
+          }
+        });
+      }
+
+      ref
+          .read(cartProvider.notifier)
+          .addProductFromProduct(
+            product: widget.product,
+            quantity: _quantity,
+            options: productOptions,
+            productNotes:
+                _notesController.text.isNotEmpty ? _notesController.text : null,
           );
 
-      if (customizedProduct != null) {
-        print(customizedProduct.options);
-
-        ref
-            .read(cartProvider.notifier)
-            .addProduct(
-              customizedProduct: customizedProduct,
-              quantity: _quantity,
-              notes:
-                  _notesController.text.isNotEmpty
-                      ? _notesController.text
-                      : null,
-              selectedOptions:
-                  _selectedOptions.isNotEmpty ? _selectedOptions : null,
-              selectedExtras:
-                  _selectedExtras.isNotEmpty ? _selectedExtras : null,
-            );
-        Navigator.pop(context);
-      } else {
-        print('Failed to get customized product data');
-      }
+      Navigator.pop(context);
     } catch (e) {
       print('Error adding to cart: $e');
     }

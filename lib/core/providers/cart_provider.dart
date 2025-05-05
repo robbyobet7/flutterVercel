@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/cart_item.dart';
-import 'package:rebill_flutter/core/models/customized_product.dart';
+import 'dart:convert';
+import 'package:rebill_flutter/core/models/product.dart';
+import 'package:rebill_flutter/core/models/bill.dart';
 
 /// Class representing the full state of a cart
 class CartState {
@@ -10,6 +12,7 @@ class CartState {
   final double serviceFeePercentage;
   final double taxPercentage;
   final bool taxIncluded;
+  final double gratuityPercentage;
 
   const CartState({
     this.items = const [],
@@ -18,6 +21,7 @@ class CartState {
     this.serviceFeePercentage = 5.0, // Default 5% service fee
     this.taxPercentage = 10.0, // Default 10% tax
     this.taxIncluded = false,
+    this.gratuityPercentage = 0.0, // Default 0% gratuity
   });
 
   // Calculate the subtotal of all items (before tax and service fee)
@@ -30,6 +34,11 @@ class CartState {
     return subtotal * (serviceFeePercentage / 100);
   }
 
+  // Calculate gratuity amount
+  double get gratuity {
+    return subtotal * (gratuityPercentage / 100);
+  }
+
   // Calculate the total tax (10% of (subtotal + service fee))
   double get taxTotal {
     if (taxIncluded)
@@ -37,16 +46,9 @@ class CartState {
     return (subtotal + serviceFee) * (taxPercentage / 100);
   }
 
-  //here
-
   // Calculate the total product discount of all items in cart
   double get totalProductDiscount {
-    return items.fold(0, (sum, item) {
-      // Calculate discount for this item by comparing base price and total price
-      double discountPerItem =
-          item.customizedProduct.discount?.total.toDouble() ?? 0.0;
-      return sum + (discountPerItem * item.quantity);
-    });
+    return items.fold(0, (sum, item) => sum + item.totalDiscountAmount);
   }
 
   // Calculate any additional discount
@@ -57,12 +59,12 @@ class CartState {
 
   // Calculate the grand total
   double get total {
-    return subtotal + serviceFee + taxTotal - discountAmount;
+    return subtotal + serviceFee + taxTotal + gratuity - discountAmount;
   }
 
   // Get the total number of items in the cart
   int get itemCount {
-    return items.fold(0, (sum, item) => sum + item.quantity);
+    return items.fold(0, (sum, item) => sum + item.quantity.toInt());
   }
 
   // Create a copy of the cart with updated properties
@@ -73,6 +75,7 @@ class CartState {
     double? serviceFeePercentage,
     double? taxPercentage,
     bool? taxIncluded,
+    double? gratuityPercentage,
   }) {
     return CartState(
       items: items ?? this.items,
@@ -81,6 +84,7 @@ class CartState {
       serviceFeePercentage: serviceFeePercentage ?? this.serviceFeePercentage,
       taxPercentage: taxPercentage ?? this.taxPercentage,
       taxIncluded: taxIncluded ?? this.taxIncluded,
+      gratuityPercentage: gratuityPercentage ?? this.gratuityPercentage,
     );
   }
 }
@@ -94,14 +98,7 @@ class CartNotifier extends StateNotifier<CartState> {
     final items = [...state.items];
 
     // Check if the item already exists in the cart
-    final index = items.indexWhere(
-      (cartItem) =>
-          cartItem == item &&
-          cartItem.customizedProduct.options ==
-              item.customizedProduct.options &&
-          cartItem.customizedProduct.discount ==
-              item.customizedProduct.discount,
-    );
+    final index = items.indexWhere((cartItem) => cartItem == item);
 
     if (index >= 0) {
       // Update quantity if the item exists
@@ -116,23 +113,76 @@ class CartNotifier extends StateNotifier<CartState> {
     state = state.copyWith(items: items);
   }
 
-  // Add a product to the cart with specified quantity, notes, and options
+  // Add a product to the cart directly
   void addProduct({
-    required CustomizedProduct customizedProduct,
-    required int quantity,
-    String? notes,
-    Map<String, dynamic>? selectedOptions,
-    Set<String>? selectedExtras,
+    required int id,
+    required String name,
+    required double price,
+    required double quantity,
+    required String type,
+    required double purchprice,
+    required double includedtax,
+    List<CartItemOption>? options,
+    required String category,
+    List<String>? categoryBillPrinter,
+    String? productNotes,
+    double? originalPrice,
+    double? originalPurchprice,
+    String? discountType,
+    dynamic discountValue,
+    double discount = 0,
+    String? discountName,
+    String? discountProducts,
+    dynamic discountRules,
+    String? discountType2,
+    dynamic discountId,
+    String? productDiscountType,
+    bool? isCashProductDiscount,
+    double? totalDiscountRules,
   }) {
     final cartItem = CartItem(
-      customizedProduct: customizedProduct,
+      id: id,
+      name: name,
+      price: price,
       quantity: quantity,
-      notes: notes,
-      selectedOptions: selectedOptions,
-      selectedExtras: selectedExtras,
+      type: type,
+      purchprice: purchprice,
+      includedtax: includedtax,
+      options: options,
+      category: category,
+      categoryBillPrinter: categoryBillPrinter,
+      productNotes: productNotes,
+      originalPrice: originalPrice ?? price,
+      originalPurchprice: originalPurchprice ?? purchprice,
+      discountType: discountType,
+      discountValue: discountValue,
+      discount: discount,
+      discountName: discountName,
+      discountProducts: discountProducts,
+      discountRules: discountRules,
+      discountType2: discountType2,
+      discountId: discountId,
+      productDiscountType: productDiscountType,
+      isCashProductDiscount: isCashProductDiscount,
+      totalDiscountRules: totalDiscountRules,
     );
 
     addItem(cartItem);
+  }
+
+  // Add cart items from bill JSON
+  void addItemsFromBill(String orderCollection) {
+    try {
+      final List<dynamic> parsedItems = jsonDecode(orderCollection);
+      final items = parsedItems.map((item) => CartItem.fromJson(item)).toList();
+
+      // Add each item to the current cart
+      for (var item in items) {
+        addItem(item);
+      }
+    } catch (e) {
+      print('Error parsing order collection: $e');
+    }
   }
 
   // Update an existing item in the cart
@@ -162,12 +212,6 @@ class CartNotifier extends StateNotifier<CartState> {
     final items = [...state.items];
     final item = items[index];
 
-    // Check if incrementing would exceed available stock
-    final product = item.customizedProduct.product;
-    if (!product.hasInfiniteStock && item.quantity >= product.availableStock) {
-      return; // Don't increment beyond available stock
-    }
-
     items[index] = item.copyWith(quantity: item.quantity + 1);
     state = state.copyWith(items: items);
   }
@@ -189,7 +233,7 @@ class CartNotifier extends StateNotifier<CartState> {
   }
 
   // Update the quantity of an item
-  void updateQuantity(int index, int quantity) {
+  void updateQuantity(int index, double quantity) {
     if (index < 0 || index >= state.items.length) return;
     if (quantity <= 0) {
       removeItem(index);
@@ -197,15 +241,7 @@ class CartNotifier extends StateNotifier<CartState> {
     }
 
     final items = [...state.items];
-    final item = items[index];
-
-    // Check if the new quantity exceeds available stock
-    final product = item.customizedProduct.product;
-    if (!product.hasInfiniteStock && quantity > product.availableStock) {
-      quantity = product.availableStock;
-    }
-
-    items[index] = item.copyWith(quantity: quantity);
+    items[index] = items[index].copyWith(quantity: quantity);
     state = state.copyWith(items: items);
   }
 
@@ -234,9 +270,151 @@ class CartNotifier extends StateNotifier<CartState> {
     state = state.copyWith(taxIncluded: included);
   }
 
+  // Update gratuity percentage
+  void updateGratuityPercentage(double percentage) {
+    state = state.copyWith(gratuityPercentage: percentage);
+  }
+
   // Clear all items from the cart
   void clearCart() {
     state = const CartState();
+  }
+
+  // Add a method to convert a Product to a CartItem
+  void addProductFromProduct({
+    required Product product,
+    required int quantity,
+    List<CartItemOption>? options,
+    String? productNotes,
+  }) {
+    final cartItem = CartItem(
+      id: product.id ?? 0,
+      name: product.productsName ?? 'Unknown',
+      price: product.productsPrice ?? 0,
+      quantity: quantity.toDouble(),
+      type: product.type,
+      purchprice: product.purchPrice ?? 0,
+      includedtax: product.tax ?? 0,
+      options: options,
+      category: product.productsType ?? 'Unknown',
+      productNotes: productNotes,
+      originalPrice: product.productsPrice ?? 0,
+      originalPurchprice: product.purchPrice ?? 0,
+    );
+
+    addItem(cartItem);
+  }
+
+  // Export cart items to JSON format for bill
+  String exportOrderCollection() {
+    return jsonEncode(state.items.map((item) => item.toJson()).toList());
+  }
+
+  // Add a method to load a BillModel directly into the cart
+  void loadBill(BillModel bill) {
+    // Clear existing cart
+    clearCart();
+
+    // Set tax and service fee percentages from the bill
+    double serviceFeePercent = double.tryParse(bill.servicefee) ?? 5.0;
+    double taxPercent = double.tryParse(bill.vat) ?? 10.0;
+    double gratuityPercent = double.tryParse(bill.gratuity) ?? 0.0;
+
+    updateServiceFeePercentage(serviceFeePercent);
+    updateTaxPercentage(taxPercent);
+    updateGratuityPercentage(gratuityPercent);
+
+    // Load items from bill
+    if (bill.items != null && bill.items!.isNotEmpty) {
+      // If bill has parsed items, add them directly
+      for (var item in bill.items!) {
+        addItem(item);
+      }
+    } else if (bill.orderCollection.isNotEmpty) {
+      // If bill only has order collection string, parse and add items
+      addItemsFromBill(bill.orderCollection);
+    }
+  }
+
+  // Create a new bill from the current cart state
+  BillModel createBill({
+    String customerName = 'Guest',
+    int? customerId,
+    String? customerPhone,
+    String delivery = 'direct',
+    int outletId = 1, // Default outlet ID
+    int cashierId = 1, // Default cashier ID
+    String cashierName = 'Cashier', // Default cashier name
+  }) {
+    final timestamp = DateTime.now();
+    final orderCollection = exportOrderCollection();
+
+    return BillModel(
+      billId: 0, // Will be assigned by server
+      customerName: customerName,
+      orderCollection: orderCollection,
+      total: state.subtotal,
+      finalTotal: state.total,
+      downPayment: 0, // Not paid yet
+      usersId: cashierId,
+      states: 'open', // New bill is open
+      paymentMethod: null, // Not paid yet
+      splitPayment: null,
+      delivery: delivery,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      deletedAt: null,
+      outletId: outletId,
+      servicefee: state.serviceFeePercentage.toString(),
+      gratuity: state.gratuityPercentage.toString(),
+      vat: state.taxPercentage.toString(),
+      customerId: customerId,
+      billDiscount: "0.00",
+      tableId: null,
+      totalDiscount: state.totalProductDiscount.toInt(),
+      hashBill: '', // Will be assigned by server
+      rewardPoints: '{"initial":0,"redeem":0,"earn":0}',
+      totalReward: 0,
+      rewardBill: "0.00",
+      cBillId: '', // Will be assigned by server
+      rounding: 0, // Calculated by server
+      isQR: 0,
+      notes: null,
+      amountPaid: 0, // Not paid yet
+      ccNumber: null,
+      ccType: null,
+      productDiscount: state.totalProductDiscount.toInt(),
+      merchantOrderId: null,
+      discountList: null,
+      key: 0, // Will be assigned by server
+      affiliate: null,
+      customerPhone: customerPhone,
+      totaldiscount: state.discountAmount.toInt(),
+      totalafterdiscount: state.subtotal - state.discountAmount,
+      cashier: cashierName,
+      lastcashier: cashierName,
+      firstcashier: cashierName,
+      totalgratuity: state.gratuity,
+      totalservicefee: state.serviceFee,
+      totalbeforetax: state.subtotal + state.serviceFee + state.gratuity,
+      totalvat: state.taxTotal,
+      totalaftertax:
+          state.subtotal + state.serviceFee + state.gratuity + state.taxTotal,
+      roundingSetting: 1000, // Default rounding to nearest 1000
+      totalafterrounding: state.total,
+      div: 1,
+      billDate: timestamp.toString(),
+      posBillDate: timestamp.toString(),
+      posPaidBillDate: timestamp.toString(),
+      rewardoption: "true",
+      return_: 0,
+      proof: null,
+      proofStaffId: null,
+      tableName: null,
+      fromProcessBill: true,
+      refund: null,
+      items: state.items,
+    );
   }
 }
 
@@ -270,6 +448,11 @@ final cartTaxProvider = Provider<double>((ref) {
 // Provider for any additional discount
 final cartDiscountProvider = Provider<double>((ref) {
   return ref.watch(cartProvider).discountAmount;
+});
+
+// Provider for the gratuity amount
+final cartGratuityProvider = Provider<double>((ref) {
+  return ref.watch(cartProvider).gratuity;
 });
 
 // Provider for the cart grand total
