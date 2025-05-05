@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
-import '../models/customer_model.dart';
+import '../models/customers.dart';
 
 class CustomerRepository {
   // In-memory cache of customers

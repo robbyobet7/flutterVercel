@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../models/customer_model.dart';
+import '../models/customers.dart';
 import '../repositories/customer_repository.dart';
 
 class CustomerMiddleware {

@@ -1,29 +1,33 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/customer_model.dart';
+import '../models/customers.dart';
 import '../middleware/customer_middleware.dart';
 
 // Customer state
 class CustomerState {
   final List<CustomerModel> customers;
+  final List<CustomerModel> allCustomers;
   final bool isLoading;
   final String? errorMessage;
   final String searchQuery;
 
   CustomerState({
     required this.customers,
+    List<CustomerModel>? allCustomers,
     this.isLoading = false,
     this.errorMessage,
     this.searchQuery = '',
-  });
+  }) : allCustomers = allCustomers ?? customers;
 
   CustomerState copyWith({
     List<CustomerModel>? customers,
+    List<CustomerModel>? allCustomers,
     bool? isLoading,
     String? errorMessage,
     String? searchQuery,
   }) {
     return CustomerState(
       customers: customers ?? this.customers,
+      allCustomers: allCustomers ?? this.allCustomers,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       searchQuery: searchQuery ?? this.searchQuery,
@@ -50,7 +54,11 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   // Listen for customer changes
   void _listenToCustomerChanges() {
     _middleware.customersStream.listen((customers) {
-      state = state.copyWith(customers: customers, isLoading: false);
+      state = state.copyWith(
+        customers: state.searchQuery.isEmpty ? customers : state.customers,
+        allCustomers: customers,
+        isLoading: false,
+      );
     });
   }
 
@@ -71,18 +79,21 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   Future<void> addCustomer(CustomerModel customer) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     await _middleware.addCustomer(customer);
+    // refreshCustomers will update both customers and allCustomers via _listenToCustomerChanges
   }
 
   // Update an existing customer
   Future<void> updateCustomer(CustomerModel customer) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     await _middleware.updateCustomer(customer);
+    // refreshCustomers will update both customers and allCustomers via _listenToCustomerChanges
   }
 
   // Delete a customer
   Future<void> deleteCustomer(int id) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     await _middleware.deleteCustomer(id);
+    // refreshCustomers will update both customers and allCustomers via _listenToCustomerChanges
   }
 
   // Search customers
@@ -93,9 +104,18 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
       searchQuery: query,
     );
 
-    final results = await _middleware.searchCustomers(query);
+    if (query.isEmpty) {
+      state = state.copyWith(customers: state.allCustomers, isLoading: false);
+      return;
+    }
 
+    final results = await _middleware.searchCustomers(query);
     state = state.copyWith(customers: results, isLoading: false);
+  }
+
+  // Clear search
+  void clearSearch() {
+    state = state.copyWith(searchQuery: '', customers: state.allCustomers);
   }
 
   // Get customer by ID
@@ -108,7 +128,11 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final loyaltyCustomers = await _middleware.getCustomersWithPoints();
 
-    state = state.copyWith(customers: loyaltyCustomers, isLoading: false);
+    state = state.copyWith(
+      customers: loyaltyCustomers,
+      // Don't update allCustomers here, as this is a filtered view
+      isLoading: false,
+    );
   }
 
   // Save changes

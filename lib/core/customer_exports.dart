@@ -1,5 +1,5 @@
 // Export customer model
-export 'models/customer_model.dart';
+export 'models/customers.dart';
 
 // Export customer repository
 export 'repositories/customer_repository.dart';
