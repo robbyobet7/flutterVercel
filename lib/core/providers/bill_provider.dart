@@ -305,10 +305,16 @@ final allBillsProvider = Provider<List<BillsByDate>>((ref) {
 
     // Convert bill to simplified BillItem
     final billItem = BillItem(
-      billId: bill.billId.toString(),
+      billId: bill.billId,
       name: bill.customerName,
       total: bill.total.toDouble(),
+      finalTotal: bill.finalTotal,
       status: bill.states,
+    );
+
+    // Add debug print to see BillItem properties
+    print(
+      '📦 BillItem created - ID: ${billItem.billId} (type: ${billItem.billId.runtimeType})',
     );
 
     // Add debug print to see actual total value
@@ -423,15 +429,17 @@ class BillsByDate {
 
 // Simple model for bill list item display
 class BillItem {
-  final String billId;
+  final int billId;
   final String name;
   final double total;
+  final double finalTotal;
   final String status;
 
   BillItem({
     required this.billId,
     required this.name,
     required this.total,
+    required this.finalTotal,
     required this.status,
   });
 }

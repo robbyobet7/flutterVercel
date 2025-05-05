@@ -171,17 +171,97 @@ class CartNotifier extends StateNotifier<CartState> {
   }
 
   // Add cart items from bill JSON
-  void addItemsFromBill(String orderCollection) {
+  void addItemsFromBill(String ordersJson) {
     try {
-      final List<dynamic> parsedItems = jsonDecode(orderCollection);
-      final items = parsedItems.map((item) => CartItem.fromJson(item)).toList();
+      print('🧾 Parsing order collection: $ordersJson');
 
-      // Add each item to the current cart
-      for (var item in items) {
-        addItem(item);
+      final orderCollection = json.decode(ordersJson);
+
+      // Process each item to ensure correct types before passing to CartItem.fromJson
+      final processedItems =
+          (orderCollection as List).map((item) {
+            // Convert item to a new map to avoid modifying the original
+            final Map<String, dynamic> processedItem =
+                Map<String, dynamic>.from(item);
+
+            // Ensure these fields are strings
+            if (processedItem['discount_type'] != null &&
+                processedItem['discount_type'] is int) {
+              processedItem['discount_type'] =
+                  processedItem['discount_type'].toString();
+            }
+
+            if (processedItem['discount_name'] != null &&
+                processedItem['discount_name'] is int) {
+              processedItem['discount_name'] =
+                  processedItem['discount_name'].toString();
+            }
+
+            // Special handling for discount_products which might be complex
+            if (processedItem['discount_products'] != null) {
+              if (processedItem['discount_products'] is! String) {
+                // Convert to string if it's a complex type
+                try {
+                  processedItem['discount_products'] = json.encode(
+                    processedItem['discount_products'],
+                  );
+                } catch (e) {
+                  print('⚠️ Error converting discount_products to string: $e');
+                  processedItem['discount_products'] = null;
+                }
+              }
+            }
+
+            // Handle options array that might contain invalid data
+            if (processedItem['options'] != null) {
+              if (processedItem['options'] is List) {
+                try {
+                  // Filter out null or invalid options
+                  processedItem['options'] =
+                      (processedItem['options'] as List)
+                          .where((option) => option != null && option is Map)
+                          .toList();
+                } catch (e) {
+                  print('⚠️ Error preprocessing options: $e');
+                  processedItem['options'] = null;
+                }
+              } else if (processedItem['options'] is! List) {
+                // If options is not a list, set it to null
+                processedItem['options'] = null;
+              }
+            }
+
+            return processedItem;
+          }).toList();
+
+      // Collect all valid CartItems first
+      final List<CartItem> validItems = [];
+
+      // Convert processed items to CartItem objects
+      for (final item in processedItems) {
+        try {
+          final cartItem = CartItem.fromJson(item);
+          validItems.add(cartItem);
+        } catch (e, stackTrace) {
+          print('⚠️ Failed to parse item to cart: $e');
+          print('⚠️ Item JSON: $item');
+          print('⚠️ Stack trace: $stackTrace');
+          // Continue with next item instead of breaking the whole process
+          continue;
+        }
       }
-    } catch (e) {
-      print('Error parsing order collection: $e');
+
+      // Batch add all items to cart
+      if (validItems.isNotEmpty) {
+        final items = [...state.items, ...validItems];
+        state = state.copyWith(items: items);
+        print('✅ Added ${validItems.length} items to cart from bill');
+      } else {
+        print('⚠️ No valid items found in bill to add to cart');
+      }
+    } catch (e, stackTrace) {
+      print('❌ Failed to parse order collection: $e');
+      print('❌ Stack trace: $stackTrace');
     }
   }
 

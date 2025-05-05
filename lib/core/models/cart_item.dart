@@ -26,23 +26,43 @@ class CartItemOption {
   });
 
   factory CartItemOption.fromJson(Map<String, dynamic> json) {
-    return CartItemOption(
-      optionName: json['optionName'],
-      name: json['name'],
-      type: json['type'],
-      price:
-          json['price'] is int
-              ? (json['price'] as int).toDouble()
-              : (json['price'] ?? 0).toDouble(),
-      purchPrice:
-          json['purchPrice'] is int
-              ? (json['purchPrice'] as int).toDouble()
-              : (json['purchPrice'] ?? 0).toDouble(),
-      relationItem: json['relation_item'],
-      productId: json['product_id'],
-      productStock: json['product_stock'],
-      productType: json['product_type'],
-    );
+    try {
+      // Helper functions for safe type conversion
+      String? safeString(dynamic value) {
+        if (value == null) return null;
+        return value.toString();
+      }
+
+      double safeDouble(dynamic value, {double defaultValue = 0.0}) {
+        if (value == null) return defaultValue;
+        if (value is double) return value;
+        if (value is int) return value.toDouble();
+        if (value is String) {
+          try {
+            return double.parse(value);
+          } catch (_) {
+            return defaultValue;
+          }
+        }
+        return defaultValue;
+      }
+
+      return CartItemOption(
+        optionName: json['optionName'],
+        name: safeString(json['name']) ?? 'Unknown',
+        type: safeString(json['type']) ?? 'Unknown',
+        price: safeDouble(json['price']),
+        purchPrice: safeDouble(json['purchPrice']),
+        relationItem: json['relation_item'],
+        productId: json['product_id'],
+        productStock: json['product_stock'],
+        productType: json['product_type'],
+      );
+    } catch (e) {
+      print('❌ Error in CartItemOption.fromJson: $e');
+      print('❌ Problem JSON: $json');
+      throw FormatException('Failed to parse CartItemOption: $e');
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -125,78 +145,115 @@ class CartItem {
   double get totalDiscountAmount => discount * quantity;
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
-    List<CartItemOption>? optionsList;
-    if (json['options'] != null) {
-      if (json['options'] is List) {
-        optionsList =
-            (json['options'] as List)
-                .map((option) => CartItemOption.fromJson(option))
-                .toList();
-      }
+    // Helper function to convert a value to a string safely
+    String? safeString(dynamic value) {
+      if (value == null) return null;
+      return value.toString();
     }
 
-    List<String>? printerList;
-    if (json['category_bill_printer'] != null) {
-      if (json['category_bill_printer'] is List) {
-        printerList =
-            (json['category_bill_printer'] as List)
-                .map((p) => p.toString())
-                .toList();
+    // Helper function to convert int to bool (1 = true, 0 = false)
+    bool? intToBool(dynamic value) {
+      if (value == null) return null;
+      if (value is bool) return value;
+      if (value is int) return value == 1;
+      if (value is String) {
+        if (value.toLowerCase() == 'true' || value == '1') return true;
+        if (value.toLowerCase() == 'false' || value == '0') return false;
       }
+      return null;
     }
 
-    return CartItem(
-      id: json['id'],
-      name: json['name'],
-      price:
-          (json['price'] is int)
-              ? (json['price'] as int).toDouble()
-              : json['price'],
-      quantity:
-          (json['quantity'] is int)
-              ? (json['quantity'] as int).toDouble()
-              : json['quantity'],
-      type: json['type'],
-      purchprice:
-          (json['purchprice'] is int)
-              ? (json['purchprice'] as int).toDouble()
-              : json['purchprice'],
-      includedtax:
-          (json['includedtax'] is int)
-              ? (json['includedtax'] as int).toDouble()
-              : (json['includedtax'] ?? 0),
-      options: optionsList,
-      category: json['category'],
-      categoryBillPrinter: printerList,
-      productNotes: json['productNotes'],
-      originalPrice:
-          (json['original_price'] is int)
-              ? (json['original_price'] as int).toDouble()
-              : json['original_price'],
-      originalPurchprice:
-          (json['original_purchprice'] is int)
-              ? (json['original_purchprice'] as int).toDouble()
-              : json['original_purchprice'],
-      discountType: json['discount_type'],
-      discountValue: json['discount_value'],
-      discount:
-          (json['discount'] is int)
-              ? (json['discount'] as int).toDouble()
-              : (json['discount'] ?? 0).toDouble(),
-      discountName: json['discount_name'],
-      discountProducts: json['discount_products'],
-      discountRules: json['discount_rules'],
-      discountType2: json['discount_type2'],
-      discountId: json['discount_id'],
-      productDiscountType: json['productDiscountType'],
-      isCashProductDiscount: json['isCashProductDiscount'],
-      totalDiscountRules:
-          json['totaldiscountrules'] != null
-              ? (json['totaldiscountrules'] is int)
-                  ? (json['totaldiscountrules'] as int).toDouble()
-                  : json['totaldiscountrules']
-              : null,
-    );
+    // Helper function to safely convert to double
+    double safeDouble(dynamic value, {double defaultValue = 0.0}) {
+      if (value == null) return defaultValue;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      if (value is String) {
+        try {
+          return double.parse(value);
+        } catch (_) {
+          return defaultValue;
+        }
+      }
+      return defaultValue;
+    }
+
+    try {
+      // Process options with error handling
+      List<CartItemOption>? optionsList;
+      if (json['options'] != null) {
+        if (json['options'] is List) {
+          try {
+            optionsList =
+                (json['options'] as List)
+                    .where((option) => option != null)
+                    .map((option) {
+                      try {
+                        return CartItemOption.fromJson(option);
+                      } catch (e) {
+                        print('⚠️ Skipping invalid option: $e');
+                        return null;
+                      }
+                    })
+                    .whereType<CartItemOption>() // Remove nulls
+                    .toList();
+          } catch (e) {
+            print('⚠️ Error processing options list: $e');
+            optionsList = null;
+          }
+        }
+      }
+
+      // Process category bill printer
+      List<String>? printerList;
+      if (json['category_bill_printer'] != null) {
+        if (json['category_bill_printer'] is List) {
+          try {
+            printerList =
+                (json['category_bill_printer'] as List)
+                    .map((p) => p.toString())
+                    .toList();
+          } catch (e) {
+            print('⚠️ Error processing printer list: $e');
+            printerList = null;
+          }
+        }
+      }
+
+      return CartItem(
+        id:
+            json['id'] is String
+                ? int.tryParse(json['id']) ?? 0
+                : json['id'] ?? 0,
+        name: json['name'] ?? 'Unknown',
+        price: safeDouble(json['price']),
+        quantity: safeDouble(json['quantity'], defaultValue: 1.0),
+        type: safeString(json['type']) ?? 'product',
+        purchprice: safeDouble(json['purchprice']),
+        includedtax: safeDouble(json['includedtax']),
+        options: optionsList,
+        category: safeString(json['category']) ?? 'Unknown',
+        categoryBillPrinter: printerList,
+        productNotes: safeString(json['productNotes']),
+        originalPrice: safeDouble(json['original_price']),
+        originalPurchprice: safeDouble(json['original_purchprice']),
+        discountType: safeString(json['discount_type']),
+        discountValue: json['discount_value'],
+        discount: safeDouble(json['discount']),
+        discountName: safeString(json['discount_name']),
+        discountProducts: safeString(json['discount_products']),
+        discountRules: json['discount_rules'],
+        discountType2: safeString(json['discount_type2']),
+        discountId: json['discount_id'],
+        productDiscountType: safeString(json['productDiscountType']),
+        isCashProductDiscount: intToBool(json['isCashProductDiscount']),
+        totalDiscountRules: safeDouble(json['totaldiscountrules']),
+      );
+    } catch (e) {
+      print('❌ Error in CartItem.fromJson: $e');
+      print('❌ Problem JSON: $json');
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {
