@@ -142,7 +142,11 @@ class CartItem {
   double get totalPrice => price * quantity;
 
   // Calculate the total discount amount
-  double get totalDiscountAmount => discount * quantity;
+  double get totalDiscountAmount {
+    // We already store the per-unit discount amount in the discount field
+    // So we just multiply it by the quantity to get the total discount
+    return discount * quantity;
+  }
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
     // Helper function to convert a value to a string safely
@@ -179,6 +183,62 @@ class CartItem {
     }
 
     try {
+      // First ensure we have all the necessary fields with default values
+      final double originalPrice = safeDouble(json['original_price']);
+      double price = safeDouble(json['price']);
+      final double quantity = safeDouble(json['quantity'], defaultValue: 1.0);
+
+      // Parse discount values
+      final String? discountType = safeString(json['discount_type']);
+      final dynamic discountValue = json['discount_value'];
+      double discount = safeDouble(json['discount']);
+
+      // Make a more robust check for discount
+      // If discount is missing but we have discountType and discountValue,
+      // calculate the discount amount
+      if (discount == 0 && discountType != null && discountValue != null) {
+        if (discountType == 'percentage') {
+          // If discount type is percentage, calculate discount amount
+          double percentage = safeDouble(discountValue);
+          discount = (percentage / 100) * originalPrice;
+          print('📊 Recalculated discount from percentage: $discount');
+        } else if (discountType == 'fixed') {
+          // If discount type is fixed, use the value directly
+          discount = safeDouble(discountValue);
+          print('📊 Recalculated discount from fixed value: $discount');
+        }
+      }
+
+      // For debugging: Check if original price and price match
+      if (originalPrice > 0 && price < originalPrice) {
+        print(
+          '🔍 Price ($price) is less than originalPrice ($originalPrice), possible discount: ${originalPrice - price}',
+        );
+
+        // If the price is already less than originalPrice and there's no discount,
+        // calculate the implied discount
+        if (discount == 0) {
+          discount = originalPrice - price;
+          print('🔄 Setting discount based on price difference: $discount');
+        }
+      } else if (originalPrice > 0 && discount > 0) {
+        // Check if price already includes the discount
+        if (originalPrice - price >= discount - 0.01) {
+          // Allow for small rounding errors
+          // Price is already discounted, keep the price and discount as is
+          print('✅ Price already reflects the discount, keeping values as is');
+        } else {
+          // Price doesn't reflect discount yet, adjust it
+          double discountedPrice = originalPrice - discount;
+          if (discountedPrice != price) {
+            print(
+              '🔄 Adjusting price to reflect discount: old=$price, new=$discountedPrice',
+            );
+            price = discountedPrice > 0 ? discountedPrice : 0;
+          }
+        }
+      }
+
       // Process options with error handling
       List<CartItemOption>? optionsList;
       if (json['options'] != null) {
@@ -220,14 +280,26 @@ class CartItem {
         }
       }
 
+      // Final check to ensure originalPrice is set correctly
+      double finalOriginalPrice =
+          originalPrice > 0 ? originalPrice : price + discount;
+
+      // Print final values for debugging
+      print('📊 Final values for item: ${json['name']}');
+      print('   - Original price: $finalOriginalPrice');
+      print('   - Final price: $price');
+      print('   - Discount: $discount');
+      print('   - Total item price (with qty=$quantity): ${price * quantity}');
+      print('   - Total discount: ${discount * quantity}');
+
       return CartItem(
         id:
             json['id'] is String
                 ? int.tryParse(json['id']) ?? 0
                 : json['id'] ?? 0,
         name: json['name'] ?? 'Unknown',
-        price: safeDouble(json['price']),
-        quantity: safeDouble(json['quantity'], defaultValue: 1.0),
+        price: price, // Use the potentially adjusted price
+        quantity: quantity,
         type: safeString(json['type']) ?? 'product',
         purchprice: safeDouble(json['purchprice']),
         includedtax: safeDouble(json['includedtax']),
@@ -235,11 +307,11 @@ class CartItem {
         category: safeString(json['category']) ?? 'Unknown',
         categoryBillPrinter: printerList,
         productNotes: safeString(json['productNotes']),
-        originalPrice: safeDouble(json['original_price']),
+        originalPrice: finalOriginalPrice,
         originalPurchprice: safeDouble(json['original_purchprice']),
-        discountType: safeString(json['discount_type']),
-        discountValue: json['discount_value'],
-        discount: safeDouble(json['discount']),
+        discountType: discountType,
+        discountValue: discountValue,
+        discount: discount,
         discountName: safeString(json['discount_name']),
         discountProducts: safeString(json['discount_products']),
         discountRules: json['discount_rules'],

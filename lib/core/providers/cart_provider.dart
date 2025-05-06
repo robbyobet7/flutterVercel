@@ -25,21 +25,24 @@ class CartState {
   });
 
   // Calculate the subtotal of all items (before tax and service fee)
+  // This actually gives us the total with per-item discounts already applied,
+  // since the item.totalPrice calculation is price * quantity, and price
+  // has already been reduced by the discount amount in CartItem.fromJson
   double get subtotal {
     return items.fold(0, (sum, item) => sum + item.totalPrice);
   }
 
-  // Calculate service fee (5% of subtotal)
+  // Calculate service fee (serviceFeePercentage% of subtotal)
   double get serviceFee {
     return subtotal * (serviceFeePercentage / 100);
   }
 
-  // Calculate gratuity amount
+  // Calculate gratuity amount (gratuityPercentage% of subtotal)
   double get gratuity {
     return subtotal * (gratuityPercentage / 100);
   }
 
-  // Calculate the total tax (10% of (subtotal + service fee))
+  // Calculate the total tax (taxPercentage% of (subtotal + service fee))
   double get taxTotal {
     if (taxIncluded)
       return 0; // If tax is included in price, we don't add extra tax
@@ -59,6 +62,8 @@ class CartState {
 
   // Calculate the grand total
   double get total {
+    // No need to subtract product discounts here as they've already been applied
+    // in the subtotal calculation through each item's price
     return subtotal + serviceFee + taxTotal + gratuity - discountAmount;
   }
 
@@ -173,8 +178,6 @@ class CartNotifier extends StateNotifier<CartState> {
   // Add cart items from bill JSON
   void addItemsFromBill(String ordersJson) {
     try {
-      print('🧾 Parsing order collection: $ordersJson');
-
       final orderCollection = json.decode(ordersJson);
 
       // Process each item to ensure correct types before passing to CartItem.fromJson
@@ -206,10 +209,15 @@ class CartNotifier extends StateNotifier<CartState> {
                     processedItem['discount_products'],
                   );
                 } catch (e) {
-                  print('⚠️ Error converting discount_products to string: $e');
                   processedItem['discount_products'] = null;
                 }
               }
+            }
+
+            // Ensure original_price exists for discount calculations
+            if (processedItem['original_price'] == null &&
+                processedItem['price'] != null) {
+              processedItem['original_price'] = processedItem['price'];
             }
 
             // Handle options array that might contain invalid data
@@ -222,7 +230,6 @@ class CartNotifier extends StateNotifier<CartState> {
                           .where((option) => option != null && option is Map)
                           .toList();
                 } catch (e) {
-                  print('⚠️ Error preprocessing options: $e');
                   processedItem['options'] = null;
                 }
               } else if (processedItem['options'] is! List) {
@@ -241,10 +248,9 @@ class CartNotifier extends StateNotifier<CartState> {
       for (final item in processedItems) {
         try {
           final cartItem = CartItem.fromJson(item);
+
           validItems.add(cartItem);
         } catch (e, stackTrace) {
-          print('⚠️ Failed to parse item to cart: $e');
-          print('⚠️ Item JSON: $item');
           print('⚠️ Stack trace: $stackTrace');
           // Continue with next item instead of breaking the whole process
           continue;
@@ -255,7 +261,6 @@ class CartNotifier extends StateNotifier<CartState> {
       if (validItems.isNotEmpty) {
         final items = [...state.items, ...validItems];
         state = state.copyWith(items: items);
-        print('✅ Added ${validItems.length} items to cart from bill');
       } else {
         print('⚠️ No valid items found in bill to add to cart');
       }
@@ -392,6 +397,8 @@ class CartNotifier extends StateNotifier<CartState> {
 
   // Add a method to load a BillModel directly into the cart
   void loadBill(BillModel bill) {
+    print('🧾 Loading bill ${bill.billId} into cart');
+
     // Clear existing cart
     clearCart();
 
@@ -400,6 +407,13 @@ class CartNotifier extends StateNotifier<CartState> {
     double taxPercent = double.tryParse(bill.vat) ?? 10.0;
     double gratuityPercent = double.tryParse(bill.gratuity) ?? 0.0;
 
+    print(
+      '💲 Bill settings: service=${serviceFeePercent}%, tax=${taxPercent}%, gratuity=${gratuityPercent}%',
+    );
+    print(
+      '💵 Bill amounts: final=${bill.finalTotal}, subtotal=${bill.total}, discount=${bill.totaldiscount}',
+    );
+
     updateServiceFeePercentage(serviceFeePercent);
     updateTaxPercentage(taxPercent);
     updateGratuityPercentage(gratuityPercent);
@@ -407,12 +421,40 @@ class CartNotifier extends StateNotifier<CartState> {
     // Load items from bill
     if (bill.items != null && bill.items!.isNotEmpty) {
       // If bill has parsed items, add them directly
+      print('📝 Adding ${bill.items!.length} parsed items from bill');
       for (var item in bill.items!) {
+        if (item.discount > 0) {
+          print(
+            '💰 Item ${item.name} has discount: ${item.discount}, type: ${item.discountType}',
+          );
+        }
         addItem(item);
       }
     } else if (bill.orderCollection.isNotEmpty) {
       // If bill only has order collection string, parse and add items
+      print('📝 Adding items from bill order collection (JSON string)');
       addItemsFromBill(bill.orderCollection);
+    }
+
+    // Check final cart state
+    print('🛒 Cart state after loading bill:');
+    print('   - Items: ${state.items.length}');
+    print('   - Subtotal: ${state.subtotal}');
+    print('   - Product discounts: ${state.totalProductDiscount}');
+    print('   - Service fee: ${state.serviceFee}');
+    print('   - Tax: ${state.taxTotal}');
+    print('   - Gratuity: ${state.gratuity}');
+    print('   - Total: ${state.total}');
+
+    // Check individual items
+    for (int i = 0; i < state.items.length; i++) {
+      final item = state.items[i];
+      print('   - Item ${i + 1}: ${item.name}');
+      print('     * Price: ${item.price}, Original: ${item.originalPrice}');
+      print('     * Quantity: ${item.quantity}');
+      print('     * Discount: ${item.discount} (${item.discountType})');
+      print('     * Total price: ${item.totalPrice}');
+      print('     * Total discount: ${item.totalDiscountAmount}');
     }
   }
 

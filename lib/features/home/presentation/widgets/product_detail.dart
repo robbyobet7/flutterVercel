@@ -6,6 +6,7 @@ import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 import 'package:rebill_flutter/core/models/cart_item.dart';
+import 'package:rebill_flutter/core/providers/product_provider.dart';
 
 import 'package:rebill_flutter/features/home/presentation/widgets/product_option.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
@@ -137,16 +138,60 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
   // Add the current product to cart
   void _addToCart() {
     try {
-      // Convert product options to CartItemOption format if needed
-      List<CartItemOption>? productOptions;
+      // Get the product provider notifier to access price and discount information
+      final productNotifier = ref.read(productProvider.notifier);
 
-      if (_selectedOptions.isNotEmpty || _selectedExtras.isNotEmpty) {
+      // Get product ID
+      final productId = widget.product.id;
+      if (productId == null) {
+        print('Error: Product ID is null');
+        return;
+      }
+
+      // Get product options from the provider
+      List<CartItemOption>? productOptions;
+      final selectedOptions = productNotifier.getSelectedOptions(productId);
+
+      // Calculate the final price including discounts and options
+      final basePrice = widget.product.productsPrice ?? 0;
+      final finalPrice = productNotifier.getTotalPrice(widget.product);
+
+      // Calculate the discount amount
+      double discountAmount = 0;
+      String? discountType;
+      dynamic discountValue;
+      String? discountName;
+
+      // Check if there's an active discount
+      final activeDiscount = productNotifier.getActiveDiscount(productId);
+      if (activeDiscount != null) {
+        discountAmount =
+            basePrice - productNotifier.getDiscountedPrice(widget.product);
+        discountType = activeDiscount.discountType ?? 'percentage';
+        discountValue =
+            discountType == 'percentage'
+                ? activeDiscount.amount
+                : activeDiscount.total;
+        discountName = activeDiscount.discountName;
+      } else if (widget.product.productsDiscount != null &&
+          widget.product.productsDiscount! > 0) {
+        // Use default product discount if no active discount
+        discountAmount =
+            basePrice - productNotifier.getDiscountedPrice(widget.product);
+        discountType = widget.product.discountType2 ?? 'percentage';
+        discountValue = widget.product.productsDiscount;
+        discountName = widget.product.productsDiscountName;
+      }
+
+      // Convert options to CartItemOption format
+      if (selectedOptions.isNotEmpty) {
         productOptions = [];
 
-        // Add selected dropdown options
-        _selectedOptions.forEach((optionId, value) {
-          if (value is Map<String, dynamic>) {
-            productOptions!.add(
+        // Process each option from the provider
+        for (final option in selectedOptions.values) {
+          if (option.type == 'option' && option.value is Map<String, dynamic>) {
+            final value = option.value as Map<String, dynamic>;
+            productOptions.add(
               CartItemOption(
                 optionName: value['group'] ?? 'Option',
                 name: value['name'] ?? 'Unknown',
@@ -166,49 +211,49 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
                 relationItem: value['relation_item'],
               ),
             );
+          } else if (option.type == 'extra' &&
+              option.value is Map<String, dynamic>) {
+            final value = option.value as Map<String, dynamic>;
+            productOptions.add(
+              CartItemOption(
+                name: value['name'] ?? 'Extra',
+                type: 'complimentary',
+                price: 0.0,
+                purchPrice: 0.0,
+                productId: value['product_id'],
+                productStock: value['product_stock'],
+                productType: value['product_type'],
+              ),
+            );
           }
-        });
-
-        // Add selected extras (complimentary items)
-        _selectedExtras.forEach((extraId) {
-          // Get the extra details from the product configuration
-          try {
-            final options = json.decode(widget.product.option ?? '[]') as List;
-            for (var group in options) {
-              if (group['type'] == 'extra') {
-                final extras = group['options'] as List;
-                for (var extra in extras) {
-                  if (extra['uid'] == extraId) {
-                    productOptions!.add(
-                      CartItemOption(
-                        name: extra['name'] ?? 'Extra',
-                        type: 'complimentary',
-                        price: 0.0,
-                        purchPrice: 0.0,
-                        productId: extra['product_id'],
-                        productStock: extra['product_stock'],
-                        productType: extra['product_type'],
-                      ),
-                    );
-                    break;
-                  }
-                }
-              }
-            }
-          } catch (e) {
-            print('Error processing extras: $e');
-          }
-        });
+        }
       }
 
+      print('productOptions: $productOptions');
+      print(
+        'discount: $discountAmount, discountType: $discountType, discountValue: $discountValue',
+      );
+
+      // Use addProduct rather than addProductFromProduct to include discount information
       ref
           .read(cartProvider.notifier)
-          .addProductFromProduct(
-            product: widget.product,
-            quantity: _quantity,
+          .addProduct(
+            id: widget.product.id ?? 0,
+            name: widget.product.productsName ?? 'Unknown',
+            price: finalPrice, // Use the final calculated price
+            quantity: _quantity.toDouble(),
+            type: widget.product.type,
+            purchprice: widget.product.purchPrice ?? 0,
+            includedtax: widget.product.tax ?? 0,
             options: productOptions,
+            category: widget.product.productsType ?? 'Unknown',
             productNotes:
                 _notesController.text.isNotEmpty ? _notesController.text : null,
+            originalPrice: widget.product.productsPrice ?? 0,
+            discountType: discountType,
+            discountValue: discountValue,
+            discount: discountAmount,
+            discountName: discountName,
           );
 
       Navigator.pop(context);
