@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
+import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
-import '../../providers/bill_search_provider.dart';
-import '../../providers/filtered_bills_provider.dart';
-import 'user_bills_dropdown.dart';
+import 'package:rebill_flutter/features/home/presentation/widgets/user_bills_dropdown.dart';
+import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
 
 class HomeBill extends ConsumerStatefulWidget {
   const HomeBill({super.key});
@@ -23,8 +25,10 @@ class _HomeBillState extends ConsumerState<HomeBill> {
   @override
   void initState() {
     super.initState();
-    // Set initial value
-    _searchController.text = ref.read(billSearchProvider);
+    // Load bills when widget initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(billProvider.notifier).loadBills();
+    });
   }
 
   @override
@@ -59,18 +63,13 @@ class _HomeBillState extends ConsumerState<HomeBill> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final searchQuery = ref.watch(billSearchProvider);
+    final allBills = ref.watch(allBillsProvider);
+    final isLoading = ref.watch(billLoadingProvider);
 
-    // Get filtered bills directly from provider - fully reactive!
-    final filteredBills = ref.watch(filteredBillsProvider);
-
-    // Keep controller in sync with provider state
-    if (_searchController.text != searchQuery) {
-      _searchController.text = searchQuery;
-      // Position cursor at the end
-      _searchController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _searchController.text.length),
-      );
+    // Add debug output
+    print('📋 HomeBill build: ${allBills.length} date groups found');
+    for (var billGroup in allBills) {
+      print('📅 Date: ${billGroup.date}, Bills: ${billGroup.bills.length}');
     }
 
     return GestureDetector(
@@ -112,7 +111,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
               padding: EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
-                  Expanded(child: UserBillsDropdown()),
+                  Expanded(child: BillFilterDropdown()),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Container(
@@ -146,11 +145,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                                 isDense: true,
                               ),
                               style: theme.textTheme.bodyMedium,
-                              onChanged: (value) {
-                                ref
-                                    .read(billSearchProvider.notifier)
-                                    .updateSearchQuery(value);
-                              },
+                              onChanged: (value) {},
                               // Handle tap on the text field explicitly
                               onTap: () {
                                 // Only handle focus if explicitly tapped
@@ -158,22 +153,19 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                               },
                             ),
                           ),
-                          if (searchQuery.isNotEmpty)
-                            GestureDetector(
-                              // Stop the parent gesture detector from receiving this tap
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () {
-                                ref
-                                    .read(billSearchProvider.notifier)
-                                    .clearSearch();
-                                // Also unfocus to hide keyboard
-                                _searchFocusNode.unfocus();
-                              },
-                              child: const Padding(
-                                padding: EdgeInsets.only(right: 4),
-                                child: Icon(Icons.clear, size: 16),
-                              ),
-                            ),
+                          // if (searchQuery.isNotEmpty)
+                          //   GestureDetector(
+                          //     // Stop the parent gesture detector from receiving this tap
+                          //     behavior: HitTestBehavior.opaque,
+                          //     onTap: () {
+                          //       // Also unfocus to hide keyboard
+                          //       _searchFocusNode.unfocus();
+                          //     },
+                          //     child: const Padding(
+                          //       padding: EdgeInsets.only(right: 4),
+                          //       child: Icon(Icons.clear, size: 16),
+                          //     ),
+                          //   ),
                           GestureDetector(
                             // Stop the parent gesture detector from receiving this tap
                             behavior: HitTestBehavior.opaque,
@@ -253,29 +245,53 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                   ), // Slight gap between header and content
                   // Scrollable content
                   Expanded(
-                    child: RepaintBoundary(
-                      child: ListView.builder(
-                        physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        itemCount: filteredBills.length,
-                        // Add these performance optimization parameters
-                        addAutomaticKeepAlives: false,
-                        addRepaintBoundaries: true,
-                        clipBehavior: Clip.hardEdge,
-                        // Use cacheExtent to pre-render items outside the visible area
-                        cacheExtent: 100,
-                        itemBuilder: (context, index) {
-                          final dayData = filteredBills[index];
-                          // Use KeyedSubtree to maintain state when items move
-                          return KeyedSubtree(
-                            key: ValueKey('day-${dayData.date}'),
-                            child: _buildDaySection(context, dayData, theme),
-                          );
-                        },
-                      ),
-                    ),
+                    child:
+                        isLoading
+                            ? Center(
+                              child: CircularProgressIndicator(
+                                color: theme.colorScheme.primary,
+                              ),
+                            )
+                            : RepaintBoundary(
+                              child:
+                                  allBills.isEmpty
+                                      ? Center(
+                                        child: Text(
+                                          'No bills found',
+                                          style: theme.textTheme.bodyLarge,
+                                        ),
+                                      )
+                                      : ListView.builder(
+                                        physics: const BouncingScrollPhysics(
+                                          parent:
+                                              AlwaysScrollableScrollPhysics(),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                        ),
+                                        itemCount: allBills.length,
+                                        // Add these performance optimization parameters
+                                        addAutomaticKeepAlives: false,
+                                        addRepaintBoundaries: true,
+                                        clipBehavior: Clip.hardEdge,
+                                        // Use cacheExtent to pre-render items outside the visible area
+                                        cacheExtent: 100,
+                                        itemBuilder: (context, index) {
+                                          final billsByDate = allBills[index];
+                                          // Use KeyedSubtree to maintain state when items move
+                                          return KeyedSubtree(
+                                            key: ValueKey(
+                                              'bills-date-${billsByDate.date}',
+                                            ),
+                                            child: _buildBillItem(
+                                              context,
+                                              billsByDate,
+                                              theme,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                            ),
                   ),
                 ],
               ),
@@ -286,9 +302,9 @@ class _HomeBillState extends ConsumerState<HomeBill> {
     );
   }
 
-  Widget _buildDaySection(
+  Widget _buildBillItem(
     BuildContext context,
-    dynamic dayData,
+    BillsByDate dayData,
     ThemeData theme,
   ) {
     // Add spacing after each day section except the last one
@@ -314,7 +330,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: theme.colorScheme.surfaceContainer),
             ),
-            child: Column(children: _buildBillItems(dayData.bills, theme)),
+            child: Column(children: _buildBillItems(dayData.bills)),
           ),
         ],
       ),
@@ -322,14 +338,16 @@ class _HomeBillState extends ConsumerState<HomeBill> {
   }
 
   // Extract bill items building to a separate method
-  List<Widget> _buildBillItems(List<dynamic> bills, ThemeData theme) {
+  List<Widget> _buildBillItems(List<BillItem> bills) {
+    final theme = Theme.of(context);
     // Using List.generate is more efficient than .map() with spread operator
     return List.generate(bills.length, (index) {
       final bill = bills[index];
       // Cache the status color to avoid recalculating it
       final statusColor = _getStatusColor(bill.status, theme);
       final isFirstItem = index == 0;
-      final billTotal = int.tryParse(bill.total) ?? 0;
+      // Use finalTotal instead of total
+      final billTotal = bill.finalTotal;
 
       // Format currency once and cache it
       final formattedTotal = NumberFormat.currency(
@@ -342,46 +360,77 @@ class _HomeBillState extends ConsumerState<HomeBill> {
       final isLightBackground = statusColor.computeLuminance() > 0.5;
       final textColor = isLightBackground ? Colors.black : Colors.white;
 
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(
-            top:
-                isFirstItem
-                    ? BorderSide.none
-                    : BorderSide(color: theme.colorScheme.surfaceContainer),
-          ),
-        ),
-        child: Row(
-          children: [
-            // Bill name
-            Expanded(flex: 4, child: Text(bill.name)),
-            // Bill amount
-            Expanded(
-              flex: 3,
-              child: Text(formattedTotal, style: theme.textTheme.labelLarge),
+      return GestureDetector(
+        onTap: () {
+          print(
+            '🔍 Bill ID type: ${bill.billId.runtimeType}, value: ${bill.billId}',
+          );
+
+          try {
+            // Make sure billId is an int
+            ref
+                .read(billProvider.notifier)
+                .loadBillIntoCart(bill.billId, ref.read(cartProvider.notifier));
+
+            ref
+                .read(mainBillProvider.notifier)
+                .setMainBill(MainBillComponent.billsComponent);
+          } catch (e) {
+            print('❌ Error loading bill into cart: $e');
+
+            // Show a snackbar with the error
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error loading bill: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              top:
+                  isFirstItem
+                      ? BorderSide.none
+                      : BorderSide(color: theme.colorScheme.surfaceContainer),
             ),
-            // Status indicator
-            Expanded(
-              flex: 2,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  bill.status,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+          ),
+          child: Row(
+            children: [
+              // Bill name
+              Expanded(flex: 4, child: Text(bill.name)),
+              // Bill amount
+              Expanded(
+                flex: 3,
+                child: Text(formattedTotal, style: theme.textTheme.labelLarge),
+              ),
+              // Status indicator
+              Expanded(
+                flex: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 2,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    bill.status,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     });

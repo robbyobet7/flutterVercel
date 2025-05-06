@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/models/customers.dart';
+import 'package:rebill_flutter/core/providers/customer_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
-import 'package:rebill_flutter/features/main_bill/models/customer.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/add_customer_dialog.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
 
 // Provider for temporarily selected customer
-final tempSelectedCustomerProvider = StateProvider<Customer?>((ref) => null);
+final tempSelectedCustomerProvider = StateProvider<CustomerModel?>(
+  (ref) => null,
+);
 
 class KnownIndividualDialog extends ConsumerWidget {
   const KnownIndividualDialog({super.key});
@@ -20,13 +23,23 @@ class KnownIndividualDialog extends ConsumerWidget {
     final tempSelectedCustomer = ref.watch(tempSelectedCustomerProvider);
     final isLightBackground =
         theme.colorScheme.surface.computeLuminance() > 0.5;
+
+    final customers = ref.watch(customerProvider);
     return Expanded(
       child: Column(
         spacing: 12,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppSearchBar(hintText: 'Search Customer...'),
+          AppSearchBar(
+            hintText: 'Search Customer...',
+            onSearch: (value) {
+              ref.read(customerProvider.notifier).searchCustomers(value);
+            },
+            onClear: () {
+              ref.read(customerProvider.notifier).clearSearch();
+            },
+          ),
           Expanded(
             child: Column(
               children: [
@@ -91,12 +104,10 @@ class KnownIndividualDialog extends ConsumerWidget {
                       parent: AlwaysScrollableScrollPhysics(),
                     ),
                     cacheExtent: 100,
-                    itemCount: 20, // Number of dummy items
+                    itemCount: customers.customers.length,
                     itemBuilder: (context, index) {
                       // Get customer data
-                      final customer =
-                          Customer.getDummyCustomers()[index %
-                              Customer.getDummyCustomers().length];
+                      final customer = customers.customers[index];
 
                       return Column(
                         children: [
@@ -115,7 +126,8 @@ class KnownIndividualDialog extends ConsumerWidget {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 color:
-                                    tempSelectedCustomer?.id == customer.id
+                                    tempSelectedCustomer?.customerId ==
+                                            customer.customerId
                                         ? theme.colorScheme.primary
                                         : index % 2 == 0
                                         ? theme.colorScheme.surfaceContainer
@@ -133,13 +145,14 @@ class KnownIndividualDialog extends ConsumerWidget {
                                   Expanded(
                                     flex: 2,
                                     child: Text(
-                                      customer.name,
+                                      customer.customerName,
                                       style: theme.textTheme.titleSmall
                                           ?.copyWith(
                                             fontWeight: FontWeight.bold,
                                             color:
-                                                tempSelectedCustomer?.id ==
-                                                        customer.id
+                                                tempSelectedCustomer
+                                                            ?.customerId ==
+                                                        customer.customerId
                                                     ? Colors.white
                                                     : theme
                                                         .colorScheme
@@ -150,13 +163,14 @@ class KnownIndividualDialog extends ConsumerWidget {
                                   Expanded(
                                     flex: 2,
                                     child: Text(
-                                      customer.email,
+                                      customer.emailSocial ?? '',
                                       style: theme.textTheme.titleSmall
                                           ?.copyWith(
                                             fontWeight: FontWeight.w400,
                                             color:
-                                                tempSelectedCustomer?.id ==
-                                                        customer.id
+                                                tempSelectedCustomer
+                                                            ?.customerId ==
+                                                        customer.customerId
                                                     ? Colors.white
                                                     : theme
                                                         .colorScheme
@@ -167,13 +181,14 @@ class KnownIndividualDialog extends ConsumerWidget {
                                   Expanded(
                                     flex: 2,
                                     child: Text(
-                                      customer.phone,
+                                      customer.phone ?? '',
                                       style: theme.textTheme.titleSmall
                                           ?.copyWith(
                                             fontWeight: FontWeight.w400,
                                             color:
-                                                tempSelectedCustomer?.id ==
-                                                        customer.id
+                                                tempSelectedCustomer
+                                                            ?.customerId ==
+                                                        customer.customerId
                                                     ? Colors.white
                                                     : theme
                                                         .colorScheme
@@ -183,13 +198,14 @@ class KnownIndividualDialog extends ConsumerWidget {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      customer.affiliate,
+                                      customer.affiliate ?? '',
                                       style: theme.textTheme.titleSmall
                                           ?.copyWith(
                                             fontWeight: FontWeight.w400,
                                             color:
-                                                tempSelectedCustomer?.id ==
-                                                        customer.id
+                                                tempSelectedCustomer
+                                                            ?.customerId ==
+                                                        customer.customerId
                                                     ? Colors.white
                                                     : theme
                                                         .colorScheme

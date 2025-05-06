@@ -16,6 +16,24 @@ class MainBillPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    void cancelBill() {
+      //clear cart
+      ref.read(cartProvider.notifier).clearCart();
+
+      //set main bill to default component
+      ref
+          .watch(mainBillProvider.notifier)
+          .setMainBill(MainBillComponent.defaultComponent);
+
+      //set known individual to null
+      ref.read(knownIndividualProvider.notifier).setKnownIndividual(null);
+
+      //set customer type to guest
+      ref
+          .read(customerTypeProvider.notifier)
+          .setCustomerType(CustomerType.guest);
+    }
+
     final billType = ref.watch(billTypeProvider);
     final theme = Theme.of(context);
     final cart = ref.watch(cartProvider);
@@ -82,15 +100,7 @@ class MainBillPage extends ConsumerWidget {
                       Tooltip(
                         message: 'Cancel',
                         child: GestureDetector(
-                          onTap: () {
-                            ref.read(cartProvider.notifier).clearCart();
-
-                            ref
-                                .watch(mainBillProvider.notifier)
-                                .setMainBill(
-                                  MainBillComponent.defaultComponent,
-                                );
-                          },
+                          onTap: cancelBill,
                           child: Icon(
                             Icons.cancel_rounded,
                             color: theme.colorScheme.onSurface,

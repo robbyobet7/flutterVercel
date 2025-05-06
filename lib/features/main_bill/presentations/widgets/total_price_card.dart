@@ -32,12 +32,22 @@ class TotalPriceCard extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Total ',
-              style: theme.textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onPrimary,
-              ),
+            Row(
+              children: [
+                Icon(
+                  Icons.receipt_long,
+                  color: theme.colorScheme.onPrimary,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Total ',
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onPrimary,
+                  ),
+                ),
+              ],
             ),
             Text.rich(
               TextSpan(

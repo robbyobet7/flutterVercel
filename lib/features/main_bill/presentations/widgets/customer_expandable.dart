@@ -58,7 +58,7 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
                         selectedCustomerType == CustomerType.guest
                             ? 'Guest'
                             : selectedCustomer != null
-                            ? selectedCustomer.name
+                            ? selectedCustomer.customerName
                             : 'Known Individual',
                         style: widget.theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
