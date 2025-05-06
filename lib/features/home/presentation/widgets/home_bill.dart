@@ -325,7 +325,9 @@ class _HomeBillState extends ConsumerState<HomeBill> {
             ),
           ),
           // Bills container
-          DecoratedBox(
+          Container(
+            clipBehavior: Clip.hardEdge,
+
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: theme.colorScheme.surfaceContainer),
@@ -339,6 +341,8 @@ class _HomeBillState extends ConsumerState<HomeBill> {
 
   // Extract bill items building to a separate method
   List<Widget> _buildBillItems(List<BillItem> bills) {
+    final selectedBill = ref.watch(selectedBillProvider);
+
     final theme = Theme.of(context);
     // Using List.generate is more efficient than .map() with spread operator
     return List.generate(bills.length, (index) {
@@ -391,9 +395,14 @@ class _HomeBillState extends ConsumerState<HomeBill> {
             );
           }
         },
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
+            color:
+                selectedBill?.billId == bill.billId
+                    ? theme.colorScheme.primaryContainer
+                    : Colors.transparent,
             border: Border(
               top:
                   isFirstItem
