@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 
 class Bill extends ConsumerWidget {
@@ -20,6 +21,8 @@ class Bill extends ConsumerWidget {
     int roundUpToThousand(double value) {
       return ((value / 1000).ceil()) * 1000;
     }
+
+    final bill = ref.watch(billProvider.notifier);
 
     final subtotal = cart.subtotal;
     final serviceFee = cart.serviceFee;
@@ -45,14 +48,20 @@ class Bill extends ConsumerWidget {
                     children: [
                       Expanded(child: Text('Created at')),
                       Text(': '),
-                      Expanded(flex: 2, child: Text('Today, 14.24')),
+                      Expanded(
+                        flex: 2,
+                        child: Text(bill.createdAt ?? 'Today, 14.24'),
+                      ),
                     ],
                   ),
                   Row(
                     children: [
                       Expanded(child: Text('Bill No.')),
                       Text(': '),
-                      Expanded(flex: 2, child: Text('1234-467890')),
+                      Expanded(
+                        flex: 2,
+                        child: Text(bill.billNumber ?? '1234-467890'),
+                      ),
                     ],
                   ),
                 ],

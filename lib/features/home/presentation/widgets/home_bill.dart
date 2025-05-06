@@ -361,16 +361,20 @@ class _HomeBillState extends ConsumerState<HomeBill> {
       final textColor = isLightBackground ? Colors.black : Colors.white;
 
       return GestureDetector(
-        onTap: () {
+        onTap: () async {
           print(
             '🔍 Bill ID type: ${bill.billId.runtimeType}, value: ${bill.billId}',
           );
 
           try {
-            // Make sure billId is an int
             ref
                 .read(billProvider.notifier)
-                .loadBillIntoCart(bill.billId, ref.read(cartProvider.notifier));
+                .loadBillIntoCart(
+                  bill.billId,
+                  ref.read(cartProvider.notifier),
+                  ref.read(knownIndividualProvider.notifier),
+                  ref.read(customerTypeProvider.notifier),
+                );
 
             ref
                 .read(mainBillProvider.notifier)

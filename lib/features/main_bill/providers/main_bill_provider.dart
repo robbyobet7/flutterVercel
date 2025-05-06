@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/customers.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/core/middleware/customer_middleware.dart';
 
 class MainBillNotifier extends StateNotifier<MainBillComponent> {
   MainBillNotifier() : super(MainBillComponent.defaultComponent);
@@ -43,10 +44,36 @@ final billTypeProvider = StateNotifierProvider<BillTypeNotifier, BillType?>((
 });
 
 class KnownIndividualNotifier extends StateNotifier<CustomerModel?> {
+  final CustomerMiddleware _middleware = CustomerMiddleware();
+
   KnownIndividualNotifier() : super(null);
 
   void setKnownIndividual(CustomerModel? individual) {
     state = individual;
+  }
+
+  Future<CustomerModel?> getCustomerById(int customerId) async {
+    // First check if current state matches the requested customer
+    if (state != null && state!.customerId == customerId) {
+      print('🔍 Found known individual in state: ${state?.customerName}');
+      return state;
+    }
+
+    // If not in state, fetch from the middleware
+    try {
+      final customer = await _middleware.getCustomer(customerId);
+      if (customer != null) {
+        print('🔍 Found customer from repository: ${customer.customerName}');
+        // Update the state with the found customer
+        state = customer;
+        return customer;
+      }
+    } catch (e) {
+      print('❌ Error fetching customer: $e');
+    }
+
+    print('🔍 Customer not found with ID: $customerId');
+    return null;
   }
 }
 

@@ -3,6 +3,8 @@ import 'package:rebill_flutter/core/models/bill.dart';
 import 'package:rebill_flutter/core/models/bill_details.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/services/bill_service.dart';
+import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
 
 class BillState {
   final List<BillModel> bills;
@@ -70,6 +72,27 @@ class BillNotifier extends StateNotifier<BillState> {
   final BillService _billService;
 
   BillNotifier(this._billService) : super(const BillState());
+
+  String? get createdAt {
+    final DateTime? dateTime = state.selectedBill?.createdAt;
+    if (dateTime == null) return null;
+
+    // Format to dd/MM/yyyy HH.mm
+    final day = dateTime.day.toString().padLeft(2, '0');
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final year = dateTime.year;
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+
+    return '$day/$month/$year $hour:$minute';
+  }
+
+  String? get billNumber {
+    final String? billNumber = state.selectedBill?.cBillId;
+    if (billNumber == null) return null;
+
+    return billNumber;
+  }
 
   // Load bills from asset file
   Future<void> loadBills() async {
@@ -209,10 +232,29 @@ class BillNotifier extends StateNotifier<BillState> {
   }
 
   // Load a bill into the cart
-  void loadBillIntoCart(int billId, CartNotifier cartNotifier) {
+  Future<void> loadBillIntoCart(
+    int billId,
+    CartNotifier cartNotifier,
+    KnownIndividualNotifier knownIndividualNotifier,
+    CustomerTypeNotifier customerTypeNotifier,
+  ) async {
     final bill = _billService.getBillById(state.bills, billId);
     if (bill != null) {
+      selectBill(bill);
       bill.loadIntoCart(cartNotifier);
+      if (bill.customerId != null) {
+        print('🔍 Bill customer ID: ${bill.customerId}');
+
+        final customer = await knownIndividualNotifier.getCustomerById(
+          bill.customerId!,
+        );
+        knownIndividualNotifier.setKnownIndividual(customer);
+
+        customerTypeNotifier.setCustomerType(CustomerType.knownIndividual);
+      } else {
+        print('🔍 Bill is null');
+        customerTypeNotifier.setCustomerType(CustomerType.guest);
+      }
     }
   }
 
