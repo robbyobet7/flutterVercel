@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
@@ -19,6 +20,8 @@ class MainBillPage extends ConsumerWidget {
     void cancelBill() {
       //clear cart
       ref.read(cartProvider.notifier).clearCart();
+
+      ref.read(billProvider.notifier).clearSelectedBill();
 
       //set main bill to default component
       ref
