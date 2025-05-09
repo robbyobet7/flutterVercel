@@ -198,7 +198,10 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
               CartItemOption(
                 optionName: value['group'] ?? 'Option',
                 name: value['name'] ?? 'Unknown',
-                type: 'option',
+                type:
+                    value['isComplimentary'] == true
+                        ? 'complimentary'
+                        : 'option',
                 price:
                     value['price'] != null
                         ? (value['price'] is int
@@ -212,7 +215,6 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
                             : (value['purchPrice'] as double))
                         : 0.0,
                 relationItem: value['relation_item'],
-                isComplimentary: value['isComplimentary'],
               ),
             );
           } else if (option.type == 'extra' &&
