@@ -165,7 +165,7 @@ class MainBillPage extends ConsumerWidget {
           ),
         ),
         if (cart.items.isNotEmpty && !isClosed)
-          Container(
+          SizedBox(
             height: 50,
             child: Row(
               spacing: 6,

@@ -291,10 +291,11 @@ class KnownIndividualDialog extends ConsumerWidget {
                       onPressed: () {
                         ref.read(tempSelectedCustomerProvider.notifier).state =
                             null;
-                        if (selectedCustomer == null)
+                        if (selectedCustomer == null) {
                           ref
                               .read(knownIndividualProvider.notifier)
                               .setKnownIndividual(null);
+                        }
                         Navigator.pop(context);
                       },
                       text: 'Cancel',

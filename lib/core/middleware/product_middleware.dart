@@ -38,7 +38,6 @@ class ProductMiddleware {
 
       return _products!;
     } catch (e) {
-      print('Error loading products: $e');
       return [];
     }
   }

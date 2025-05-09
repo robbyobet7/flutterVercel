@@ -55,7 +55,6 @@ class KnownIndividualNotifier extends StateNotifier<CustomerModel?> {
   Future<CustomerModel?> getCustomerById(int customerId) async {
     // First check if current state matches the requested customer
     if (state != null && state!.customerId == customerId) {
-      print('🔍 Found known individual in state: ${state?.customerName}');
       return state;
     }
 
@@ -63,16 +62,14 @@ class KnownIndividualNotifier extends StateNotifier<CustomerModel?> {
     try {
       final customer = await _middleware.getCustomer(customerId);
       if (customer != null) {
-        print('🔍 Found customer from repository: ${customer.customerName}');
         // Update the state with the found customer
         state = customer;
         return customer;
       }
     } catch (e) {
-      print('❌ Error fetching customer: $e');
+      rethrow;
     }
 
-    print('🔍 Customer not found with ID: $customerId');
     return null;
   }
 }

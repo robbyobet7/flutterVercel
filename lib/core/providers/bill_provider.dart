@@ -258,8 +258,6 @@ class BillNotifier extends StateNotifier<BillState> {
       selectBill(bill);
       bill.loadIntoCart(cartNotifier);
       if (bill.customerId != null) {
-        print('🔍 Bill customer ID: ${bill.customerId}');
-
         final customer = await knownIndividualNotifier.getCustomerById(
           bill.customerId!,
         );
@@ -267,7 +265,6 @@ class BillNotifier extends StateNotifier<BillState> {
 
         customerTypeNotifier.setCustomerType(CustomerType.knownIndividual);
       } else {
-        print('🔍 Bill is null');
         customerTypeNotifier.setCustomerType(CustomerType.guest);
       }
     }
@@ -370,14 +367,8 @@ final allBillsProvider = Provider<List<BillsByDate>>((ref) {
     );
 
     // Add debug print to see BillItem properties
-    print(
-      '📦 BillItem created - ID: ${billItem.billId} (type: ${billItem.billId.runtimeType})',
-    );
 
     // Add debug print to see actual total value
-    print(
-      '💰 Bill ${bill.billId}: Total type: ${bill.total.runtimeType}, value: ${bill.total}',
-    );
 
     if (billsByDate.containsKey(dateString)) {
       billsByDate[dateString]!.add(billItem);

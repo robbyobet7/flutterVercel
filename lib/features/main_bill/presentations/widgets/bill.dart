@@ -178,7 +178,7 @@ class Bill extends ConsumerWidget {
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       if (item.discount > 0)
-                                        Container(
+                                        SizedBox(
                                           width: double.infinity,
                                           child: Row(
                                             spacing: 2,
@@ -522,7 +522,7 @@ class Bill extends ConsumerWidget {
                         if (isClosed)
                           Column(
                             children: [
-                              Container(
+                              SizedBox(
                                 width: double.infinity,
                                 child: AppButton(
                                   backgroundColor:
@@ -535,7 +535,7 @@ class Bill extends ConsumerWidget {
                                       ),
                                 ),
                               ),
-                              Container(
+                              SizedBox(
                                 width: double.infinity,
                                 child: AppButton(
                                   backgroundColor:
@@ -548,7 +548,7 @@ class Bill extends ConsumerWidget {
                                       ),
                                 ),
                               ),
-                              Container(
+                              SizedBox(
                                 width: double.infinity,
                                 child: AppButton(
                                   backgroundColor:
@@ -561,7 +561,7 @@ class Bill extends ConsumerWidget {
                                       ),
                                 ),
                               ),
-                              Container(
+                              SizedBox(
                                 width: double.infinity,
                                 child: AppButton(
                                   backgroundColor:
@@ -574,7 +574,7 @@ class Bill extends ConsumerWidget {
                                       ),
                                 ),
                               ),
-                              Container(
+                              SizedBox(
                                 width: double.infinity,
                                 child: AppButton(
                                   backgroundColor:

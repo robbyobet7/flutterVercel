@@ -145,7 +145,6 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
       // Get product ID
       final productId = widget.product.id;
       if (productId == null) {
-        print('Error: Product ID is null');
         return;
       }
 
@@ -190,8 +189,6 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
 
         // Process each option from the provider
         for (final option in selectedOptions.values) {
-          print('abba ${option.id} ${option.type} ${option.value}');
-
           if (option.type == 'option' && option.value is Map<String, dynamic>) {
             final value = option.value as Map<String, dynamic>;
             productOptions.add(
@@ -235,11 +232,6 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
         }
       }
 
-      print('productOptions: $productOptions');
-      print(
-        'discount: $discountAmount, discountType: $discountType, discountValue: $discountValue',
-      );
-
       // Use addProduct rather than addProductFromProduct to include discount information
       ref
           .read(cartProvider.notifier)
@@ -263,9 +255,7 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
           );
 
       Navigator.pop(context);
-    } catch (e) {
-      print('Error adding to cart: $e');
-    }
+    } catch (e) {}
   }
 
   Widget _buildProductImage() {

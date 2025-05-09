@@ -66,12 +66,6 @@ class _HomeBillState extends ConsumerState<HomeBill> {
     final allBills = ref.watch(allBillsProvider);
     final isLoading = ref.watch(billLoadingProvider);
 
-    // Add debug output
-    print('📋 HomeBill build: ${allBills.length} date groups found');
-    for (var billGroup in allBills) {
-      print('📅 Date: ${billGroup.date}, Bills: ${billGroup.bills.length}');
-    }
-
     return GestureDetector(
       // Dismiss keyboard when tapping outside
       onTap: () => FocusScope.of(context).unfocus(),
@@ -366,10 +360,6 @@ class _HomeBillState extends ConsumerState<HomeBill> {
 
       return GestureDetector(
         onTap: () async {
-          print(
-            '🔍 Bill ID type: ${bill.billId.runtimeType}, value: ${bill.billId}',
-          );
-
           try {
             ref
                 .read(billProvider.notifier)
@@ -384,8 +374,6 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                 .read(mainBillProvider.notifier)
                 .setMainBill(MainBillComponent.billsComponent);
           } catch (e) {
-            print('❌ Error loading bill into cart: $e');
-
             // Show a snackbar with the error
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

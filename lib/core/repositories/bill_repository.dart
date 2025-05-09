@@ -22,7 +22,6 @@ class BillRepository {
       _isInitialized = true;
     } catch (e) {
       _bills = [];
-      print('Error loading bills: $e');
     }
   }
 
@@ -198,9 +197,9 @@ class BillRepository {
   Future<void> saveBillsToJson() async {
     // This is just a placeholder - in a real app, you would save to a database or file
     final jsonList = _bills.map((b) => b.toJson()).toList();
+    // ignore: unused_local_variable
     final jsonString = json.encode(jsonList);
 
     // Here you might write to a file, API or database
-    print('Bills saved to JSON: ${jsonString.length} characters');
   }
 }
