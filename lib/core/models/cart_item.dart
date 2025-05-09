@@ -12,6 +12,7 @@ class CartItemOption {
   final int? productId;
   final dynamic productStock;
   final String? productType;
+  final bool? isComplimentary;
 
   CartItemOption({
     this.optionName,
@@ -23,6 +24,7 @@ class CartItemOption {
     this.productId,
     this.productStock,
     this.productType,
+    this.isComplimentary,
   });
 
   factory CartItemOption.fromJson(Map<String, dynamic> json) {

@@ -210,10 +210,15 @@ class Bill extends ConsumerWidget {
                                                 CrossAxisAlignment.start,
                                             children:
                                                 item.options!.map((option) {
-                                                  print('test: ${option.name}');
+                                                  print(
+                                                    'test: ${option.isComplimentary}',
+                                                  );
                                                   final isComplimentary =
                                                       option.type ==
-                                                      'complimentary';
+                                                          'complimentary' ||
+                                                      option.isComplimentary ==
+                                                          true;
+
                                                   return Row(
                                                     children: [
                                                       Expanded(

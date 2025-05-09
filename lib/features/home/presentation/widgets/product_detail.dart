@@ -189,6 +189,8 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
 
         // Process each option from the provider
         for (final option in selectedOptions.values) {
+          print('abba ${option.id} ${option.type} ${option.value}');
+
           if (option.type == 'option' && option.value is Map<String, dynamic>) {
             final value = option.value as Map<String, dynamic>;
             productOptions.add(
@@ -209,6 +211,7 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
                             : (value['purchPrice'] as double))
                         : 0.0,
                 relationItem: value['relation_item'],
+                isComplimentary: value['isComplimentary'],
               ),
             );
           } else if (option.type == 'extra' &&
