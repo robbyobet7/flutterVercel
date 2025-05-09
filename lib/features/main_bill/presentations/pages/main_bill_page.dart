@@ -4,6 +4,7 @@ import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
+import 'package:rebill_flutter/core/widgets/table_dialog.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/known_individual_dialog.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/bill.dart';
@@ -172,7 +173,15 @@ class MainBillPage extends ConsumerWidget {
               children: [
                 Expanded(
                   child: AppButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      AppDialog.showCustom(
+                        context,
+                        content: TableDialog(tableType: TableType.bill),
+                        height: MediaQuery.of(context).size.height * 0.8,
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        title: 'Assign Table',
+                      );
+                    },
                     height: 50,
                     text: 'Assign Table',
                     backgroundColor: theme.colorScheme.primaryContainer,

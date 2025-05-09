@@ -14,6 +14,7 @@ class AppButton extends StatelessWidget {
   final String text;
   final TextAlign? textAlign;
   final BorderSide? borderSide;
+  final Color? disabledColor;
   const AppButton({
     super.key,
     required this.onPressed,
@@ -29,6 +30,7 @@ class AppButton extends StatelessWidget {
     this.disabled = false,
     this.borderSide,
     this.textAlign,
+    this.disabledColor,
   });
 
   @override
@@ -38,7 +40,7 @@ class AppButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: disabled == true ? null : onPressed,
       style: ElevatedButton.styleFrom(
-        disabledBackgroundColor: theme.colorScheme.surface,
+        disabledBackgroundColor: disabledColor ?? theme.disabledColor,
         animationDuration: const Duration(milliseconds: 200),
         backgroundColor:
             disabled == true

@@ -32,7 +32,6 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
           // Header with expand/collapse functionality
           GestureDetector(
             onTap: () {
-              if (widget.disabled) return;
               setState(() {
                 _isExpanded = !_isExpanded;
               });
@@ -90,6 +89,7 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
                       widget.customerTypes
                           .map(
                             (customerType) => CustomerTypeCard(
+                              disabled: widget.disabled,
                               theme: theme,
                               icon: customerType['icon'] as IconData,
                               label: customerType['label'] as String,
