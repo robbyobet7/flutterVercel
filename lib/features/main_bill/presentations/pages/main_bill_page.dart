@@ -97,20 +97,57 @@ class MainBillPage extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${isClosed ? 'Closed' : 'Current'} Bill',
+                        '${isClosed ? 'Closed' : 'Open'} Bill',
                         style: theme.textTheme.displaySmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Tooltip(
-                        message: 'Cancel',
-                        child: GestureDetector(
-                          onTap: cancelBill,
-                          child: Icon(
-                            Icons.cancel_rounded,
-                            color: theme.colorScheme.onSurface,
+                      Row(
+                        spacing: 12,
+                        children: [
+                          if (!isClosed)
+                            Tooltip(
+                              message: 'QR',
+                              child: GestureDetector(
+                                onTap: () {},
+                                child: Icon(
+                                  Icons.qr_code_rounded,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          if (!isClosed)
+                            Tooltip(
+                              message: 'Delete Bill',
+                              child: GestureDetector(
+                                onTap: () {},
+                                child: Icon(
+                                  Icons.delete_forever_outlined,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          Tooltip(
+                            message: 'Share',
+                            child: GestureDetector(
+                              onTap: () {},
+                              child: Icon(
+                                Icons.share_outlined,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
                           ),
-                        ),
+                          Tooltip(
+                            message: 'Cancel',
+                            child: GestureDetector(
+                              onTap: cancelBill,
+                              child: Icon(
+                                Icons.cancel_rounded,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
