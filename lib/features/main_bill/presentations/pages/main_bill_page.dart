@@ -5,7 +5,7 @@ import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/pages/known_individual_dialog.dart';
+import 'package:rebill_flutter/features/main_bill/presentations/widgets/known_individual_dialog.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/bill.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/empty_cart.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/total_price_card.dart';
@@ -41,6 +41,8 @@ class MainBillPage extends ConsumerWidget {
     final theme = Theme.of(context);
     final cart = ref.watch(cartProvider);
     final mainBillComponent = ref.watch(mainBillProvider);
+    final bill = ref.watch(billProvider.notifier);
+    final isClosed = bill.billStatus == 'closed';
     final customerTypes = [
       {
         'icon': Icons.person_rounded,
@@ -95,7 +97,7 @@ class MainBillPage extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Current Bill',
+                        '${isClosed ? 'Closed' : 'Current'} Bill',
                         style: theme.textTheme.displaySmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -117,7 +119,7 @@ class MainBillPage extends ConsumerWidget {
                 billType != BillType.merchantBill
                     ? CustomerExpandable(
                       customerTypes: customerTypes,
-                      theme: theme,
+                      disabled: isClosed,
                     )
                     : const SizedBox.shrink(),
                 cart.items.isEmpty ? EmptyCart() : Bill(),

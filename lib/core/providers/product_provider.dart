@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rebill_flutter/core/models/customized_product.dart';
 import 'dart:convert';
 import '../models/product.dart';
 import 'package:intl/intl.dart';
@@ -1007,71 +1006,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
     }
 
     return exists;
-  }
-
-  // Get all customization data for a product (useful for cart operations)
-  // This is a safer version that can use a provided product if the ID lookup fails
-  CustomizedProduct? getProductCustomizationData(
-    int productId, {
-    Product? fallbackProduct,
-  }) {
-    // Get the product first
-    Product? product = getProductById(productId);
-
-    // If product not found by ID, use the fallback if provided
-    if (product == null) {
-      print('Product with ID $productId not found in state');
-      if (fallbackProduct != null && fallbackProduct.id == productId) {
-        print(
-          'Using fallback product for ID $productId: ${fallbackProduct.productsName}',
-        );
-        product = fallbackProduct;
-      } else {
-        return null;
-      }
-    }
-
-    // Calculate pricing information
-    final basePrice = product.productsPrice ?? 0.0;
-    final discountedPrice = getDiscountedPrice(product);
-    final optionsPrice = getOptionsPrice(product);
-    final totalPrice = getTotalPrice(product);
-
-    // Get discount if any
-    final discount = getActiveDiscount(productId);
-
-    // Get selected options
-    final options = getSelectedOptions(productId);
-    Map<String, dynamic>? optionsData;
-
-    if (options.isNotEmpty) {
-      optionsData = <String, dynamic>{};
-
-      for (final entry in options.entries) {
-        final optionId = entry.key;
-        final option = entry.value;
-
-        if (option.type == 'option') {
-          // For dropdown options, store the value (usually a Map)
-          optionsData[optionId] = option.value;
-        } else if (option.type == 'extra') {
-          // For extras, store true/false or the value if needed
-          optionsData[optionId] = option.value;
-        }
-      }
-    }
-
-    // Create and return the CustomizedProduct
-    return CustomizedProduct(
-      id: productId,
-      basePrice: basePrice,
-      optionsPrice: optionsPrice > 0 ? optionsPrice : null,
-      discountedPrice: discountedPrice != basePrice ? discountedPrice : null,
-      totalPrice: totalPrice,
-      discount: discount,
-      options: optionsData,
-      product: product,
-    );
   }
 
   // Check if a product has any customizations (options or discounts)

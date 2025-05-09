@@ -23,6 +23,7 @@ class Bill extends ConsumerWidget {
     }
 
     final bill = ref.watch(billProvider.notifier);
+    final isClosed = bill.billStatus == 'closed';
 
     final subtotal = cart.subtotal;
     final serviceFee = cart.serviceFee;
@@ -64,6 +65,31 @@ class Bill extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  if (isClosed)
+                    Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(child: Text('Paid at')),
+                            Text(': '),
+                            Expanded(
+                              flex: 2,
+                              child: Text(bill.paidAt ?? '1234-467890'),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(child: Text('Cashier')),
+                            Text(': '),
+                            Expanded(
+                              flex: 2,
+                              child: Text(bill.cashier ?? '1234-467890'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -243,33 +269,33 @@ class Bill extends ConsumerWidget {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    // Decrement button
-                                    InkWell(
-                                      onTap: () {
-                                        ref
-                                            .read(cartProvider.notifier)
-                                            .decrementQuantity(index);
-                                      },
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: BoxDecoration(
-                                          color:
-                                              theme
-                                                  .colorScheme
-                                                  .surfaceContainer,
-                                          borderRadius: BorderRadius.circular(
-                                            9999,
+                                    if (!isClosed)
+                                      InkWell(
+                                        onTap: () {
+                                          ref
+                                              .read(cartProvider.notifier)
+                                              .decrementQuantity(index);
+                                        },
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: Container(
+                                          width: 20,
+                                          height: 20,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                theme
+                                                    .colorScheme
+                                                    .surfaceContainer,
+                                            borderRadius: BorderRadius.circular(
+                                              9999,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.remove,
+                                            size: 14,
+                                            color: theme.colorScheme.onSurface,
                                           ),
                                         ),
-                                        child: Icon(
-                                          Icons.remove,
-                                          size: 14,
-                                          color: theme.colorScheme.onSurface,
-                                        ),
                                       ),
-                                    ),
 
                                     // Quantity display
                                     Container(
@@ -293,30 +319,31 @@ class Bill extends ConsumerWidget {
                                       ),
                                     ),
 
-                                    // Increment button
-                                    InkWell(
-                                      onTap: () {
-                                        ref
-                                            .read(cartProvider.notifier)
-                                            .incrementQuantity(index);
-                                      },
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.primary,
-                                          borderRadius: BorderRadius.circular(
-                                            9999,
+                                    if (!isClosed)
+                                      // Increment button
+                                      InkWell(
+                                        onTap: () {
+                                          ref
+                                              .read(cartProvider.notifier)
+                                              .incrementQuantity(index);
+                                        },
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: Container(
+                                          width: 20,
+                                          height: 20,
+                                          decoration: BoxDecoration(
+                                            color: theme.colorScheme.primary,
+                                            borderRadius: BorderRadius.circular(
+                                              9999,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.add,
+                                            size: 14,
+                                            color: theme.colorScheme.onPrimary,
                                           ),
                                         ),
-                                        child: Icon(
-                                          Icons.add,
-                                          size: 14,
-                                          color: theme.colorScheme.onPrimary,
-                                        ),
                                       ),
-                                    ),
                                   ],
                                 ),
                               ),

@@ -3,6 +3,7 @@ import 'package:rebill_flutter/core/models/bill.dart';
 import 'package:rebill_flutter/core/models/bill_details.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/services/bill_service.dart';
+import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
 
@@ -74,17 +75,10 @@ class BillNotifier extends StateNotifier<BillState> {
   BillNotifier(this._billService) : super(const BillState());
 
   String? get createdAt {
-    final DateTime? dateTime = state.selectedBill?.createdAt;
+    final String? dateTime = state.selectedBill?.posPaidBillDate;
     if (dateTime == null) return null;
 
-    // Format to dd/MM/yyyy HH.mm
-    final day = dateTime.day.toString().padLeft(2, '0');
-    final month = dateTime.month.toString().padLeft(2, '0');
-    final year = dateTime.year;
-    final hour = dateTime.hour.toString().padLeft(2, '0');
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-
-    return '$day/$month/$year $hour:$minute';
+    return dateTime.toBillDate();
   }
 
   String? get billNumber {
@@ -92,6 +86,27 @@ class BillNotifier extends StateNotifier<BillState> {
     if (billNumber == null) return null;
 
     return billNumber;
+  }
+
+  String? get billStatus {
+    final String? status = state.selectedBill?.states;
+    if (status == null) return null;
+
+    return status;
+  }
+
+  String? get cashier {
+    final String? cashier = state.selectedBill?.cashier;
+    if (cashier == null) return null;
+
+    return cashier;
+  }
+
+  String? get paidAt {
+    final String? paidAt = state.selectedBill?.posPaidBillDate;
+    if (paidAt == null) return null;
+
+    return paidAt.toBillDate();
   }
 
   // Load bills from asset file
