@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
@@ -144,7 +145,6 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
       // Get product ID
       final productId = widget.product.id;
       if (productId == null) {
-        print('Error: Product ID is null');
         return;
       }
 
@@ -195,7 +195,10 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
               CartItemOption(
                 optionName: value['group'] ?? 'Option',
                 name: value['name'] ?? 'Unknown',
-                type: 'option',
+                type:
+                    value['isComplimentary'] == true
+                        ? 'complimentary'
+                        : 'option',
                 price:
                     value['price'] != null
                         ? (value['price'] is int
@@ -229,11 +232,6 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
         }
       }
 
-      print('productOptions: $productOptions');
-      print(
-        'discount: $discountAmount, discountType: $discountType, discountValue: $discountValue',
-      );
-
       // Use addProduct rather than addProductFromProduct to include discount information
       ref
           .read(cartProvider.notifier)
@@ -257,9 +255,7 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
           );
 
       Navigator.pop(context);
-    } catch (e) {
-      print('Error adding to cart: $e');
-    }
+    } catch (e) {}
   }
 
   Widget _buildProductImage() {
@@ -322,6 +318,7 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
   Widget build(BuildContext context) {
     final mainBillComponent = ref.watch(mainBillProvider);
     final theme = Theme.of(context);
+    final isClosed = ref.watch(billProvider.notifier).billStatus == 'closed';
     return Expanded(
       child: Column(
         spacing: 12,
@@ -338,7 +335,8 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
           Container(
             height: 40,
             child:
-                mainBillComponent == MainBillComponent.defaultComponent
+                (mainBillComponent == MainBillComponent.defaultComponent) ||
+                        isClosed
                     ? Center(
                       child: Text(
                         'Create new bill to add items',

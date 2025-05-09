@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/pages/known_individual_dialog.dart';
+import 'package:rebill_flutter/features/main_bill/presentations/widgets/known_individual_dialog.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/bill.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/empty_cart.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/total_price_card.dart';
@@ -19,6 +20,8 @@ class MainBillPage extends ConsumerWidget {
     void cancelBill() {
       //clear cart
       ref.read(cartProvider.notifier).clearCart();
+
+      ref.read(billProvider.notifier).clearSelectedBill();
 
       //set main bill to default component
       ref
@@ -38,6 +41,8 @@ class MainBillPage extends ConsumerWidget {
     final theme = Theme.of(context);
     final cart = ref.watch(cartProvider);
     final mainBillComponent = ref.watch(mainBillProvider);
+    final bill = ref.watch(billProvider.notifier);
+    final isClosed = bill.billStatus == 'closed';
     final customerTypes = [
       {
         'icon': Icons.person_rounded,
@@ -92,20 +97,57 @@ class MainBillPage extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Current Bill',
+                        '${isClosed ? 'Closed' : 'Open'} Bill',
                         style: theme.textTheme.displaySmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Tooltip(
-                        message: 'Cancel',
-                        child: GestureDetector(
-                          onTap: cancelBill,
-                          child: Icon(
-                            Icons.cancel_rounded,
-                            color: theme.colorScheme.onSurface,
+                      Row(
+                        spacing: 12,
+                        children: [
+                          if (!isClosed)
+                            Tooltip(
+                              message: 'QR',
+                              child: GestureDetector(
+                                onTap: () {},
+                                child: Icon(
+                                  Icons.qr_code_rounded,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          if (!isClosed)
+                            Tooltip(
+                              message: 'Delete Bill',
+                              child: GestureDetector(
+                                onTap: () {},
+                                child: Icon(
+                                  Icons.delete_forever_outlined,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          Tooltip(
+                            message: 'Share',
+                            child: GestureDetector(
+                              onTap: () {},
+                              child: Icon(
+                                Icons.share_outlined,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
                           ),
-                        ),
+                          Tooltip(
+                            message: 'Cancel',
+                            child: GestureDetector(
+                              onTap: cancelBill,
+                              child: Icon(
+                                Icons.cancel_rounded,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -114,7 +156,7 @@ class MainBillPage extends ConsumerWidget {
                 billType != BillType.merchantBill
                     ? CustomerExpandable(
                       customerTypes: customerTypes,
-                      theme: theme,
+                      disabled: isClosed,
                     )
                     : const SizedBox.shrink(),
                 cart.items.isEmpty ? EmptyCart() : Bill(),
@@ -122,8 +164,8 @@ class MainBillPage extends ConsumerWidget {
             ),
           ),
         ),
-        if (cart.items.isNotEmpty)
-          Container(
+        if (cart.items.isNotEmpty && !isClosed)
+          SizedBox(
             height: 50,
             child: Row(
               spacing: 6,

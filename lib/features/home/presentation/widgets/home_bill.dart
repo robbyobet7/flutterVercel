@@ -66,12 +66,6 @@ class _HomeBillState extends ConsumerState<HomeBill> {
     final allBills = ref.watch(allBillsProvider);
     final isLoading = ref.watch(billLoadingProvider);
 
-    // Add debug output
-    print('📋 HomeBill build: ${allBills.length} date groups found');
-    for (var billGroup in allBills) {
-      print('📅 Date: ${billGroup.date}, Bills: ${billGroup.bills.length}');
-    }
-
     return GestureDetector(
       // Dismiss keyboard when tapping outside
       onTap: () => FocusScope.of(context).unfocus(),
@@ -325,7 +319,9 @@ class _HomeBillState extends ConsumerState<HomeBill> {
             ),
           ),
           // Bills container
-          DecoratedBox(
+          Container(
+            clipBehavior: Clip.hardEdge,
+
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: theme.colorScheme.surfaceContainer),
@@ -339,6 +335,8 @@ class _HomeBillState extends ConsumerState<HomeBill> {
 
   // Extract bill items building to a separate method
   List<Widget> _buildBillItems(List<BillItem> bills) {
+    final selectedBill = ref.watch(selectedBillProvider);
+
     final theme = Theme.of(context);
     // Using List.generate is more efficient than .map() with spread operator
     return List.generate(bills.length, (index) {
@@ -361,23 +359,21 @@ class _HomeBillState extends ConsumerState<HomeBill> {
       final textColor = isLightBackground ? Colors.black : Colors.white;
 
       return GestureDetector(
-        onTap: () {
-          print(
-            '🔍 Bill ID type: ${bill.billId.runtimeType}, value: ${bill.billId}',
-          );
-
+        onTap: () async {
           try {
-            // Make sure billId is an int
             ref
                 .read(billProvider.notifier)
-                .loadBillIntoCart(bill.billId, ref.read(cartProvider.notifier));
+                .loadBillIntoCart(
+                  bill.billId,
+                  ref.read(cartProvider.notifier),
+                  ref.read(knownIndividualProvider.notifier),
+                  ref.read(customerTypeProvider.notifier),
+                );
 
             ref
                 .read(mainBillProvider.notifier)
                 .setMainBill(MainBillComponent.billsComponent);
           } catch (e) {
-            print('❌ Error loading bill into cart: $e');
-
             // Show a snackbar with the error
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -387,9 +383,14 @@ class _HomeBillState extends ConsumerState<HomeBill> {
             );
           }
         },
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
+            color:
+                selectedBill?.billId == bill.billId
+                    ? theme.colorScheme.primaryContainer
+                    : Colors.transparent,
             border: Border(
               top:
                   isFirstItem

@@ -44,8 +44,9 @@ class CartState {
 
   // Calculate the total tax (taxPercentage% of (subtotal + service fee))
   double get taxTotal {
-    if (taxIncluded)
+    if (taxIncluded) {
       return 0; // If tax is included in price, we don't add extra tax
+    }
     return (subtotal + serviceFee) * (taxPercentage / 100);
   }
 
@@ -250,8 +251,7 @@ class CartNotifier extends StateNotifier<CartState> {
           final cartItem = CartItem.fromJson(item);
 
           validItems.add(cartItem);
-        } catch (e, stackTrace) {
-          print('⚠️ Stack trace: $stackTrace');
+        } catch (e) {
           // Continue with next item instead of breaking the whole process
           continue;
         }
@@ -261,12 +261,9 @@ class CartNotifier extends StateNotifier<CartState> {
       if (validItems.isNotEmpty) {
         final items = [...state.items, ...validItems];
         state = state.copyWith(items: items);
-      } else {
-        print('⚠️ No valid items found in bill to add to cart');
-      }
-    } catch (e, stackTrace) {
-      print('❌ Failed to parse order collection: $e');
-      print('❌ Stack trace: $stackTrace');
+      } else {}
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -397,8 +394,6 @@ class CartNotifier extends StateNotifier<CartState> {
 
   // Add a method to load a BillModel directly into the cart
   void loadBill(BillModel bill) {
-    print('🧾 Loading bill ${bill.billId} into cart');
-
     // Clear existing cart
     clearCart();
 
@@ -407,13 +402,6 @@ class CartNotifier extends StateNotifier<CartState> {
     double taxPercent = double.tryParse(bill.vat) ?? 10.0;
     double gratuityPercent = double.tryParse(bill.gratuity) ?? 0.0;
 
-    print(
-      '💲 Bill settings: service=${serviceFeePercent}%, tax=${taxPercent}%, gratuity=${gratuityPercent}%',
-    );
-    print(
-      '💵 Bill amounts: final=${bill.finalTotal}, subtotal=${bill.total}, discount=${bill.totaldiscount}',
-    );
-
     updateServiceFeePercentage(serviceFeePercent);
     updateTaxPercentage(taxPercent);
     updateGratuityPercentage(gratuityPercent);
@@ -421,40 +409,21 @@ class CartNotifier extends StateNotifier<CartState> {
     // Load items from bill
     if (bill.items != null && bill.items!.isNotEmpty) {
       // If bill has parsed items, add them directly
-      print('📝 Adding ${bill.items!.length} parsed items from bill');
       for (var item in bill.items!) {
-        if (item.discount > 0) {
-          print(
-            '💰 Item ${item.name} has discount: ${item.discount}, type: ${item.discountType}',
-          );
-        }
+        if (item.discount > 0) {}
         addItem(item);
       }
     } else if (bill.orderCollection.isNotEmpty) {
       // If bill only has order collection string, parse and add items
-      print('📝 Adding items from bill order collection (JSON string)');
       addItemsFromBill(bill.orderCollection);
     }
 
     // Check final cart state
-    print('🛒 Cart state after loading bill:');
-    print('   - Items: ${state.items.length}');
-    print('   - Subtotal: ${state.subtotal}');
-    print('   - Product discounts: ${state.totalProductDiscount}');
-    print('   - Service fee: ${state.serviceFee}');
-    print('   - Tax: ${state.taxTotal}');
-    print('   - Gratuity: ${state.gratuity}');
-    print('   - Total: ${state.total}');
 
     // Check individual items
     for (int i = 0; i < state.items.length; i++) {
+      // ignore: unused_local_variable
       final item = state.items[i];
-      print('   - Item ${i + 1}: ${item.name}');
-      print('     * Price: ${item.price}, Original: ${item.originalPrice}');
-      print('     * Quantity: ${item.quantity}');
-      print('     * Discount: ${item.discount} (${item.discountType})');
-      print('     * Total price: ${item.totalPrice}');
-      print('     * Total discount: ${item.totalDiscountAmount}');
     }
   }
 

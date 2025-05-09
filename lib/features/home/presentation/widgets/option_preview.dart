@@ -216,7 +216,11 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                                                   : null,
                                         ),
                                         subtitle: Text(
-                                          '${NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(product.productsPrice ?? 0)}',
+                                          NumberFormat.currency(
+                                            locale: 'id',
+                                            symbol: 'Rp',
+                                            decimalDigits: 0,
+                                          ).format(product.productsPrice ?? 0),
                                           style: theme.textTheme.bodySmall,
                                         ),
                                         trailing:
@@ -455,20 +459,17 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: GestureDetector(
                   onTap: () {
-                    print('Toggling extra: $optionName');
                     final isSelected = productNotifier.isExtraSelected(
                       widget.productId,
                       optionId,
                     );
 
                     if (isSelected) {
-                      print('Removing extra directly');
                       productNotifier.removeProductOption(
                         widget.productId,
                         optionId,
                       );
                     } else {
-                      print('Adding extra directly');
                       productNotifier.setProductOption(
                         widget.productId,
                         optionId,

@@ -31,11 +31,11 @@ class BillFilterDropdown extends ConsumerWidget {
   final double height;
 
   const BillFilterDropdown({
-    Key? key,
+    super.key,
     this.onFilterSelected,
     this.decoration,
     this.height = 40,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -163,11 +163,11 @@ class CustomerBillsDropdown extends ConsumerWidget {
   final double height;
 
   const CustomerBillsDropdown({
-    Key? key,
+    super.key,
     this.onCustomerSelected,
     this.decoration,
     this.height = 40,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

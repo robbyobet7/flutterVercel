@@ -21,6 +21,7 @@ class KnownIndividualDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final tempSelectedCustomer = ref.watch(tempSelectedCustomerProvider);
+    final selectedCustomer = ref.watch(knownIndividualProvider);
     final isLightBackground =
         theme.colorScheme.surface.computeLuminance() > 0.5;
 
@@ -127,7 +128,9 @@ class KnownIndividualDialog extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(8),
                                 color:
                                     tempSelectedCustomer?.customerId ==
-                                            customer.customerId
+                                                customer.customerId ||
+                                            selectedCustomer?.customerId ==
+                                                customer.customerId
                                         ? theme.colorScheme.primary
                                         : index % 2 == 0
                                         ? theme.colorScheme.surfaceContainer
@@ -151,8 +154,12 @@ class KnownIndividualDialog extends ConsumerWidget {
                                             fontWeight: FontWeight.bold,
                                             color:
                                                 tempSelectedCustomer
-                                                            ?.customerId ==
-                                                        customer.customerId
+                                                                ?.customerId ==
+                                                            customer
+                                                                .customerId ||
+                                                        selectedCustomer
+                                                                ?.customerId ==
+                                                            customer.customerId
                                                     ? Colors.white
                                                     : theme
                                                         .colorScheme
@@ -169,8 +176,12 @@ class KnownIndividualDialog extends ConsumerWidget {
                                             fontWeight: FontWeight.w400,
                                             color:
                                                 tempSelectedCustomer
-                                                            ?.customerId ==
-                                                        customer.customerId
+                                                                ?.customerId ==
+                                                            customer
+                                                                .customerId ||
+                                                        selectedCustomer
+                                                                ?.customerId ==
+                                                            customer.customerId
                                                     ? Colors.white
                                                     : theme
                                                         .colorScheme
@@ -187,8 +198,12 @@ class KnownIndividualDialog extends ConsumerWidget {
                                             fontWeight: FontWeight.w400,
                                             color:
                                                 tempSelectedCustomer
-                                                            ?.customerId ==
-                                                        customer.customerId
+                                                                ?.customerId ==
+                                                            customer
+                                                                .customerId ||
+                                                        selectedCustomer
+                                                                ?.customerId ==
+                                                            customer.customerId
                                                     ? Colors.white
                                                     : theme
                                                         .colorScheme
@@ -204,8 +219,12 @@ class KnownIndividualDialog extends ConsumerWidget {
                                             fontWeight: FontWeight.w400,
                                             color:
                                                 tempSelectedCustomer
-                                                            ?.customerId ==
-                                                        customer.customerId
+                                                                ?.customerId ==
+                                                            customer
+                                                                .customerId ||
+                                                        selectedCustomer
+                                                                ?.customerId ==
+                                                            customer.customerId
                                                     ? Colors.white
                                                     : theme
                                                         .colorScheme
@@ -272,9 +291,11 @@ class KnownIndividualDialog extends ConsumerWidget {
                       onPressed: () {
                         ref.read(tempSelectedCustomerProvider.notifier).state =
                             null;
-                        ref
-                            .read(knownIndividualProvider.notifier)
-                            .setKnownIndividual(null);
+                        if (selectedCustomer == null) {
+                          ref
+                              .read(knownIndividualProvider.notifier)
+                              .setKnownIndividual(null);
+                        }
                         Navigator.pop(context);
                       },
                       text: 'Cancel',
