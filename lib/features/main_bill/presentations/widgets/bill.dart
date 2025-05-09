@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
+import 'package:rebill_flutter/core/widgets/app_button.dart';
 
 class Bill extends ConsumerWidget {
   const Bill({super.key});
@@ -20,6 +22,9 @@ class Bill extends ConsumerWidget {
     int roundUpToThousand(double value) {
       return ((value / 1000).ceil()) * 1000;
     }
+
+    final bill = ref.watch(billProvider.notifier);
+    final isClosed = bill.billStatus == 'closed';
 
     final subtotal = cart.subtotal;
     final serviceFee = cart.serviceFee;
@@ -45,16 +50,47 @@ class Bill extends ConsumerWidget {
                     children: [
                       Expanded(child: Text('Created at')),
                       Text(': '),
-                      Expanded(flex: 2, child: Text('Today, 14.24')),
+                      Expanded(
+                        flex: 2,
+                        child: Text(bill.createdAt ?? 'Today, 14.24'),
+                      ),
                     ],
                   ),
                   Row(
                     children: [
                       Expanded(child: Text('Bill No.')),
                       Text(': '),
-                      Expanded(flex: 2, child: Text('1234-467890')),
+                      Expanded(
+                        flex: 2,
+                        child: Text(bill.billNumber ?? '1234-467890'),
+                      ),
                     ],
                   ),
+                  if (isClosed)
+                    Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(child: Text('Paid at')),
+                            Text(': '),
+                            Expanded(
+                              flex: 2,
+                              child: Text(bill.paidAt ?? '1234-467890'),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(child: Text('Cashier')),
+                            Text(': '),
+                            Expanded(
+                              flex: 2,
+                              child: Text(bill.cashier ?? '1234-467890'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -142,7 +178,7 @@ class Bill extends ConsumerWidget {
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       if (item.discount > 0)
-                                        Container(
+                                        SizedBox(
                                           width: double.infinity,
                                           child: Row(
                                             spacing: 2,
@@ -177,6 +213,7 @@ class Bill extends ConsumerWidget {
                                                   final isComplimentary =
                                                       option.type ==
                                                       'complimentary';
+
                                                   return Row(
                                                     children: [
                                                       Expanded(
@@ -234,33 +271,33 @@ class Bill extends ConsumerWidget {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    // Decrement button
-                                    InkWell(
-                                      onTap: () {
-                                        ref
-                                            .read(cartProvider.notifier)
-                                            .decrementQuantity(index);
-                                      },
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: BoxDecoration(
-                                          color:
-                                              theme
-                                                  .colorScheme
-                                                  .surfaceContainer,
-                                          borderRadius: BorderRadius.circular(
-                                            9999,
+                                    if (!isClosed)
+                                      InkWell(
+                                        onTap: () {
+                                          ref
+                                              .read(cartProvider.notifier)
+                                              .decrementQuantity(index);
+                                        },
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: Container(
+                                          width: 20,
+                                          height: 20,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                theme
+                                                    .colorScheme
+                                                    .surfaceContainer,
+                                            borderRadius: BorderRadius.circular(
+                                              9999,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.remove,
+                                            size: 14,
+                                            color: theme.colorScheme.onSurface,
                                           ),
                                         ),
-                                        child: Icon(
-                                          Icons.remove,
-                                          size: 14,
-                                          color: theme.colorScheme.onSurface,
-                                        ),
                                       ),
-                                    ),
 
                                     // Quantity display
                                     Container(
@@ -284,30 +321,31 @@ class Bill extends ConsumerWidget {
                                       ),
                                     ),
 
-                                    // Increment button
-                                    InkWell(
-                                      onTap: () {
-                                        ref
-                                            .read(cartProvider.notifier)
-                                            .incrementQuantity(index);
-                                      },
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.primary,
-                                          borderRadius: BorderRadius.circular(
-                                            9999,
+                                    if (!isClosed)
+                                      // Increment button
+                                      InkWell(
+                                        onTap: () {
+                                          ref
+                                              .read(cartProvider.notifier)
+                                              .incrementQuantity(index);
+                                        },
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: Container(
+                                          width: 20,
+                                          height: 20,
+                                          decoration: BoxDecoration(
+                                            color: theme.colorScheme.primary,
+                                            borderRadius: BorderRadius.circular(
+                                              9999,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.add,
+                                            size: 14,
+                                            color: theme.colorScheme.onPrimary,
                                           ),
                                         ),
-                                        child: Icon(
-                                          Icons.add,
-                                          size: 14,
-                                          color: theme.colorScheme.onPrimary,
-                                        ),
                                       ),
-                                    ),
                                   ],
                                 ),
                               ),
@@ -347,129 +385,112 @@ class Bill extends ConsumerWidget {
                     ),
                     padding: const EdgeInsets.all(12),
                     child: Column(
+                      spacing: 8,
                       children: [
                         // Product Discounts row
                         if (cart.totalProductDiscount > 0)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'Product Discounts',
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                ),
-                                Text(
-                                  "-${currencyFormatter.format(cart.totalProductDiscount)}",
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Product Discounts',
                                   style: theme.textTheme.bodyMedium,
-                                  textAlign: TextAlign.right,
                                 ),
-                              ],
-                            ),
+                              ),
+                              Text(
+                                "-${currencyFormatter.format(cart.totalProductDiscount)}",
+                                style: theme.textTheme.bodyMedium,
+                                textAlign: TextAlign.right,
+                              ),
+                            ],
                           ),
 
                         // Subtotal row
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Subtotal',
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ),
-                              Text(
-                                currencyFormatter.format(subtotal),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Subtotal',
                                 style: theme.textTheme.bodyMedium,
-                                textAlign: TextAlign.right,
                               ),
-                            ],
-                          ),
+                            ),
+                            Text(
+                              currencyFormatter.format(subtotal),
+                              style: theme.textTheme.bodyMedium,
+                              textAlign: TextAlign.right,
+                            ),
+                          ],
                         ),
 
                         // Service fee row
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Service Fee (${cart.serviceFeePercentage.toStringAsFixed(0)}%)',
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ),
-                              Text(
-                                currencyFormatter.format(serviceFee),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Service Fee (${cart.serviceFeePercentage.toStringAsFixed(0)}%)',
                                 style: theme.textTheme.bodyMedium,
-                                textAlign: TextAlign.right,
                               ),
-                            ],
-                          ),
+                            ),
+                            Text(
+                              currencyFormatter.format(serviceFee),
+                              style: theme.textTheme.bodyMedium,
+                              textAlign: TextAlign.right,
+                            ),
+                          ],
                         ),
 
                         // Gratuity row
                         if (gratuity > 0)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'Gratuity (${cart.gratuityPercentage.toStringAsFixed(0)}%)',
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                ),
-                                Text(
-                                  currencyFormatter.format(gratuity),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Gratuity (${cart.gratuityPercentage.toStringAsFixed(0)}%)',
                                   style: theme.textTheme.bodyMedium,
-                                  textAlign: TextAlign.right,
                                 ),
-                              ],
-                            ),
+                              ),
+                              Text(
+                                currencyFormatter.format(gratuity),
+                                style: theme.textTheme.bodyMedium,
+                                textAlign: TextAlign.right,
+                              ),
+                            ],
                           ),
 
                         // Tax row
                         if (tax > 0)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'Tax (${cart.taxPercentage.toStringAsFixed(0)}%)',
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                ),
-                                Text(
-                                  currencyFormatter.format(tax),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Tax (${cart.taxPercentage.toStringAsFixed(0)}%)',
                                   style: theme.textTheme.bodyMedium,
-                                  textAlign: TextAlign.right,
                                 ),
-                              ],
-                            ),
+                              ),
+                              Text(
+                                currencyFormatter.format(tax),
+                                style: theme.textTheme.bodyMedium,
+                                textAlign: TextAlign.right,
+                              ),
+                            ],
                           ),
 
                         // Rounding row
                         if (roundingAmount != 0)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    'Rounding',
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                ),
-                                Text(
-                                  currencyFormatter.format(roundingAmount),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Rounding',
                                   style: theme.textTheme.bodyMedium,
-                                  textAlign: TextAlign.right,
                                 ),
-                              ],
-                            ),
+                              ),
+                              Text(
+                                currencyFormatter.format(roundingAmount),
+                                style: theme.textTheme.bodyMedium,
+                                textAlign: TextAlign.right,
+                              ),
+                            ],
                           ),
 
                         const Divider(),
@@ -495,6 +516,79 @@ class Bill extends ConsumerWidget {
                             ),
                           ],
                         ),
+
+                        const Divider(),
+
+                        if (isClosed)
+                          Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: AppButton(
+                                  backgroundColor:
+                                      theme.colorScheme.primaryContainer,
+                                  onPressed: () {},
+                                  text: 'Print Bill',
+                                  textStyle: theme.textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: AppButton(
+                                  backgroundColor:
+                                      theme.colorScheme.primaryContainer,
+                                  onPressed: () {},
+                                  text: 'Send to WhatsApp / SMS',
+                                  textStyle: theme.textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: AppButton(
+                                  backgroundColor:
+                                      theme.colorScheme.primaryContainer,
+                                  onPressed: () {},
+                                  text: 'Upload Payment Proof',
+                                  textStyle: theme.textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: AppButton(
+                                  backgroundColor:
+                                      theme.colorScheme.primaryContainer,
+                                  onPressed: () {},
+                                  text: 'Debit/Credit Card Info',
+                                  textStyle: theme.textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: AppButton(
+                                  backgroundColor:
+                                      theme.colorScheme.errorContainer,
+                                  onPressed: () {},
+                                  text: 'Refund / Retour',
+                                  textStyle: theme.textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: theme.colorScheme.error,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
                   ),

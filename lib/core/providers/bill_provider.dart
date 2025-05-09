@@ -3,6 +3,9 @@ import 'package:rebill_flutter/core/models/bill.dart';
 import 'package:rebill_flutter/core/models/bill_details.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/services/bill_service.dart';
+import 'package:rebill_flutter/core/utils/extensions.dart';
+import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
 
 class BillState {
   final List<BillModel> bills;
@@ -70,6 +73,41 @@ class BillNotifier extends StateNotifier<BillState> {
   final BillService _billService;
 
   BillNotifier(this._billService) : super(const BillState());
+
+  String? get createdAt {
+    final String? dateTime = state.selectedBill?.posPaidBillDate;
+    if (dateTime == null) return null;
+
+    return dateTime.toBillDate();
+  }
+
+  String? get billNumber {
+    final String? billNumber = state.selectedBill?.cBillId;
+    if (billNumber == null) return null;
+
+    return billNumber;
+  }
+
+  String? get billStatus {
+    final String? status = state.selectedBill?.states;
+    if (status == null) return null;
+
+    return status;
+  }
+
+  String? get cashier {
+    final String? cashier = state.selectedBill?.cashier;
+    if (cashier == null) return null;
+
+    return cashier;
+  }
+
+  String? get paidAt {
+    final String? paidAt = state.selectedBill?.posPaidBillDate;
+    if (paidAt == null) return null;
+
+    return paidAt.toBillDate();
+  }
 
   // Load bills from asset file
   Future<void> loadBills() async {
@@ -209,10 +247,26 @@ class BillNotifier extends StateNotifier<BillState> {
   }
 
   // Load a bill into the cart
-  void loadBillIntoCart(int billId, CartNotifier cartNotifier) {
+  Future<void> loadBillIntoCart(
+    int billId,
+    CartNotifier cartNotifier,
+    KnownIndividualNotifier knownIndividualNotifier,
+    CustomerTypeNotifier customerTypeNotifier,
+  ) async {
     final bill = _billService.getBillById(state.bills, billId);
     if (bill != null) {
+      selectBill(bill);
       bill.loadIntoCart(cartNotifier);
+      if (bill.customerId != null) {
+        final customer = await knownIndividualNotifier.getCustomerById(
+          bill.customerId!,
+        );
+        knownIndividualNotifier.setKnownIndividual(customer);
+
+        customerTypeNotifier.setCustomerType(CustomerType.knownIndividual);
+      } else {
+        customerTypeNotifier.setCustomerType(CustomerType.guest);
+      }
     }
   }
 
@@ -313,14 +367,8 @@ final allBillsProvider = Provider<List<BillsByDate>>((ref) {
     );
 
     // Add debug print to see BillItem properties
-    print(
-      '📦 BillItem created - ID: ${billItem.billId} (type: ${billItem.billId.runtimeType})',
-    );
 
     // Add debug print to see actual total value
-    print(
-      '💰 Bill ${bill.billId}: Total type: ${bill.total.runtimeType}, value: ${bill.total}',
-    );
 
     if (billsByDate.containsKey(dateString)) {
       billsByDate[dateString]!.add(billItem);

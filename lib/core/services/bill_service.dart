@@ -4,12 +4,9 @@ class BillService {
   // Load bills from assets
   Future<List<BillModel>> loadBills() async {
     try {
-      print('🔄 Loading bills from assets...');
       final bills = await BillModel.loadBillsFromAsset('assets/bills.json');
-      print('✅ Successfully loaded ${bills.length} bills');
       return bills;
     } catch (e) {
-      print('❌ Error loading bills: $e');
       throw Exception('Failed to load bills: $e');
     }
   }

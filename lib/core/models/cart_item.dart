@@ -59,8 +59,6 @@ class CartItemOption {
         productType: json['product_type'],
       );
     } catch (e) {
-      print('❌ Error in CartItemOption.fromJson: $e');
-      print('❌ Problem JSON: $json');
       throw FormatException('Failed to parse CartItemOption: $e');
     }
   }
@@ -201,39 +199,28 @@ class CartItem {
           // If discount type is percentage, calculate discount amount
           double percentage = safeDouble(discountValue);
           discount = (percentage / 100) * originalPrice;
-          print('📊 Recalculated discount from percentage: $discount');
         } else if (discountType == 'fixed') {
           // If discount type is fixed, use the value directly
           discount = safeDouble(discountValue);
-          print('📊 Recalculated discount from fixed value: $discount');
         }
       }
 
       // For debugging: Check if original price and price match
       if (originalPrice > 0 && price < originalPrice) {
-        print(
-          '🔍 Price ($price) is less than originalPrice ($originalPrice), possible discount: ${originalPrice - price}',
-        );
-
         // If the price is already less than originalPrice and there's no discount,
         // calculate the implied discount
         if (discount == 0) {
           discount = originalPrice - price;
-          print('🔄 Setting discount based on price difference: $discount');
         }
       } else if (originalPrice > 0 && discount > 0) {
         // Check if price already includes the discount
         if (originalPrice - price >= discount - 0.01) {
           // Allow for small rounding errors
           // Price is already discounted, keep the price and discount as is
-          print('✅ Price already reflects the discount, keeping values as is');
         } else {
           // Price doesn't reflect discount yet, adjust it
           double discountedPrice = originalPrice - discount;
           if (discountedPrice != price) {
-            print(
-              '🔄 Adjusting price to reflect discount: old=$price, new=$discountedPrice',
-            );
             price = discountedPrice > 0 ? discountedPrice : 0;
           }
         }
@@ -251,14 +238,12 @@ class CartItem {
                       try {
                         return CartItemOption.fromJson(option);
                       } catch (e) {
-                        print('⚠️ Skipping invalid option: $e');
                         return null;
                       }
                     })
                     .whereType<CartItemOption>() // Remove nulls
                     .toList();
           } catch (e) {
-            print('⚠️ Error processing options list: $e');
             optionsList = null;
           }
         }
@@ -274,7 +259,6 @@ class CartItem {
                     .map((p) => p.toString())
                     .toList();
           } catch (e) {
-            print('⚠️ Error processing printer list: $e');
             printerList = null;
           }
         }
@@ -285,12 +269,6 @@ class CartItem {
           originalPrice > 0 ? originalPrice : price + discount;
 
       // Print final values for debugging
-      print('📊 Final values for item: ${json['name']}');
-      print('   - Original price: $finalOriginalPrice');
-      print('   - Final price: $price');
-      print('   - Discount: $discount');
-      print('   - Total item price (with qty=$quantity): ${price * quantity}');
-      print('   - Total discount: ${discount * quantity}');
 
       return CartItem(
         id:
@@ -322,8 +300,6 @@ class CartItem {
         totalDiscountRules: safeDouble(json['totaldiscountrules']),
       );
     } catch (e) {
-      print('❌ Error in CartItem.fromJson: $e');
-      print('❌ Problem JSON: $json');
       rethrow;
     }
   }

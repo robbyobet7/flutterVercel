@@ -22,7 +22,6 @@ class CustomerRepository {
       _isInitialized = true;
     } catch (e) {
       _customers = [];
-      print('Error loading customers: $e');
     }
   }
 
@@ -126,6 +125,5 @@ class CustomerRepository {
     final jsonString = json.encode(jsonList);
 
     // Here you might write to a file, API or database
-    print('Customers saved to JSON: ${jsonString.length} characters');
   }
 }

@@ -28,6 +28,7 @@ class AppTheme {
       primaryContainer: const Color(0xFF598DFF).withOpacity(0.2),
     ),
     scaffoldBackgroundColor: const Color(0xFFF1F4FD),
+    disabledColor: const Color(0xFF776F70),
     appBarTheme: const AppBarTheme(
       elevation: 0,
       centerTitle: true,

@@ -38,6 +38,7 @@ class AppButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: disabled == true ? null : onPressed,
       style: ElevatedButton.styleFrom(
+        disabledBackgroundColor: theme.colorScheme.surface,
         animationDuration: const Duration(milliseconds: 200),
         backgroundColor:
             disabled == true

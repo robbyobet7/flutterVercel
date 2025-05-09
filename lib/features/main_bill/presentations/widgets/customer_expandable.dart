@@ -8,12 +8,11 @@ class CustomerExpandable extends ConsumerStatefulWidget {
   const CustomerExpandable({
     super.key,
     required this.customerTypes,
-    required this.theme,
+    required this.disabled,
   });
 
   final List<Map<String, Object>> customerTypes;
-  final ThemeData theme;
-
+  final bool disabled;
   @override
   ConsumerState<CustomerExpandable> createState() => _CustomerExpandableState();
 }
@@ -23,6 +22,7 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final selectedCustomerType = ref.watch(customerTypeProvider);
     final selectedCustomer = ref.watch(knownIndividualProvider);
     return Padding(
@@ -32,6 +32,7 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
           // Header with expand/collapse functionality
           GestureDetector(
             onTap: () {
+              if (widget.disabled) return;
               setState(() {
                 _isExpanded = !_isExpanded;
               });
@@ -41,7 +42,7 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
               height: 40,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                color: widget.theme.colorScheme.surfaceContainer,
+                color: theme.colorScheme.surfaceContainer,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -50,7 +51,7 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
                     children: [
                       Icon(
                         Icons.people_alt_rounded,
-                        color: widget.theme.colorScheme.primary,
+                        color: theme.colorScheme.primary,
                         size: 20,
                       ),
                       const SizedBox(width: 10),
@@ -60,7 +61,7 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
                             : selectedCustomer != null
                             ? selectedCustomer.customerName
                             : 'Known Individual',
-                        style: widget.theme.textTheme.titleMedium?.copyWith(
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -68,7 +69,7 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
                   ),
                   Icon(
                     _isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: widget.theme.colorScheme.onSurface,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ],
               ),
@@ -89,7 +90,7 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
                       widget.customerTypes
                           .map(
                             (customerType) => CustomerTypeCard(
-                              theme: widget.theme,
+                              theme: theme,
                               icon: customerType['icon'] as IconData,
                               label: customerType['label'] as String,
                               type:

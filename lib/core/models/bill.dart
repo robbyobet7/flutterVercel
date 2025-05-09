@@ -261,7 +261,7 @@ class BillModel {
         orderItems =
             parsedItems.map((item) => CartItem.fromJson(item)).toList();
       } catch (e) {
-        print('Error parsing order collection: $e');
+        rethrow;
       }
     }
 
@@ -441,21 +441,16 @@ class BillModel {
   // Static method to parse bills from JSON string
   static List<BillModel> parseBills(String jsonString) {
     try {
-      print('📄 Parsing bills JSON...');
       final List<dynamic> parsed = jsonDecode(jsonString);
-      print('📊 JSON decoded successfully with ${parsed.length} entries');
 
       return parsed.map<BillModel>((json) {
         try {
           return BillModel.fromJson(json);
         } catch (e) {
-          print('⚠️ Error parsing individual bill: $e');
-          print('⚠️ Problem JSON: ${json['bill_id']}');
           rethrow;
         }
       }).toList();
     } catch (e) {
-      print('❌ Error parsing bills: $e');
       return [];
     }
   }
@@ -505,7 +500,6 @@ class BillModel {
       final jsonString = await rootBundle.loadString(assetPath);
       return parseBills(jsonString);
     } catch (e) {
-      print('Error loading bills from asset: $e');
       return [];
     }
   }

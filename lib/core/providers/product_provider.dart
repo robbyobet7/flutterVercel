@@ -1,5 +1,6 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rebill_flutter/core/models/customized_product.dart';
 import 'dart:convert';
 import '../models/product.dart';
 import 'package:intl/intl.dart';
@@ -66,9 +67,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
   Product? getProductById(int id) {
     try {
       if (state.products.isEmpty) {
-        print(
-          'getProductById: Product list is empty. Cannot find product with ID $id',
-        );
         return null;
       }
 
@@ -77,13 +75,9 @@ class ProductNotifier extends StateNotifier<ProductState> {
       } catch (e) {
         // Log available product IDs for debugging
         final availableIds = state.products.map((p) => p.id).toList();
-        print(
-          'getProductById: Product with ID $id not found. Available product IDs: $availableIds',
-        );
         return null;
       }
     } catch (e) {
-      print('getProductById: Error finding product with ID $id: $e');
       return null;
     }
   }
@@ -155,10 +149,8 @@ class ProductNotifier extends StateNotifier<ProductState> {
 
   // Initialize options for a product without setting defaults
   void initializeProductOptions(int productId) {
-    print('Initializing options for product $productId');
     final options = getProductOptions(productId);
     if (options.isEmpty) {
-      print('No options found for product $productId');
       return;
     }
 
@@ -169,7 +161,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
       );
       updatedOptions[productId] = {};
       state = state.copyWith(productOptions: updatedOptions);
-      print('Initialized empty options map for product $productId');
     }
   }
 
@@ -181,9 +172,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
     String type,
   ) {
     // Debug print to see what's being set
-    print(
-      'SET PRODUCT OPTION: productId=$productId, optionId=$optionId, value=$value, type=$type',
-    );
 
     // Get current options for this product
     final updatedOptions = Map<int, Map<String, ProductOptionItem>>.from(
@@ -202,24 +190,15 @@ class ProductNotifier extends StateNotifier<ProductState> {
     updatedOptions[productId] = productOptions;
 
     // Debug: print before and after
-    print(
-      'Before state update - product options: ${state.productOptions[productId]}',
-    );
 
     state = state.copyWith(productOptions: updatedOptions);
 
     // Print updated state
-    print(
-      'After state update - product options: ${state.productOptions[productId]}',
-    );
   }
 
   // Remove an option from a product
   void removeProductOption(int productId, String optionId) {
-    print('REMOVE PRODUCT OPTION: productId=$productId, optionId=$optionId');
-
     if (!state.productOptions.containsKey(productId)) {
-      print('Product $productId has no options map to remove from');
       return;
     }
 
@@ -229,7 +208,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
     );
 
     if (!updatedOptions[productId]!.containsKey(optionId)) {
-      print('Option $optionId not found in product $productId options');
       return;
     }
 
@@ -240,21 +218,13 @@ class ProductNotifier extends StateNotifier<ProductState> {
 
     // Remove the specific option
     productOptions.remove(optionId);
-    print('Removed option $optionId from product options map');
 
     // Update the state with the new options map
     updatedOptions[productId] = productOptions;
 
     // Debug: print before and after
-    print(
-      'Before state update - product options: ${state.productOptions[productId]}',
-    );
 
     state = state.copyWith(productOptions: updatedOptions);
-
-    print(
-      'After state update - product options: ${state.productOptions[productId]}',
-    );
   }
 
   // Clear all options for a product
@@ -301,26 +271,18 @@ class ProductNotifier extends StateNotifier<ProductState> {
 
   // Get selected option value
   dynamic getSelectedOption(int productId, String optionId) {
-    print('GET SELECTED OPTION: productId=$productId, optionId=$optionId');
-
     final option = state.productOptions[productId]?[optionId];
-    print('Found option: $option');
 
     if (option == null) {
-      print('No option found for $optionId in product $productId');
       return null;
     }
 
-    print('Returning option value: ${option.value}');
     return option.value;
   }
 
   // Compare two option choices to check if they're the same
   bool isSameOption(dynamic option1, dynamic option2) {
-    print('Comparing options: option1=$option1, option2=$option2');
-
     if (option1 == null || option2 == null) {
-      print('One option is null, not the same');
       return false;
     }
 
@@ -332,7 +294,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
 
       if (id1 != null && id2 != null) {
         final result = id1.toString() == id2.toString();
-        print('Comparing by ID: $id1 vs $id2, result=$result');
         return result;
       }
 
@@ -342,7 +303,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
 
       if (name1 != null && name2 != null) {
         final result = name1.toString() == name2.toString();
-        print('Comparing by name: $name1 vs $name2, result=$result');
         return result;
       }
 
@@ -356,7 +316,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
           name2 != null &&
           name1.toString() == name2.toString() &&
           price1.toString() == price2.toString()) {
-        print('Name and price match');
         return true;
       }
 
@@ -366,17 +325,14 @@ class ProductNotifier extends StateNotifier<ProductState> {
         final str1 = option1.toString();
         final str2 = option2.toString();
         final result = str1 == str2;
-        print('Comparing full map strings: result=$result');
         return result;
       } catch (e) {
-        print('Error comparing maps: $e');
         return false;
       }
     }
 
     // Direct comparison for other types
     final result = option1 == option2;
-    print('Direct comparison result: $result');
     return result;
   }
 
@@ -798,20 +754,13 @@ class ProductNotifier extends StateNotifier<ProductState> {
       // If same discount, remove it
       if (existingDiscount.id == discount.id) {
         removeDiscountFromProduct(productId);
-        print(
-          'Removed discount ${discount.discountName} from product $productId',
-        );
       } else {
         // If different discount, replace it
         applyDiscountToProduct(productId, discount);
-        print(
-          'Replaced discount with ${discount.discountName} for product $productId',
-        );
       }
     } else {
       // If no discount, apply this one
       applyDiscountToProduct(productId, discount);
-      print('Applied discount ${discount.discountName} to product $productId');
     }
   }
 
@@ -824,7 +773,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
     // Check if product has multiple discounts
     if (product.multipleDiscounts == null ||
         product.multipleDiscounts!.isEmpty) {
-      print('No multiple discounts available for product $productId');
       return;
     }
 
@@ -835,21 +783,14 @@ class ProductNotifier extends StateNotifier<ProductState> {
       );
       toggleProductDiscount(productId, discount);
     } catch (e) {
-      print(
-        'Could not find discount with ID $discountId for product $productId',
-      );
+      rethrow;
     }
   }
 
   // Toggle a specific option for a product (select or deselect)
   void toggleOption(int productId, String optionGroup, dynamic optionValue) {
-    print(
-      'TOGGLE OPTION CALLED: productId=$productId, optionGroup=$optionGroup, value=$optionValue',
-    );
-
     final options = getProductOptions(productId);
     if (options.isEmpty) {
-      print('No options found for product $productId');
       return;
     }
 
@@ -860,37 +801,25 @@ class ProductNotifier extends StateNotifier<ProductState> {
         optionGroupData = options.firstWhere(
           (opt) => opt['uid'] == optionGroup,
         );
-        print('Found option group: $optionGroupData');
       } catch (e) {
-        print('Option group $optionGroup not found for product $productId: $e');
         return;
       }
 
       final String optionType = optionGroupData['type'] ?? 'option';
       final bool isRequired = optionGroupData['required'] == true;
 
-      print('Option type: $optionType, isRequired: $isRequired');
-
       if (optionType == 'option') {
         // Check if the same option is already selected
         final selectedOption = getSelectedOption(productId, optionGroup);
-        print('Current selected option: $selectedOption');
 
         final bool isSame = isSameOption(selectedOption, optionValue);
-        print('Is same option? $isSame');
 
         if (isSame && !isRequired) {
           // If it's the same option and not required, remove it
-          print('Attempting to remove option $optionGroup');
           removeProductOption(productId, optionGroup);
-          print('Removed option $optionGroup from product $productId');
         } else {
           // Otherwise, set the new option value
-          print('Setting option $optionGroup to $optionValue');
           setProductOption(productId, optionGroup, optionValue, optionType);
-          print(
-            'Set option $optionGroup to $optionValue for product $productId',
-          );
         }
       } else if (optionType == 'extra') {
         // For extras, toggle the selection
@@ -898,24 +827,18 @@ class ProductNotifier extends StateNotifier<ProductState> {
           productId,
           optionGroup,
         );
-        print('Extra is currently selected? $isCurrentlySelected');
 
         if (isCurrentlySelected) {
-          print('Attempting to remove extra $optionGroup');
           removeProductOption(productId, optionGroup);
-          print('Removed extra $optionGroup from product $productId');
         } else {
-          print('Adding extra $optionGroup');
           setProductOption(productId, optionGroup, optionValue, optionType);
-          print('Added extra $optionGroup to product $productId');
         }
       }
 
       // Print the updated options state
       final updatedOptions = state.productOptions[productId];
-      print('Updated options for product $productId: $updatedOptions');
     } catch (e) {
-      print('Error toggling option: $e');
+      rethrow;
     }
   }
 
@@ -938,8 +861,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
         activeDiscounts: updatedDiscounts,
         productOptions: updatedOptions,
       );
-
-      print('Cleared all customizations for product $productId');
     }
   }
 
@@ -973,10 +894,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
         activeDiscounts: updatedDiscounts,
         productOptions: updatedOptions,
       );
-
-      print(
-        'Copied customizations from product $sourceProductId to $targetProductId',
-      );
     }
   }
 
@@ -994,84 +911,15 @@ class ProductNotifier extends StateNotifier<ProductState> {
   // Verify if a product with the given ID exists in the state
   bool hasProduct(int id) {
     if (state.products.isEmpty) {
-      print('hasProduct: Product list is empty');
       return false;
     }
 
     final exists = state.products.any((product) => product.id == id);
     if (!exists) {
       final availableIds = state.products.map((p) => p.id).toList();
-      print(
-        'hasProduct: Product with ID $id not found. Available IDs: $availableIds',
-      );
     }
 
     return exists;
-  }
-
-  // Get all customization data for a product (useful for cart operations)
-  // This is a safer version that can use a provided product if the ID lookup fails
-  CustomizedProduct? getProductCustomizationData(
-    int productId, {
-    Product? fallbackProduct,
-  }) {
-    // Get the product first
-    Product? product = getProductById(productId);
-
-    // If product not found by ID, use the fallback if provided
-    if (product == null) {
-      print('Product with ID $productId not found in state');
-      if (fallbackProduct != null && fallbackProduct.id == productId) {
-        print(
-          'Using fallback product for ID $productId: ${fallbackProduct.productsName}',
-        );
-        product = fallbackProduct;
-      } else {
-        return null;
-      }
-    }
-
-    // Calculate pricing information
-    final basePrice = product.productsPrice ?? 0.0;
-    final discountedPrice = getDiscountedPrice(product);
-    final optionsPrice = getOptionsPrice(product);
-    final totalPrice = getTotalPrice(product);
-
-    // Get discount if any
-    final discount = getActiveDiscount(productId);
-
-    // Get selected options
-    final options = getSelectedOptions(productId);
-    Map<String, dynamic>? optionsData;
-
-    if (options.isNotEmpty) {
-      optionsData = <String, dynamic>{};
-
-      for (final entry in options.entries) {
-        final optionId = entry.key;
-        final option = entry.value;
-
-        if (option.type == 'option') {
-          // For dropdown options, store the value (usually a Map)
-          optionsData[optionId] = option.value;
-        } else if (option.type == 'extra') {
-          // For extras, store true/false or the value if needed
-          optionsData[optionId] = option.value;
-        }
-      }
-    }
-
-    // Create and return the CustomizedProduct
-    return CustomizedProduct(
-      id: productId,
-      basePrice: basePrice,
-      optionsPrice: optionsPrice > 0 ? optionsPrice : null,
-      discountedPrice: discountedPrice != basePrice ? discountedPrice : null,
-      totalPrice: totalPrice,
-      discount: discount,
-      options: optionsData,
-      product: product,
-    );
   }
 
   // Check if a product has any customizations (options or discounts)
