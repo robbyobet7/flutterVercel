@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/table.dart';
 
@@ -125,10 +124,7 @@ class TableRepository {
   // Save tables to JSON
   Future<void> saveTablesToJson() async {
     // This is just a placeholder - in a real app, you would save to a database or file
-    final jsonList = _tables.map((t) => t.toJson()).toList();
-    final jsonString = json.encode(jsonList);
-
-    // Here you might write to a file, API or database
-    print('Tables would be saved to backend: ${jsonList.length} tables');
+    // final jsonList = _tables.map((t) => t.toJson()).toList();
+    // final jsonString = json.encode(jsonList);
   }
 }

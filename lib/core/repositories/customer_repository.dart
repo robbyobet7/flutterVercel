@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/customers.dart';
 
@@ -121,8 +120,8 @@ class CustomerRepository {
   // Save customers to JSON
   Future<void> saveCustomersToJson() async {
     // This is just a placeholder - in a real app, you would save to a database or file
-    final jsonList = _customers.map((c) => c.toJson()).toList();
-    final jsonString = json.encode(jsonList);
+    // final jsonList = _customers.map((c) => c.toJson()).toList();
+    // final jsonString = json.encode(jsonList);
 
     // Here you might write to a file, API or database
   }

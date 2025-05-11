@@ -7,10 +7,16 @@ import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
 
 class TableCard extends ConsumerWidget {
-  const TableCard({super.key, required this.index, required this.tableType});
+  const TableCard({
+    super.key,
+    required this.index,
+    required this.tableType,
+    required this.onTap,
+  });
 
   final int index;
   final TableType tableType;
+  final VoidCallback onTap;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -33,114 +39,119 @@ class TableCard extends ConsumerWidget {
       }
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          width: 2,
-          color: getStatusColor(table.reservationStatus)[0],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(
+            width: 2,
+            color: getStatusColor(table.reservationStatus)[0],
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          Expanded(
-            flex: 1,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: getStatusColor(table.reservationStatus)[1],
-                borderRadius:
-                    tableType != TableType.nav
-                        ? BorderRadius.circular(12.0)
-                        : BorderRadius.only(
-                          topLeft: Radius.circular(12.0),
-                          topRight: Radius.circular(12.0),
-                        ),
-              ),
-              child: Center(
-                child: Text(
-                  table.tableName,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
+        child: Column(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: getStatusColor(table.reservationStatus)[1],
+                  borderRadius:
+                      tableType != TableType.nav
+                          ? BorderRadius.circular(12.0)
+                          : BorderRadius.only(
+                            topLeft: Radius.circular(12.0),
+                            topRight: Radius.circular(12.0),
+                          ),
+                ),
+                child: Center(
+                  child: Text(
+                    table.tableName,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
 
-          if (tableType == TableType.nav)
-            Expanded(
-              flex: 3,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text: '${table.countBillOpen}',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
+            if (tableType == TableType.nav)
+              Expanded(
+                flex: 3,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Center(
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '${table.countBillOpen}',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              TextSpan(
-                                text: ' Bill(s)',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.black,
+                                TextSpan(
+                                  text: ' Bill(s)',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.black,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const AppDivider(),
-                    Expanded(
-                      child: Center(
-                        child: Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'IDR ',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.black,
+                      const AppDivider(),
+                      Expanded(
+                        child: Center(
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'IDR ',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.black,
+                                  ),
                                 ),
-                              ),
-                              TextSpan(
-                                text: numberFormat.format(table.totalBillOpen),
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
+                                TextSpan(
+                                  text: numberFormat.format(
+                                    table.totalBillOpen,
+                                  ),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const AppDivider(),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          'min. IDR ${numberFormat.format(table.minimumCharge)}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.black,
-                            fontSize: 10,
+                      const AppDivider(),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'min. IDR ${numberFormat.format(table.minimumCharge)}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.black,
+                              fontSize: 10,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
