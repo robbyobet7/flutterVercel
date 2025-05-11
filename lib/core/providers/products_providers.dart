@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
-import 'package:rebill_flutter/core/services/product_service.dart';
+import '../repositories/product_repository.dart';
 
-// Provider for the ProductService
-final productServiceProvider = Provider<ProductService>((ref) {
-  return ProductService();
+// Provider for the ProductRepository
+final productRepositoryProvider = Provider<ProductRepository>((ref) {
+  return ProductRepository();
 });
 
 // Provider for the currently selected category
@@ -15,9 +15,9 @@ final searchQueryProvider = StateProvider<String>((ref) => '');
 
 // Provider for all available products - using built-in loading state management
 final availableProductsProvider = FutureProvider<List<Product>>((ref) async {
-  final productService = ref.watch(productServiceProvider);
-  final products = await productService.getAvailableProducts();
-  return products;
+  final repository = ref.watch(productRepositoryProvider);
+  final products = await repository.getProductsInStock();
+  return products.where((product) => product.status == 1).toList();
 });
 
 // Provider to check if products are loading based on availableProductsProvider state
@@ -70,8 +70,8 @@ final filteredProductsProvider = Provider<AsyncValue<List<Product>>>((ref) {
 // Provider for refreshing products data
 final refreshProductsProvider = Provider<void Function()>((ref) {
   return () {
-    // Clear the cache in the service
-    ref.read(productServiceProvider).refreshProducts();
+    // Clear the cache in the repository
+    ref.read(productRepositoryProvider).refreshProducts();
 
     // Invalidate the products provider to trigger a refresh
     ref.invalidate(availableProductsProvider);
@@ -80,13 +80,15 @@ final refreshProductsProvider = Provider<void Function()>((ref) {
 
 // Provider for all available categories - fetches unique category types from products
 final availableCategoriesProvider = FutureProvider<List<String>>((ref) async {
-  final productService = ref.watch(productServiceProvider);
-  final products = await productService.getAvailableProducts();
+  final repository = ref.watch(productRepositoryProvider);
+  final products = await repository.getProductsInStock();
+  final availableProducts =
+      products.where((product) => product.status == 1).toList();
 
   // Extract unique category types from products
   final Set<String> categories = {};
 
-  for (var product in products) {
+  for (var product in availableProducts) {
     if (product.productsType != null && product.productsType!.isNotEmpty) {
       categories.add(product.productsType!);
     }

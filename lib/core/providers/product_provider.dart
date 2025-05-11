@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import '../models/product.dart';
 import 'package:intl/intl.dart';
+import '../repositories/product_repository.dart';
 
 // Class to represent a selected option or extra
 class ProductOptionItem {
@@ -56,6 +57,8 @@ class ProductState {
 
 // Product notifier class
 class ProductNotifier extends StateNotifier<ProductState> {
+  final ProductRepository _repository = ProductRepository();
+
   ProductNotifier() : super(ProductState());
 
   // Set products from API or storage
@@ -955,6 +958,93 @@ class ProductNotifier extends StateNotifier<ProductState> {
     }
 
     return buffer.toString();
+  }
+
+  // Repository methods
+
+  // Load all available products
+  Future<void> loadAvailableProducts() async {
+    final products = await _repository.getProductsInStock();
+    final availableProducts =
+        products.where((product) => product.status == 1).toList();
+    setProducts(availableProducts);
+  }
+
+  // Load popular products
+  Future<void> loadPopularProducts({int limit = 10}) async {
+    final products = await _repository.getAllProducts();
+    products.sort((a, b) => (b.sold ?? 0).compareTo(a.sold ?? 0));
+    setProducts(products.take(limit).toList());
+  }
+
+  // Load products by category
+  Future<void> loadProductsByCategory(String category) async {
+    final products = await _repository.getProductsByType(category);
+    setProducts(products);
+  }
+
+  // Search and filter products
+  Future<void> searchProducts({
+    String? query,
+    String? type,
+    bool? inStockOnly,
+    bool? discountedOnly,
+  }) async {
+    List<Product> products = await _repository.getAllProducts();
+
+    // Apply search query filter
+    if (query != null && query.isNotEmpty) {
+      final lowercaseQuery = query.toLowerCase();
+      products =
+          products
+              .where(
+                (product) =>
+                    product.productsName?.toLowerCase().contains(
+                      lowercaseQuery,
+                    ) ??
+                    false,
+              )
+              .toList();
+    }
+
+    // Apply type filter
+    if (type != null && type.isNotEmpty) {
+      products =
+          products
+              .where(
+                (product) =>
+                    product.productsType == type || product.type == type,
+              )
+              .toList();
+    }
+
+    // Apply in-stock filter
+    if (inStockOnly == true) {
+      products = products.where((product) => product.isInStock).toList();
+    }
+
+    // Apply discounted filter
+    if (discountedOnly == true) {
+      products =
+          products
+              .where(
+                (product) =>
+                    product.productsDiscount != null &&
+                        product.productsDiscount! > 0 ||
+                    product.multipleDiscounts != null &&
+                        product.multipleDiscounts!.isNotEmpty,
+              )
+              .toList();
+    }
+
+    setProducts(products);
+  }
+
+  // Refresh product data
+  void refreshProducts() {
+    _repository.refreshProducts();
+    // Clear local products and load them again
+    state = state.copyWith(products: []);
   }
 }
 
