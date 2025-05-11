@@ -2,7 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/bill.dart';
 import 'package:rebill_flutter/core/models/bill_details.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
-import 'package:rebill_flutter/core/services/bill_service.dart';
+import 'package:rebill_flutter/core/middleware/bill_middleware.dart';
+import 'package:rebill_flutter/core/repositories/bill_repository.dart';
 import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
@@ -70,9 +71,18 @@ class BillState {
 }
 
 class BillNotifier extends StateNotifier<BillState> {
-  final BillService _billService;
+  final BillMiddleware _billMiddleware;
 
-  BillNotifier(this._billService) : super(const BillState());
+  BillNotifier(this._billMiddleware) : super(const BillState()) {
+    // Set up listeners for the middleware streams
+    _billMiddleware.billsStream.listen((bills) {
+      state = state.copyWith(bills: bills, isLoading: false);
+    });
+
+    _billMiddleware.errorStream.listen((errorMessage) {
+      state = state.copyWith(error: errorMessage, isLoading: false);
+    });
+  }
 
   String? get createdAt {
     final String? dateTime = state.selectedBill?.posPaidBillDate;
@@ -109,13 +119,13 @@ class BillNotifier extends StateNotifier<BillState> {
     return paidAt.toBillDate();
   }
 
-  // Load bills from asset file
+  // Load bills from repository via middleware
   Future<void> loadBills() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final bills = await _billService.loadBills();
-      state = state.copyWith(bills: bills, isLoading: false);
+      await _billMiddleware.initialize();
+      await _billMiddleware.refreshBills();
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -135,7 +145,7 @@ class BillNotifier extends StateNotifier<BillState> {
   }
 
   // Filter bills by status
-  void filterByStatus(String status) {
+  Future<void> filterByStatus(String status) async {
     state = state.copyWith(
       filterStatus: status,
       isLoading: true,
@@ -143,12 +153,19 @@ class BillNotifier extends StateNotifier<BillState> {
       clearDateRange: true,
     );
 
-    final filteredBills = _billService.getBillsByStatus(state.bills, status);
-    state = state.copyWith(bills: filteredBills, isLoading: false);
+    try {
+      final filteredBills = await _billMiddleware.getBillsByStatus(status);
+      state = state.copyWith(bills: filteredBills, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to filter bills by status: $e',
+      );
+    }
   }
 
   // Filter bills by date range
-  void filterByDateRange(DateTime start, DateTime end) {
+  Future<void> filterByDateRange(DateTime start, DateTime end) async {
     state = state.copyWith(
       startDate: start,
       endDate: end,
@@ -157,12 +174,18 @@ class BillNotifier extends StateNotifier<BillState> {
       clearFilterStatus: true,
     );
 
-    final filteredBills = _billService.getBillsByDateRange(
-      state.bills,
-      start,
-      end,
-    );
-    state = state.copyWith(bills: filteredBills, isLoading: false);
+    try {
+      final filteredBills = await _billMiddleware.getBillsByDateRange(
+        start,
+        end,
+      );
+      state = state.copyWith(bills: filteredBills, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to filter bills by date range: $e',
+      );
+    }
   }
 
   // Search bills
@@ -174,7 +197,14 @@ class BillNotifier extends StateNotifier<BillState> {
 
     state = state.copyWith(searchQuery: query, isLoading: true);
 
-    final searchResults = _billService.searchBills(state.bills, query);
+    // Simple search implementation that filters the current state's bills
+    final searchResults =
+        state.bills.where((bill) {
+          final queryLower = query.toLowerCase();
+          return bill.cBillId.toLowerCase().contains(queryLower) ||
+              bill.customerName.toLowerCase().contains(queryLower);
+        }).toList();
+
     state = state.copyWith(bills: searchResults, isLoading: false);
   }
 
@@ -197,25 +227,38 @@ class BillNotifier extends StateNotifier<BillState> {
   }
 
   // Get today's bills
-  void getTodaysBills() {
+  Future<void> getTodaysBills() async {
     state = state.copyWith(
       isLoading: true,
       clearSearch: true,
       clearFilterStatus: true,
     );
 
-    final todayBills = _billService.getTodaysBills(state.bills);
-    state = state.copyWith(bills: todayBills, isLoading: false);
+    try {
+      final todayBills = await _billMiddleware.getTodaysBills();
+      state = state.copyWith(bills: todayBills, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to get today\'s bills: $e',
+      );
+    }
   }
 
   // Get bills by customer name
   void getBillsByCustomer(String customerName) {
     state = state.copyWith(isLoading: true, clearFilterStatus: true);
 
-    final customerBills = _billService.getBillsByCustomer(
-      state.bills,
-      customerName,
-    );
+    // Filter the current bills by customer name
+    final customerBills =
+        state.bills
+            .where(
+              (bill) => bill.customerName.toLowerCase().contains(
+                customerName.toLowerCase(),
+              ),
+            )
+            .toList();
+
     state = state.copyWith(bills: customerBills, isLoading: false);
   }
 
@@ -227,23 +270,36 @@ class BillNotifier extends StateNotifier<BillState> {
       clearFilterStatus: true,
     );
 
-    final methodBills = _billService.getBillsByPaymentMethod(
-      state.bills,
-      method,
-    );
+    // Filter the current bills by payment method
+    final methodBills =
+        state.bills
+            .where(
+              (bill) =>
+                  bill.paymentMethod != null &&
+                  bill.paymentMethod!.toLowerCase() == method.toLowerCase(),
+            )
+            .toList();
+
     state = state.copyWith(bills: methodBills, isLoading: false);
   }
 
   // Get refunded bills
-  void getRefundedBills() {
+  Future<void> getRefundedBills() async {
     state = state.copyWith(
       isLoading: true,
       clearSearch: true,
       clearFilterStatus: true,
     );
 
-    final refundedBills = _billService.getRefundedBills(state.bills);
-    state = state.copyWith(bills: refundedBills, isLoading: false);
+    try {
+      final refundedBills = await _billMiddleware.getRefundedBills();
+      state = state.copyWith(bills: refundedBills, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to get refunded bills: $e',
+      );
+    }
   }
 
   // Load a bill into the cart
@@ -253,7 +309,7 @@ class BillNotifier extends StateNotifier<BillState> {
     KnownIndividualNotifier knownIndividualNotifier,
     CustomerTypeNotifier customerTypeNotifier,
   ) async {
-    final bill = _billService.getBillById(state.bills, billId);
+    final bill = await _billMiddleware.getBill(billId);
     if (bill != null) {
       selectBill(bill);
       bill.loadIntoCart(cartNotifier);
@@ -271,13 +327,12 @@ class BillNotifier extends StateNotifier<BillState> {
   }
 
   // Get bill details for today
-  BillDetails getTodayDetails() {
+  Future<BillDetails> getTodayDetails() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(Duration(days: 1));
 
-    final todayBills = _billService.getBillsByDateRange(
-      state.bills,
+    final todayBills = await _billMiddleware.getBillsByDateRange(
       today,
       tomorrow,
     );
@@ -285,30 +340,22 @@ class BillNotifier extends StateNotifier<BillState> {
   }
 
   // Get bill details for a specific date
-  BillDetails getDateDetails(DateTime date) {
+  Future<BillDetails> getDateDetails(DateTime date) async {
     final day = DateTime(date.year, date.month, date.day);
     final nextDay = day.add(Duration(days: 1));
 
-    final dayBills = _billService.getBillsByDateRange(
-      state.bills,
-      day,
-      nextDay,
-    );
+    final dayBills = await _billMiddleware.getBillsByDateRange(day, nextDay);
     return BillDetails.fromBills(dayBills, date: day);
   }
 
   // Get bill details for a date range
-  BillDetails getDateRangeDetails(DateTime start, DateTime end) {
-    final rangeBills = _billService.getBillsByDateRange(
-      state.bills,
-      start,
-      end,
-    );
+  Future<BillDetails> getDateRangeDetails(DateTime start, DateTime end) async {
+    final rangeBills = await _billMiddleware.getBillsByDateRange(start, end);
     return BillDetails.fromBills(rangeBills, date: start);
   }
 
   // Get weekly bill details
-  BillDetails getWeeklyDetails() {
+  Future<BillDetails> getWeeklyDetails() async {
     final now = DateTime.now();
     final weekStart = DateTime(
       now.year,
@@ -317,11 +364,11 @@ class BillNotifier extends StateNotifier<BillState> {
     ).subtract(Duration(days: now.weekday - 1));
     final weekEnd = weekStart.add(Duration(days: 6));
 
-    return getDateRangeDetails(weekStart, weekEnd);
+    return await getDateRangeDetails(weekStart, weekEnd);
   }
 
   // Get monthly bill details
-  BillDetails getMonthlyDetails() {
+  Future<BillDetails> getMonthlyDetails() async {
     final now = DateTime.now();
     final monthStart = DateTime(now.year, now.month, 1);
     final monthEnd = DateTime(
@@ -330,19 +377,24 @@ class BillNotifier extends StateNotifier<BillState> {
       0,
     ); // Last day of current month
 
-    return getDateRangeDetails(monthStart, monthEnd);
+    return await getDateRangeDetails(monthStart, monthEnd);
   }
 }
 
-// Provider for the BillService
-final billServiceProvider = Provider<BillService>((ref) {
-  return BillService();
+// Provider for the repository
+final billRepositoryProvider = Provider<BillRepository>((ref) {
+  return BillRepository.instance;
+});
+
+// Provider for the middleware
+final billMiddlewareProvider = Provider<BillMiddleware>((ref) {
+  return BillMiddleware();
 });
 
 // Provider for the bill state
 final billProvider = StateNotifierProvider<BillNotifier, BillState>((ref) {
-  final billService = ref.read(billServiceProvider);
-  return BillNotifier(billService);
+  final billMiddleware = ref.read(billMiddlewareProvider);
+  return BillNotifier(billMiddleware);
 });
 
 // Provider for all bills
@@ -414,60 +466,6 @@ final billLoadingProvider = Provider<bool>((ref) {
   return ref.watch(billProvider).isLoading;
 });
 
-// Provider for error state
-final billErrorProvider = Provider<String?>((ref) {
-  return ref.watch(billProvider).error;
-});
-
-// Provider for total sales from closed bills
-final totalSalesProvider = Provider<double>((ref) {
-  final closedBills = ref.watch(closedBillsProvider);
-  return closedBills.fold(0.0, (sum, bill) => sum + bill.finalTotal);
-});
-
-// Provider for average sale amount
-final averageSaleProvider = Provider<double>((ref) {
-  final closedBills = ref.watch(closedBillsProvider);
-  if (closedBills.isEmpty) return 0;
-  final total = closedBills.fold(0.0, (sum, bill) => sum + bill.finalTotal);
-  return total / closedBills.length;
-});
-
-// Provider for today's bill details
-final todayBillDetailsProvider = Provider<BillDetails>((ref) {
-  final billNotifier = ref.read(billProvider.notifier);
-  return billNotifier.getTodayDetails();
-});
-
-// Provider for weekly bill details
-final weeklyBillDetailsProvider = Provider<BillDetails>((ref) {
-  final billNotifier = ref.read(billProvider.notifier);
-  return billNotifier.getWeeklyDetails();
-});
-
-// Provider for monthly bill details
-final monthlyBillDetailsProvider = Provider<BillDetails>((ref) {
-  final billNotifier = ref.read(billProvider.notifier);
-  return billNotifier.getMonthlyDetails();
-});
-
-// Provider for bill details by date (family provider)
-final dateBillDetailsProvider = Provider.family<BillDetails, DateTime>((
-  ref,
-  date,
-) {
-  final billNotifier = ref.read(billProvider.notifier);
-  return billNotifier.getDateDetails(date);
-});
-
-// Provider for bill details by date range (family provider)
-final dateRangeBillDetailsProvider =
-    Provider.family<BillDetails, (DateTime, DateTime)>((ref, dateRange) {
-      final billNotifier = ref.read(billProvider.notifier);
-      return billNotifier.getDateRangeDetails(dateRange.$1, dateRange.$2);
-    });
-
-// Model to represent bills grouped by date for display
 class BillsByDate {
   final String date;
   final List<BillItem> bills;
