@@ -38,11 +38,13 @@ class _BillTableDialogState extends ConsumerState<BillTableDialog> {
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               padding: EdgeInsets.only(top: 12),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: MediaQuery.of(context).size.width / 2,
                 crossAxisSpacing: 12.0,
                 mainAxisSpacing: 12.0,
+                mainAxisExtent: 180,
               ),
+              cacheExtent: 100,
               itemCount: tableBills.bills.length,
               itemBuilder: (context, index) {
                 return TableBillCard(bill: tableBills.bills[index]);
