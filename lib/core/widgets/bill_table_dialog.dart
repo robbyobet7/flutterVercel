@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/table_bill_provider.dart';
 import 'package:rebill_flutter/core/table_exports.dart';
+import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
+import 'package:rebill_flutter/core/widgets/table_bill_card.dart';
 
 class BillTableDialog extends ConsumerStatefulWidget {
   const BillTableDialog({super.key, required this.table});
@@ -24,8 +26,8 @@ class _BillTableDialogState extends ConsumerState<BillTableDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final tableBills = ref.watch(tableBillProvider);
-    print(tableBills.bills.length);
     return Expanded(
       child: Column(
         children: [
@@ -37,24 +39,41 @@ class _BillTableDialogState extends ConsumerState<BillTableDialog> {
               ),
               padding: EdgeInsets.only(top: 12),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
+                crossAxisCount: 2,
                 crossAxisSpacing: 12.0,
                 mainAxisSpacing: 12.0,
               ),
               itemCount: tableBills.bills.length,
               itemBuilder: (context, index) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(children: [Text(index.toString())]),
-                );
+                return TableBillCard(bill: tableBills.bills[index]);
               },
             ),
           ),
           const AppDivider(),
           const SizedBox(height: 12),
+          SizedBox(
+            height: 40,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Row(
+                  spacing: 12,
+                  children: [
+                    AppButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      text: 'Return to overview',
+                      backgroundColor: theme.colorScheme.errorContainer,
+                      textStyle: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

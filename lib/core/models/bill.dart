@@ -186,6 +186,7 @@ class BillModel {
   final bool fromProcessBill;
   final Refund? refund;
   final List<CartItem>? items;
+  final String? title;
 
   BillModel({
     required this.billId,
@@ -251,6 +252,7 @@ class BillModel {
     required this.fromProcessBill,
     this.refund,
     this.items,
+    this.title,
   });
 
   factory BillModel.fromJson(Map<String, dynamic> json) {
@@ -368,6 +370,7 @@ class BillModel {
       fromProcessBill: json['fromProcessBill'] ?? false,
       refund: json['refund'] != null ? Refund.fromJson(json['refund']) : null,
       items: orderItems,
+      title: json['title'],
     );
   }
 
@@ -435,6 +438,7 @@ class BillModel {
       'table_name': tableName,
       'fromProcessBill': fromProcessBill,
       'refund': refund?.toJson(),
+      'title': title,
     };
   }
 

@@ -19,7 +19,6 @@ class TableDialog extends ConsumerWidget {
     final tables = ref.watch(tableProvider).tables;
 
     void navTableTap(int index) {
-      Navigator.pop(context);
       AppDialog.showCustom(
         context,
         title: '${tables[index].tableName} - Bills',

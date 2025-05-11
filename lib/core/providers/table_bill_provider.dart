@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/bill.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
-import 'package:rebill_flutter/core/services/table_bill_service.dart';
+import 'package:rebill_flutter/core/middleware/table_bill_middleware.dart';
+import 'package:rebill_flutter/core/repositories/table_bill_repository.dart';
 import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
@@ -69,9 +70,18 @@ class TableBillState {
 }
 
 class TableBillNotifier extends StateNotifier<TableBillState> {
-  final TableBillService _tableBillService;
+  final TableBillMiddleware _tableBillMiddleware;
 
-  TableBillNotifier(this._tableBillService) : super(const TableBillState());
+  TableBillNotifier(this._tableBillMiddleware) : super(const TableBillState()) {
+    // Set up listeners for the middleware streams
+    _tableBillMiddleware.billsStream.listen((bills) {
+      state = state.copyWith(bills: bills, isLoading: false);
+    });
+
+    _tableBillMiddleware.errorStream.listen((errorMessage) {
+      state = state.copyWith(error: errorMessage, isLoading: false);
+    });
+  }
 
   String? get createdAt {
     final String? dateTime = state.selectedBill?.posPaidBillDate;
@@ -108,18 +118,27 @@ class TableBillNotifier extends StateNotifier<TableBillState> {
     return paidAt.toBillDate();
   }
 
-  // Load bills from asset file
+  // Load bills from repository via middleware
   Future<void> loadBills() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final bills = await _tableBillService.loadBills();
-      state = state.copyWith(bills: bills, isLoading: false);
+      await _tableBillMiddleware.initialize();
+      await _tableBillMiddleware.refreshBills();
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load bills: $e',
       );
+    }
+  }
+
+  // Get bill by ID
+  BillModel? getBillById(int billId) {
+    try {
+      return state.bills.firstWhere((bill) => bill.billId == billId);
+    } catch (e) {
+      return null;
     }
   }
 
@@ -130,7 +149,7 @@ class TableBillNotifier extends StateNotifier<TableBillState> {
     KnownIndividualNotifier knownIndividualNotifier,
     CustomerTypeNotifier customerTypeNotifier,
   ) async {
-    final bill = _tableBillService.getBillById(state.bills, billId);
+    final bill = getBillById(billId);
     if (bill != null) {
       state = state.copyWith(selectedBill: bill);
       bill.loadIntoCart(cartNotifier);
@@ -148,14 +167,19 @@ class TableBillNotifier extends StateNotifier<TableBillState> {
   }
 }
 
-// Provider for the TableBillService
-final tableBillServiceProvider = Provider<TableBillService>((ref) {
-  return TableBillService();
+// Provider for the repository
+final tableBillRepositoryProvider = Provider<TableBillRepository>((ref) {
+  return TableBillRepository.instance;
+});
+
+// Provider for the middleware
+final tableBillMiddlewareProvider = Provider<TableBillMiddleware>((ref) {
+  return TableBillMiddleware();
 });
 
 // Provider for the bill state
 final tableBillProvider =
     StateNotifierProvider<TableBillNotifier, TableBillState>((ref) {
-      final tableBillService = ref.read(tableBillServiceProvider);
-      return TableBillNotifier(tableBillService);
+      final tableBillMiddleware = ref.read(tableBillMiddlewareProvider);
+      return TableBillNotifier(tableBillMiddleware);
     });
