@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:rebill_flutter/core/models/navbar.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/theme/theme_provider.dart';
+import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/profile_avatar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/widgets/table_dialog.dart';
 
 class Navbar extends ConsumerWidget {
   const Navbar({super.key});
@@ -164,14 +167,30 @@ class NavFeatures extends StatefulWidget {
 class _NavFeaturesState extends State<NavFeatures> {
   final ScrollController _scrollController = ScrollController();
 
-  final List<Map<String, dynamic>> _features = [
-    {'icon': Icons.table_bar, 'label': 'Tables'},
-    {'icon': Icons.book_online, 'label': 'Reservations'},
-    {'icon': Icons.restaurant, 'label': 'Kitchen Orders'},
-    {'icon': Icons.lock, 'label': 'Lock / Switch'},
-    {'icon': Icons.assessment, 'label': 'Daily Report'},
-    {'icon': Icons.inventory_2, 'label': 'Stock Taking'},
-  ];
+  void handleTableTap() {
+    AppDialog.showCustom(
+      context,
+      title: 'Tables',
+      height: MediaQuery.of(context).size.height * 0.8,
+      width: MediaQuery.of(context).size.width * 0.8,
+      content: const TableDialog(),
+    );
+  }
+
+  late final List<NavMenu> _features;
+
+  @override
+  void initState() {
+    super.initState();
+    _features = [
+      NavMenu(icon: Icons.table_bar, label: 'Tables', onTap: handleTableTap),
+      NavMenu(icon: Icons.book_online, label: 'Reservations', onTap: () {}),
+      NavMenu(icon: Icons.restaurant, label: 'Kitchen Orders', onTap: () {}),
+      NavMenu(icon: Icons.lock, label: 'Lock / Switch', onTap: () {}),
+      NavMenu(icon: Icons.assessment, label: 'Daily Report', onTap: () {}),
+      NavMenu(icon: Icons.inventory_2, label: 'Stock Taking', onTap: () {}),
+    ];
+  }
 
   void _scrollLeft() {
     if (_scrollController.hasClients) {
@@ -272,8 +291,9 @@ class _NavFeaturesState extends State<NavFeatures> {
                                 const SizedBox(width: 4),
                                 _buildFeatureBox(
                                   context,
-                                  feature['icon'],
-                                  feature['label'],
+                                  feature.icon,
+                                  feature.label,
+                                  onTap: feature.onTap,
                                 ),
                                 const SizedBox(width: 4),
                               ],
@@ -307,8 +327,9 @@ class _NavFeaturesState extends State<NavFeatures> {
                     _features.map((feature) {
                       return _buildFeatureBox(
                         context,
-                        feature['icon'],
-                        feature['label'],
+                        feature.icon,
+                        feature.label,
+                        onTap: feature.onTap,
                       );
                     }).toList(),
               ),
@@ -319,15 +340,18 @@ class _NavFeaturesState extends State<NavFeatures> {
     );
   }
 
-  Widget _buildFeatureBox(BuildContext context, IconData icon, String label) {
+  Widget _buildFeatureBox(
+    BuildContext context,
+    IconData icon,
+    String label, {
+    required VoidCallback onTap,
+  }) {
     final theme = Theme.of(context);
 
     return SizedBox(
       height: double.infinity,
       child: TextButton(
-        onPressed: () {
-          // Handle feature button press
-        },
+        onPressed: onTap,
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           minimumSize: Size(100, 60),

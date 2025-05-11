@@ -11,10 +11,12 @@ class CustomerTypeCard extends ConsumerWidget {
     required this.label,
     required this.type,
     required this.onTap,
+    required this.disabled,
   });
 
   final ThemeData theme;
   final IconData icon;
+  final bool disabled;
   final String label;
   final CustomerType type;
   final Function() onTap;
@@ -24,7 +26,7 @@ class CustomerTypeCard extends ConsumerWidget {
     final selectedCustomerType = ref.watch(customerTypeProvider);
     return Expanded(
       child: GestureDetector(
-        onTap: onTap,
+        onTap: disabled != true ? onTap : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           height: 100,
@@ -32,6 +34,8 @@ class CustomerTypeCard extends ConsumerWidget {
             color:
                 selectedCustomerType == type
                     ? theme.colorScheme.primary
+                    : disabled
+                    ? theme.disabledColor
                     : theme.colorScheme.surfaceContainer,
             borderRadius: BorderRadius.circular(8),
           ),

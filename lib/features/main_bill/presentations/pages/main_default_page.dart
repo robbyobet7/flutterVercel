@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
+import 'package:rebill_flutter/core/widgets/app_dialog.dart';
+import 'package:rebill_flutter/core/widgets/table_dialog.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/presentations/widgets/main_default_card.dart';
 
@@ -13,7 +15,20 @@ class MainDefaultPage extends ConsumerWidget {
 
     final curBillFeature = [
       {'id': BillType.newBill, 'icon': Icons.receipt, 'title': 'New Bill'},
-      {'id': BillType.qrBill, 'icon': Icons.qr_code, 'title': 'QR Bill'},
+      {
+        'id': BillType.qrBill,
+        'icon': Icons.qr_code,
+        'title': 'QR Bill',
+        'event': () {
+          AppDialog.showCustom(
+            context,
+            content: TableDialog(tableType: TableType.qr),
+            height: MediaQuery.of(context).size.height * 0.8,
+            width: MediaQuery.of(context).size.width * 0.8,
+            title: 'Select Table',
+          );
+        },
+      },
       {
         'id': BillType.merchantBill,
         'icon': Icons.store,

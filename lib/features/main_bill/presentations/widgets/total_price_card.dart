@@ -32,6 +32,7 @@ class TotalPriceCard extends ConsumerWidget {
         backgroundColor:
             isClosed ? theme.colorScheme.surface : theme.colorScheme.primary,
         disabled: isClosed,
+        disabledColor: theme.colorScheme.surface,
         text: '',
         padding: const EdgeInsets.all(12),
         child: Row(
