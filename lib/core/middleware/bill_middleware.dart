@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/bill.dart';
 import '../repositories/bill_repository.dart';
@@ -88,98 +87,6 @@ class BillMiddleware {
     } catch (e) {
       _billErrorController.add('Failed to get bills with status $status: $e');
       return [];
-    }
-  }
-
-  // Get refunded bills
-  Future<List<BillModel>> getRefundedBills() async {
-    try {
-      return _repository.getRefundedBills();
-    } catch (e) {
-      _billErrorController.add('Failed to get refunded bills: $e');
-      return [];
-    }
-  }
-
-  // Add a new bill
-  Future<void> addBill(BillModel bill) async {
-    try {
-      _repository.addBill(bill);
-      refreshBills();
-    } catch (e) {
-      _billErrorController.add('Failed to add bill: $e');
-    }
-  }
-
-  // Update an existing bill
-  Future<void> updateBill(BillModel bill) async {
-    try {
-      _repository.updateBill(bill);
-      refreshBills();
-    } catch (e) {
-      _billErrorController.add('Failed to update bill: $e');
-    }
-  }
-
-  // Delete a bill
-  Future<void> deleteBill(int id) async {
-    try {
-      _repository.deleteBill(id);
-      refreshBills();
-    } catch (e) {
-      _billErrorController.add('Failed to delete bill: $e');
-    }
-  }
-
-  // Get bills by date range
-  Future<List<BillModel>> getBillsByDateRange(
-    DateTime start,
-    DateTime end,
-  ) async {
-    try {
-      return _repository.getBillsByDateRange(start, end);
-    } catch (e) {
-      _billErrorController.add('Failed to get bills by date range: $e');
-      return [];
-    }
-  }
-
-  // Get today's bills
-  Future<List<BillModel>> getTodaysBills() async {
-    try {
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final tomorrow = today.add(const Duration(days: 1));
-      return _repository.getBillsByDateRange(today, tomorrow);
-    } catch (e) {
-      _billErrorController.add('Failed to get today\'s bills: $e');
-      return [];
-    }
-  }
-
-  // Get bills for a specific day
-  Future<List<BillModel>> getBillsForDay(DateTime date) async {
-    try {
-      final day = DateTime(date.year, date.month, date.day);
-      final nextDay = day.add(const Duration(days: 1));
-      return _repository.getBillsByDateRange(day, nextDay);
-    } catch (e) {
-      _billErrorController.add('Failed to get bills for specified day: $e');
-      return [];
-    }
-  }
-
-  // Save all bill data
-  Future<void> saveBills() async {
-    try {
-      // This would be implemented to save to JSON/DB in a real app
-      final jsonList = _repository.getBillsForSerialization();
-      // ignore: unused_local_variable
-      final jsonString = json.encode(jsonList);
-
-      // In a real app: await file.writeAsString(jsonString);
-    } catch (e) {
-      _billErrorController.add('Failed to save bills: $e');
     }
   }
 
