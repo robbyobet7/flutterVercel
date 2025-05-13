@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 import '../models/bill.dart';
 
 class BillRepository {
@@ -12,28 +10,28 @@ class BillRepository {
   static final BillRepository _instance = BillRepository._();
   static BillRepository get instance => _instance;
 
-  // Initialize the repository with data from the JSON file
-  Future<void> initialize() async {
-    if (_isInitialized) return;
-
-    try {
-      final jsonString = await rootBundle.loadString('assets/bills.json');
-      _bills = BillModel.parseBills(jsonString);
-      _isInitialized = true;
-    } catch (e) {
-      _bills = [];
-    }
+  // Set bills data (called from middleware)
+  void setBills(List<BillModel> bills) {
+    _bills = bills;
+    _isInitialized = true;
   }
 
+  // Check if initialized
+  bool get isInitialized => _isInitialized;
+
   // Get all bills
-  Future<List<BillModel>> getAllBills() async {
-    if (!_isInitialized) await initialize();
+  List<BillModel> getAllBills() {
+    if (!_isInitialized) {
+      throw Exception('Bill repository not initialized');
+    }
     return _bills;
   }
 
   // Get bill by ID
-  Future<BillModel?> getBillById(int id) async {
-    if (!_isInitialized) await initialize();
+  BillModel? getBillById(int id) {
+    if (!_isInitialized) {
+      throw Exception('Bill repository not initialized');
+    }
     return _bills.firstWhere(
       (bill) => bill.billId == id,
       orElse: () => throw Exception('Bill not found with ID: $id'),
@@ -41,37 +39,44 @@ class BillRepository {
   }
 
   // Get bills by customer ID
-  Future<List<BillModel>> getBillsByCustomerId(int customerId) async {
-    if (!_isInitialized) await initialize();
+  List<BillModel> getBillsByCustomerId(int customerId) {
+    if (!_isInitialized) {
+      throw Exception('Bill repository not initialized');
+    }
     return _bills.where((bill) => bill.customerId == customerId).toList();
   }
 
   // Get bills by status
-  Future<List<BillModel>> getBillsByStatus(String status) async {
-    if (!_isInitialized) await initialize();
+  List<BillModel> getBillsByStatus(String status) {
+    if (!_isInitialized) {
+      throw Exception('Bill repository not initialized');
+    }
     return _bills.where((bill) => bill.states == status).toList();
   }
 
   // Get bills by date range
-  Future<List<BillModel>> getBillsByDateRange(
-    DateTime start,
-    DateTime end,
-  ) async {
-    if (!_isInitialized) await initialize();
+  List<BillModel> getBillsByDateRange(DateTime start, DateTime end) {
+    if (!_isInitialized) {
+      throw Exception('Bill repository not initialized');
+    }
     return _bills.where((bill) {
       return bill.createdAt.isAfter(start) && bill.createdAt.isBefore(end);
     }).toList();
   }
 
   // Get refunded bills
-  Future<List<BillModel>> getRefundedBills() async {
-    if (!_isInitialized) await initialize();
+  List<BillModel> getRefundedBills() {
+    if (!_isInitialized) {
+      throw Exception('Bill repository not initialized');
+    }
     return _bills.where((bill) => bill.refund != null).toList();
   }
 
   // Add a new bill
-  Future<BillModel> addBill(BillModel bill) async {
-    if (!_isInitialized) await initialize();
+  BillModel addBill(BillModel bill) {
+    if (!_isInitialized) {
+      throw Exception('Bill repository not initialized');
+    }
 
     // Assign a new ID if none provided
     final newBill =
@@ -131,8 +136,10 @@ class BillRepository {
   }
 
   // Update an existing bill
-  Future<BillModel> updateBill(BillModel updatedBill) async {
-    if (!_isInitialized) await initialize();
+  BillModel updateBill(BillModel updatedBill) {
+    if (!_isInitialized) {
+      throw Exception('Bill repository not initialized');
+    }
 
     final index = _bills.indexWhere((b) => b.billId == updatedBill.billId);
 
@@ -145,8 +152,10 @@ class BillRepository {
   }
 
   // Delete a bill
-  Future<void> deleteBill(int id) async {
-    if (!_isInitialized) await initialize();
+  void deleteBill(int id) {
+    if (!_isInitialized) {
+      throw Exception('Bill repository not initialized');
+    }
 
     final index = _bills.indexWhere((b) => b.billId == id);
     if (index == -1) {
@@ -193,13 +202,11 @@ class BillRepository {
     return "${dayOfWeek[date.weekday % 7]} ${months[date.month - 1]} ${date.day} ${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}";
   }
 
-  // Save bills to JSON
-  Future<void> saveBillsToJson() async {
-    // This is just a placeholder - in a real app, you would save to a database or file
-    final jsonList = _bills.map((b) => b.toJson()).toList();
-    // ignore: unused_local_variable
-    final jsonString = json.encode(jsonList);
-
-    // Here you might write to a file, API or database
+  // Get bills for serialization
+  List<Map<String, dynamic>> getBillsForSerialization() {
+    if (!_isInitialized) {
+      throw Exception('Bill repository not initialized');
+    }
+    return _bills.map((b) => b.toJson()).toList();
   }
 }

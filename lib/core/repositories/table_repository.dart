@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart' show rootBundle;
 import '../models/table.dart';
 
 class TableRepository {
@@ -11,29 +10,28 @@ class TableRepository {
   static final TableRepository _instance = TableRepository._();
   static TableRepository get instance => _instance;
 
-  // Initialize the repository with data from the JSON file
-  Future<void> initialize() async {
-    if (_isInitialized) return;
-
-    try {
-      final jsonString = await rootBundle.loadString('assets/tables.json');
-      _tables = TableModel.parseTables(jsonString);
-      _isInitialized = true;
-    } catch (e) {
-      _tables = [];
-      print('Error initializing table repository: $e');
-    }
+  // Set tables data (called from middleware)
+  void setTables(List<TableModel> tables) {
+    _tables = tables;
+    _isInitialized = true;
   }
 
+  // Check if initialized
+  bool get isInitialized => _isInitialized;
+
   // Get all tables
-  Future<List<TableModel>> getAllTables() async {
-    if (!_isInitialized) await initialize();
+  List<TableModel> getAllTables() {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
     return _tables;
   }
 
   // Get table by ID
-  Future<TableModel?> getTableById(int id) async {
-    if (!_isInitialized) await initialize();
+  TableModel? getTableById(int id) {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
     try {
       return _tables.firstWhere(
         (table) => table.id == id,
@@ -46,8 +44,10 @@ class TableRepository {
   }
 
   // Search tables by name
-  Future<List<TableModel>> searchTablesByName(String query) async {
-    if (!_isInitialized) await initialize();
+  List<TableModel> searchTablesByName(String query) {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
     final lowercaseQuery = query.toLowerCase();
     return _tables
         .where(
@@ -57,8 +57,10 @@ class TableRepository {
   }
 
   // Add a new table
-  Future<TableModel> addTable(TableModel table) async {
-    if (!_isInitialized) await initialize();
+  TableModel addTable(TableModel table) {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
 
     // Assign a new ID if none provided
     final newTable =
@@ -76,8 +78,10 @@ class TableRepository {
   }
 
   // Update an existing table
-  Future<TableModel> updateTable(TableModel updatedTable) async {
-    if (!_isInitialized) await initialize();
+  TableModel updateTable(TableModel updatedTable) {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
 
     final index = _tables.indexWhere((t) => t.id == updatedTable.id);
 
@@ -92,8 +96,10 @@ class TableRepository {
   }
 
   // Delete a table
-  Future<void> deleteTable(int id) async {
-    if (!_isInitialized) await initialize();
+  void deleteTable(int id) {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
 
     final index = _tables.indexWhere((t) => t.id == id);
     if (index == -1) {
@@ -104,14 +110,18 @@ class TableRepository {
   }
 
   // Get tables with open bills
-  Future<List<TableModel>> getTablesWithOpenBills() async {
-    if (!_isInitialized) await initialize();
+  List<TableModel> getTablesWithOpenBills() {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
     return _tables.where((t) => t.countBillOpen > 0).toList();
   }
 
   // Get active tables
-  Future<List<TableModel>> getActiveTables() async {
-    if (!_isInitialized) await initialize();
+  List<TableModel> getActiveTables() {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
     return _tables.where((t) => t.status == 1).toList();
   }
 
@@ -121,10 +131,11 @@ class TableRepository {
     return _tables.map((t) => t.id).reduce((a, b) => a > b ? a : b) + 1;
   }
 
-  // Save tables to JSON
-  Future<void> saveTablesToJson() async {
-    // This is just a placeholder - in a real app, you would save to a database or file
-    // final jsonList = _tables.map((t) => t.toJson()).toList();
-    // final jsonString = json.encode(jsonList);
+  // Get tables for serialization
+  List<Map<String, dynamic>> getTablesForSerialization() {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
+    return _tables.map((t) => t.toJson()).toList();
   }
 }

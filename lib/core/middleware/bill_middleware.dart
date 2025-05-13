@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import '../models/bill.dart';
 import '../repositories/bill_repository.dart';
 
@@ -27,17 +29,30 @@ class BillMiddleware {
   // Initialize the middleware
   Future<void> initialize() async {
     try {
-      await _repository.initialize();
+      if (!_repository.isInitialized) {
+        await _loadBillsFromJson();
+      }
       refreshBills();
     } catch (e) {
       _billErrorController.add('Failed to initialize bill data: $e');
     }
   }
 
+  // Load bills from JSON
+  Future<void> _loadBillsFromJson() async {
+    try {
+      final jsonString = await rootBundle.loadString('assets/bills.json');
+      final bills = BillModel.parseBills(jsonString);
+      _repository.setBills(bills);
+    } catch (e) {
+      _billErrorController.add('Failed to load bills from JSON: $e');
+    }
+  }
+
   // Load and broadcast all bills
   Future<void> refreshBills() async {
     try {
-      final bills = await _repository.getAllBills();
+      final bills = _repository.getAllBills();
       _billStreamController.add(bills);
     } catch (e) {
       _billErrorController.add('Failed to load bills: $e');
@@ -47,7 +62,7 @@ class BillMiddleware {
   // Get a single bill by ID
   Future<BillModel?> getBill(int id) async {
     try {
-      return await _repository.getBillById(id);
+      return _repository.getBillById(id);
     } catch (e) {
       _billErrorController.add('Failed to get bill with ID $id: $e');
       return null;
@@ -57,7 +72,7 @@ class BillMiddleware {
   // Get bills by customer ID
   Future<List<BillModel>> getBillsByCustomerId(int customerId) async {
     try {
-      return await _repository.getBillsByCustomerId(customerId);
+      return _repository.getBillsByCustomerId(customerId);
     } catch (e) {
       _billErrorController.add(
         'Failed to get bills for customer $customerId: $e',
@@ -69,7 +84,7 @@ class BillMiddleware {
   // Get bills by status
   Future<List<BillModel>> getBillsByStatus(String status) async {
     try {
-      return await _repository.getBillsByStatus(status);
+      return _repository.getBillsByStatus(status);
     } catch (e) {
       _billErrorController.add('Failed to get bills with status $status: $e');
       return [];
@@ -79,7 +94,7 @@ class BillMiddleware {
   // Get refunded bills
   Future<List<BillModel>> getRefundedBills() async {
     try {
-      return await _repository.getRefundedBills();
+      return _repository.getRefundedBills();
     } catch (e) {
       _billErrorController.add('Failed to get refunded bills: $e');
       return [];
@@ -89,7 +104,7 @@ class BillMiddleware {
   // Add a new bill
   Future<void> addBill(BillModel bill) async {
     try {
-      await _repository.addBill(bill);
+      _repository.addBill(bill);
       refreshBills();
     } catch (e) {
       _billErrorController.add('Failed to add bill: $e');
@@ -99,7 +114,7 @@ class BillMiddleware {
   // Update an existing bill
   Future<void> updateBill(BillModel bill) async {
     try {
-      await _repository.updateBill(bill);
+      _repository.updateBill(bill);
       refreshBills();
     } catch (e) {
       _billErrorController.add('Failed to update bill: $e');
@@ -109,7 +124,7 @@ class BillMiddleware {
   // Delete a bill
   Future<void> deleteBill(int id) async {
     try {
-      await _repository.deleteBill(id);
+      _repository.deleteBill(id);
       refreshBills();
     } catch (e) {
       _billErrorController.add('Failed to delete bill: $e');
@@ -122,7 +137,7 @@ class BillMiddleware {
     DateTime end,
   ) async {
     try {
-      return await _repository.getBillsByDateRange(start, end);
+      return _repository.getBillsByDateRange(start, end);
     } catch (e) {
       _billErrorController.add('Failed to get bills by date range: $e');
       return [];
@@ -135,7 +150,7 @@ class BillMiddleware {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final tomorrow = today.add(const Duration(days: 1));
-      return await _repository.getBillsByDateRange(today, tomorrow);
+      return _repository.getBillsByDateRange(today, tomorrow);
     } catch (e) {
       _billErrorController.add('Failed to get today\'s bills: $e');
       return [];
@@ -147,7 +162,7 @@ class BillMiddleware {
     try {
       final day = DateTime(date.year, date.month, date.day);
       final nextDay = day.add(const Duration(days: 1));
-      return await _repository.getBillsByDateRange(day, nextDay);
+      return _repository.getBillsByDateRange(day, nextDay);
     } catch (e) {
       _billErrorController.add('Failed to get bills for specified day: $e');
       return [];
@@ -157,7 +172,12 @@ class BillMiddleware {
   // Save all bill data
   Future<void> saveBills() async {
     try {
-      await _repository.saveBillsToJson();
+      // This would be implemented to save to JSON/DB in a real app
+      final jsonList = _repository.getBillsForSerialization();
+      // ignore: unused_local_variable
+      final jsonString = json.encode(jsonList);
+
+      // In a real app: await file.writeAsString(jsonString);
     } catch (e) {
       _billErrorController.add('Failed to save bills: $e');
     }
