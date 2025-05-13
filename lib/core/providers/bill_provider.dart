@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/bill.dart';
-import 'package:rebill_flutter/core/models/bill_details.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/middleware/bill_middleware.dart';
 import 'package:rebill_flutter/core/repositories/bill_repository.dart';
@@ -324,60 +323,6 @@ class BillNotifier extends StateNotifier<BillState> {
         customerTypeNotifier.setCustomerType(CustomerType.guest);
       }
     }
-  }
-
-  // Get bill details for today
-  Future<BillDetails> getTodayDetails() async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(Duration(days: 1));
-
-    final todayBills = await _billMiddleware.getBillsByDateRange(
-      today,
-      tomorrow,
-    );
-    return BillDetails.fromBills(todayBills, date: today);
-  }
-
-  // Get bill details for a specific date
-  Future<BillDetails> getDateDetails(DateTime date) async {
-    final day = DateTime(date.year, date.month, date.day);
-    final nextDay = day.add(Duration(days: 1));
-
-    final dayBills = await _billMiddleware.getBillsByDateRange(day, nextDay);
-    return BillDetails.fromBills(dayBills, date: day);
-  }
-
-  // Get bill details for a date range
-  Future<BillDetails> getDateRangeDetails(DateTime start, DateTime end) async {
-    final rangeBills = await _billMiddleware.getBillsByDateRange(start, end);
-    return BillDetails.fromBills(rangeBills, date: start);
-  }
-
-  // Get weekly bill details
-  Future<BillDetails> getWeeklyDetails() async {
-    final now = DateTime.now();
-    final weekStart = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    ).subtract(Duration(days: now.weekday - 1));
-    final weekEnd = weekStart.add(Duration(days: 6));
-
-    return await getDateRangeDetails(weekStart, weekEnd);
-  }
-
-  // Get monthly bill details
-  Future<BillDetails> getMonthlyDetails() async {
-    final now = DateTime.now();
-    final monthStart = DateTime(now.year, now.month, 1);
-    final monthEnd = DateTime(
-      now.year,
-      now.month + 1,
-      0,
-    ); // Last day of current month
-
-    return await getDateRangeDetails(monthStart, monthEnd);
   }
 }
 

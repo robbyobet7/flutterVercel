@@ -447,6 +447,8 @@ class BillModel {
         try {
           return BillModel.fromJson(json);
         } catch (e) {
+          print('Error parsing bill: $e');
+          print('Problematic bill data: $json');
           rethrow;
         }
       }).toList();

@@ -16,7 +16,8 @@ class TableBillRepository {
     if (_isInitialized) return;
 
     try {
-      final jsonString = await rootBundle.loadString('assets/bills.json');
+      final jsonString = await rootBundle.loadString('assets/tableBills.json');
+      print('jsonString: $jsonString');
       _bills = BillModel.parseBills(jsonString);
       _isInitialized = true;
     } catch (e) {
