@@ -43,6 +43,7 @@ class TableDialog extends ConsumerWidget {
                 crossAxisSpacing: 12.0,
                 mainAxisSpacing: 12.0,
               ),
+              cacheExtent: 100,
               itemCount: tables.length,
               itemBuilder: (context, index) {
                 return TableCard(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/models/table.dart';
 import 'package:rebill_flutter/core/providers/table_bill_provider.dart';
-import 'package:rebill_flutter/core/table_exports.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/table_bill_card.dart';
@@ -38,11 +38,13 @@ class _BillTableDialogState extends ConsumerState<BillTableDialog> {
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               padding: EdgeInsets.only(top: 12),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: MediaQuery.of(context).size.width / 2,
                 crossAxisSpacing: 12.0,
                 mainAxisSpacing: 12.0,
+                mainAxisExtent: 180,
               ),
+              cacheExtent: 100,
               itemCount: tableBills.bills.length,
               itemBuilder: (context, index) {
                 return TableBillCard(bill: tableBills.bills[index]);

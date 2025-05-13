@@ -45,6 +45,16 @@ class TableBillMiddleware {
     }
   }
 
+  // Get a bill by ID
+  Future<BillModel?> getBillById(int id) async {
+    try {
+      return await _repository.getBillById(id);
+    } catch (e) {
+      _billErrorController.add('Failed to get bill by ID: $e');
+      return null;
+    }
+  }
+
   // Dispose resources
   void dispose() {
     _billStreamController.close();

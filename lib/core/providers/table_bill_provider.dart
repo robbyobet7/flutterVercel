@@ -149,20 +149,23 @@ class TableBillNotifier extends StateNotifier<TableBillState> {
     KnownIndividualNotifier knownIndividualNotifier,
     CustomerTypeNotifier customerTypeNotifier,
   ) async {
-    final bill = getBillById(billId);
-    if (bill != null) {
-      state = state.copyWith(selectedBill: bill);
-      bill.loadIntoCart(cartNotifier);
-      if (bill.customerId != null) {
-        final customer = await knownIndividualNotifier.getCustomerById(
-          bill.customerId!,
-        );
-        knownIndividualNotifier.setKnownIndividual(customer);
-
-        customerTypeNotifier.setCustomerType(CustomerType.knownIndividual);
-      } else {
-        customerTypeNotifier.setCustomerType(CustomerType.guest);
+    try {
+      final bill = await _tableBillMiddleware.getBillById(billId);
+      if (bill != null) {
+        state = state.copyWith(selectedBill: bill);
+        bill.loadIntoCart(cartNotifier);
+        if (bill.customerId != null) {
+          final customer = await knownIndividualNotifier.getCustomerById(
+            bill.customerId!,
+          );
+          knownIndividualNotifier.setKnownIndividual(customer);
+          customerTypeNotifier.setCustomerType(CustomerType.knownIndividual);
+        } else {
+          customerTypeNotifier.setCustomerType(CustomerType.guest);
+        }
       }
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to load bill into cart: $e');
     }
   }
 }
