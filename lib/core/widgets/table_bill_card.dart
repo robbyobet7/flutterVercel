@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/models/bill.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/table_bill_provider.dart';
+import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
@@ -70,7 +71,7 @@ class TableBillCard extends ConsumerWidget {
                 children: [
                   Expanded(child: Text('Created at')),
                   Text(': '),
-                  Expanded(flex: 2, child: Text(bill.createdAt.toString())),
+                  Expanded(flex: 2, child: Text(bill.posBillDate.toBillDate())),
                 ],
               ),
             ),

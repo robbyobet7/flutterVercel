@@ -163,30 +163,6 @@ class BillNotifier extends StateNotifier<BillState> {
     }
   }
 
-  // Filter bills by date range
-  Future<void> filterByDateRange(DateTime start, DateTime end) async {
-    state = state.copyWith(
-      startDate: start,
-      endDate: end,
-      isLoading: true,
-      clearSearch: true,
-      clearFilterStatus: true,
-    );
-
-    try {
-      final filteredBills = await _billMiddleware.getBillsByDateRange(
-        start,
-        end,
-      );
-      state = state.copyWith(bills: filteredBills, isLoading: false);
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to filter bills by date range: $e',
-      );
-    }
-  }
-
   // Search bills
   void searchBills(String query) {
     if (query.isEmpty) {
@@ -225,25 +201,6 @@ class BillNotifier extends StateNotifier<BillState> {
     await loadBills();
   }
 
-  // Get today's bills
-  Future<void> getTodaysBills() async {
-    state = state.copyWith(
-      isLoading: true,
-      clearSearch: true,
-      clearFilterStatus: true,
-    );
-
-    try {
-      final todayBills = await _billMiddleware.getTodaysBills();
-      state = state.copyWith(bills: todayBills, isLoading: false);
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to get today\'s bills: $e',
-      );
-    }
-  }
-
   // Get bills by customer name
   void getBillsByCustomer(String customerName) {
     state = state.copyWith(isLoading: true, clearFilterStatus: true);
@@ -259,46 +216,6 @@ class BillNotifier extends StateNotifier<BillState> {
             .toList();
 
     state = state.copyWith(bills: customerBills, isLoading: false);
-  }
-
-  // Get bills by payment method
-  void getBillsByPaymentMethod(String method) {
-    state = state.copyWith(
-      isLoading: true,
-      clearSearch: true,
-      clearFilterStatus: true,
-    );
-
-    // Filter the current bills by payment method
-    final methodBills =
-        state.bills
-            .where(
-              (bill) =>
-                  bill.paymentMethod != null &&
-                  bill.paymentMethod!.toLowerCase() == method.toLowerCase(),
-            )
-            .toList();
-
-    state = state.copyWith(bills: methodBills, isLoading: false);
-  }
-
-  // Get refunded bills
-  Future<void> getRefundedBills() async {
-    state = state.copyWith(
-      isLoading: true,
-      clearSearch: true,
-      clearFilterStatus: true,
-    );
-
-    try {
-      final refundedBills = await _billMiddleware.getRefundedBills();
-      state = state.copyWith(bills: refundedBills, isLoading: false);
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to get refunded bills: $e',
-      );
-    }
   }
 
   // Load a bill into the cart

@@ -69,47 +69,6 @@ class TableNotifier extends StateNotifier<TableState> {
     });
   }
 
-  // Refresh table list
-  Future<void> refreshTables() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    await _middleware.refreshTables();
-  }
-
-  // Add a new table
-  Future<void> addTable(TableModel table) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    await _middleware.addTable(table);
-  }
-
-  // Update an existing table
-  Future<void> updateTable(TableModel table) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    await _middleware.updateTable(table);
-  }
-
-  // Delete a table
-  Future<void> deleteTable(int id) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    await _middleware.deleteTable(id);
-  }
-
-  // Search tables
-  Future<void> searchTables(String query) async {
-    state = state.copyWith(
-      isLoading: true,
-      errorMessage: null,
-      searchQuery: query,
-    );
-
-    if (query.isEmpty) {
-      state = state.copyWith(tables: state.allTables, isLoading: false);
-      return;
-    }
-
-    final results = await _middleware.searchTables(query);
-    state = state.copyWith(tables: results, isLoading: false);
-  }
-
   // Clear search
   void clearSearch() {
     state = state.copyWith(searchQuery: '', tables: state.allTables);
@@ -118,22 +77,6 @@ class TableNotifier extends StateNotifier<TableState> {
   // Get table by ID
   Future<TableModel?> getTableById(int id) async {
     return await _middleware.getTable(id);
-  }
-
-  // Get tables with open bills
-  Future<void> getTablesWithOpenBills() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    final tablesWithBills = await _middleware.getTablesWithOpenBills();
-
-    state = state.copyWith(tables: tablesWithBills, isLoading: false);
-  }
-
-  // Get active tables
-  Future<void> getActiveTables() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    final activeTables = await _middleware.getActiveTables();
-
-    state = state.copyWith(tables: activeTables, isLoading: false);
   }
 
   // Save changes
