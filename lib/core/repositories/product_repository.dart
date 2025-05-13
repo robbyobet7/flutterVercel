@@ -127,22 +127,6 @@ class ProductRepository {
         [];
   }
 
-  // Get products with discounts
-  Future<List<Product>> getDiscountedProducts() async {
-    if (!_isInitialized) {
-      await initialize();
-    }
-
-    return _products
-            ?.where(
-              (product) =>
-                  product.productsDiscount != null &&
-                  product.productsDiscount! > 0,
-            )
-            .toList() ??
-        [];
-  }
-
   // Refresh product data (clear cache)
   Future<void> refreshProducts() async {
     _products = null;
@@ -156,24 +140,6 @@ class ProductRepository {
       throw Exception('Product repository not initialized');
     }
     return _products?.map((p) => p.toJson()).toList() ?? [];
-  }
-
-  // Save products data
-  Future<void> saveProducts() async {
-    try {
-      if (!_isInitialized) {
-        throw Exception('Product repository not initialized');
-      }
-
-      // This would be implemented to save to JSON/DB in a real app
-      final jsonList = getProductsForSerialization();
-      // ignore: unused_local_variable
-      final jsonString = json.encode(jsonList);
-
-      // In a real app: await file.writeAsString(jsonString);
-    } catch (e) {
-      _productErrorController.add('Failed to save products: $e');
-    }
   }
 
   // Dispose resources

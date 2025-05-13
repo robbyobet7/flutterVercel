@@ -502,28 +502,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
     return 0;
   }
 
-  // Helper method to calculate discounted price (kept for backward compatibility)
-  double calculateDiscountedPrice(
-    double basePrice,
-    dynamic discountAmount,
-    String discountType,
-  ) {
-    double amountToDeduct = calculateDiscountAmount(
-      basePrice,
-      discountAmount,
-      discountType,
-    );
-    return basePrice - amountToDeduct < 0 ? 0 : basePrice - amountToDeduct;
-  }
-
-  // Get all available discounts for a product
-  List<ProductDiscount> getAvailableDiscountsForProduct(int productId) {
-    final product = getProductById(productId);
-    if (product == null) return [];
-
-    return product.multipleDiscounts ?? [];
-  }
-
   // Add a new product
   void addProduct(Product product) {
     final updatedProducts = [...state.products, product];
@@ -568,48 +546,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
   bool hasDiscount(Product product) {
     return state.activeDiscounts.containsKey(product.id) ||
         (product.productsDiscount != null && product.productsDiscount! > 0);
-  }
-
-  // Get discount percentage or fixed amount as formatted string
-  String getDiscountDisplay(Product product) {
-    final activeDiscount = state.activeDiscounts[product.id];
-
-    if (activeDiscount != null) {
-      final amount = activeDiscount.amount;
-      final type = activeDiscount.discountType ?? 'percentage';
-
-      if (amount == null) return '';
-
-      return type == 'percentage' ? '$amount%' : '\$$amount';
-    } else if (product.productsDiscount != null &&
-        product.productsDiscount! > 0) {
-      final type = product.discountType2 ?? 'percentage';
-      return type == 'percentage'
-          ? '${product.productsDiscount}%'
-          : '\$${product.productsDiscount}';
-    }
-
-    return '';
-  }
-
-  // Format total price as currency string
-  String getFormattedTotalPrice(
-    Product product, {
-    String locale = 'id',
-    String symbol = 'Rp',
-    int decimalDigits = 0,
-  }) {
-    final totalPrice = getTotalPrice(product);
-    try {
-      return NumberFormat.currency(
-        locale: locale,
-        symbol: symbol,
-        decimalDigits: decimalDigits,
-      ).format(totalPrice);
-    } catch (e) {
-      // Fallback formatting if NumberFormat fails
-      return '$symbol ${totalPrice.toStringAsFixed(decimalDigits)}';
-    }
   }
 
   // Get a summary of selected options for display
@@ -742,12 +678,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
         state.productOptions[productId]?.isNotEmpty == true;
   }
 
-  // Count the number of selected options and extras
-  int countSelectedOptions(int productId) {
-    if (!state.productOptions.containsKey(productId)) return 0;
-    return state.productOptions[productId]?.length ?? 0;
-  }
-
   // Toggle a discount for a product (apply if none exists, remove if one exists)
   void toggleProductDiscount(int productId, ProductDiscount discount) {
     // Check if this product already has this discount
@@ -845,61 +775,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
     }
   }
 
-  // Clear all options and discounts for a product
-  void clearAllProductCustomizations(int productId) {
-    // Remove discounts
-    if (state.activeDiscounts.containsKey(productId)) {
-      final updatedDiscounts = Map<int, ProductDiscount?>.from(
-        state.activeDiscounts,
-      );
-      updatedDiscounts.remove(productId);
-
-      // Remove options
-      final updatedOptions = Map<int, Map<String, ProductOptionItem>>.from(
-        state.productOptions,
-      );
-      updatedOptions.remove(productId);
-
-      state = state.copyWith(
-        activeDiscounts: updatedDiscounts,
-        productOptions: updatedOptions,
-      );
-    }
-  }
-
-  // Copy options and discounts from one product to another
-  void copyCustomizations(int sourceProductId, int targetProductId) {
-    final sourceOptions = state.productOptions[sourceProductId];
-    final sourceDiscount = state.activeDiscounts[sourceProductId];
-
-    // Only copy if there's something to copy
-    if (sourceOptions != null || sourceDiscount != null) {
-      final updatedOptions = Map<int, Map<String, ProductOptionItem>>.from(
-        state.productOptions,
-      );
-      final updatedDiscounts = Map<int, ProductDiscount?>.from(
-        state.activeDiscounts,
-      );
-
-      // Copy options if available
-      if (sourceOptions != null) {
-        updatedOptions[targetProductId] = Map<String, ProductOptionItem>.from(
-          sourceOptions,
-        );
-      }
-
-      // Copy discount if available
-      if (sourceDiscount != null) {
-        updatedDiscounts[targetProductId] = sourceDiscount;
-      }
-
-      state = state.copyWith(
-        activeDiscounts: updatedDiscounts,
-        productOptions: updatedOptions,
-      );
-    }
-  }
-
   // Check if a product has a specific discount applied
   bool hasSpecificDiscount(int productId, int discountId) {
     final activeDiscount = state.activeDiscounts[productId];
@@ -909,55 +784,6 @@ class ProductNotifier extends StateNotifier<ProductState> {
   // Get the current active discount for a product, if any
   ProductDiscount? getActiveDiscount(int productId) {
     return state.activeDiscounts[productId];
-  }
-
-  // Verify if a product with the given ID exists in the state
-  bool hasProduct(int id) {
-    if (state.products.isEmpty) {
-      return false;
-    }
-
-    final exists = state.products.any((product) => product.id == id);
-    if (!exists) {
-      final availableIds = state.products.map((p) => p.id).toList();
-    }
-
-    return exists;
-  }
-
-  // Check if a product has any customizations (options or discounts)
-  bool hasCustomizations(int productId) {
-    return hasSelectedOptions(productId) ||
-        state.activeDiscounts.containsKey(productId);
-  }
-
-  // Get a summary of all customizations for display
-  String getCustomizationSummary(int productId) {
-    final buffer = StringBuffer();
-
-    // Get discount info if any
-    final discount = getActiveDiscount(productId);
-    if (discount != null) {
-      final discountName = discount.discountName ?? 'Discount';
-      final discountAmount = discount.amount;
-      final discountType = discount.discountType ?? 'percentage';
-
-      buffer.write('$discountName: ');
-      if (discountType == 'percentage') {
-        buffer.write('$discountAmount%');
-      } else {
-        buffer.write('\$$discountAmount');
-      }
-    }
-
-    // Get options summary
-    final optionsSummary = getSelectedOptionsDisplay(productId);
-    if (optionsSummary.isNotEmpty) {
-      if (buffer.isNotEmpty) buffer.write(' • ');
-      buffer.write(optionsSummary);
-    }
-
-    return buffer.toString();
   }
 
   // Repository methods
