@@ -69,69 +69,6 @@ class TableMiddleware {
     }
   }
 
-  // Add a new table
-  Future<void> addTable(TableModel table) async {
-    try {
-      _repository.addTable(table);
-      refreshTables();
-    } catch (e) {
-      _tableErrorController.add('Failed to add table: $e');
-    }
-  }
-
-  // Update an existing table
-  Future<void> updateTable(TableModel table) async {
-    try {
-      _repository.updateTable(table);
-      refreshTables();
-    } catch (e) {
-      _tableErrorController.add('Failed to update table: $e');
-    }
-  }
-
-  // Delete a table
-  Future<void> deleteTable(int id) async {
-    try {
-      _repository.deleteTable(id);
-      refreshTables();
-    } catch (e) {
-      _tableErrorController.add('Failed to delete table: $e');
-    }
-  }
-
-  // Search tables by name
-  Future<List<TableModel>> searchTables(String query) async {
-    try {
-      if (query.isEmpty) {
-        return _repository.getAllTables();
-      }
-      return _repository.searchTablesByName(query);
-    } catch (e) {
-      _tableErrorController.add('Failed to search tables: $e');
-      return [];
-    }
-  }
-
-  // Get tables with open bills
-  Future<List<TableModel>> getTablesWithOpenBills() async {
-    try {
-      return _repository.getTablesWithOpenBills();
-    } catch (e) {
-      _tableErrorController.add('Failed to get tables with open bills: $e');
-      return [];
-    }
-  }
-
-  // Get active tables
-  Future<List<TableModel>> getActiveTables() async {
-    try {
-      return _repository.getActiveTables();
-    } catch (e) {
-      _tableErrorController.add('Failed to get active tables: $e');
-      return [];
-    }
-  }
-
   // Save all table data
   Future<void> saveTables() async {
     try {
