@@ -7,6 +7,7 @@ import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/profile_avatar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
+import 'package:rebill_flutter/features/reservation/presentations/widgets/reservation_dialog.dart';
 
 class Navbar extends ConsumerWidget {
   const Navbar({super.key});
@@ -177,6 +178,16 @@ class _NavFeaturesState extends State<NavFeatures> {
     );
   }
 
+  void handleReservationTap() {
+    AppDialog.showCustom(
+      context,
+      title: 'Reservations',
+      height: MediaQuery.of(context).size.height * 0.8,
+      width: MediaQuery.of(context).size.width * 0.8,
+      content: const ReservationDialog(),
+    );
+  }
+
   late final List<NavMenu> _features;
 
   @override
@@ -184,7 +195,11 @@ class _NavFeaturesState extends State<NavFeatures> {
     super.initState();
     _features = [
       NavMenu(icon: Icons.table_bar, label: 'Tables', onTap: handleTableTap),
-      NavMenu(icon: Icons.book_online, label: 'Reservations', onTap: () {}),
+      NavMenu(
+        icon: Icons.book_online,
+        label: 'Reservations',
+        onTap: handleReservationTap,
+      ),
       NavMenu(icon: Icons.restaurant, label: 'Kitchen Orders', onTap: () {}),
       NavMenu(icon: Icons.lock, label: 'Lock / Switch', onTap: () {}),
       NavMenu(icon: Icons.assessment, label: 'Daily Report', onTap: () {}),
