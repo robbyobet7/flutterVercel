@@ -4,14 +4,22 @@ extension StringDateExtension on String {
   /// Converts a date string from one format to another
   /// Example: "Mon May 05 2025 10:30:30" to "05/05/2025 10:30"
   String formatDate({
-    String inputFormat = 'EEE MMM dd yyyy HH:mm:ss',
+    String inputFormat = 'EEE MMMM dd yyyy HH:mm:ss',
     String outputFormat = 'dd/MM/yyyy HH:mm',
   }) {
     try {
       final inputDate = DateFormat(inputFormat).parse(this);
       return DateFormat(outputFormat).format(inputDate);
     } catch (e) {
-      return this; // Return original string if parsing fails
+      // Try alternate format with abbreviated month names
+      try {
+        final alternateFormat = 'EEE MMM dd yyyy HH:mm:ss';
+        final inputDate = DateFormat(alternateFormat).parse(this);
+        return DateFormat(outputFormat).format(inputDate);
+      } catch (e) {
+        print(e);
+        return this; // Return original string if parsing fails
+      }
     }
   }
 
@@ -31,11 +39,17 @@ extension StringDateExtension on String {
   }
 
   /// Parse string to DateTime
-  DateTime? toDateTime({String format = 'EEE MMM dd yyyy HH:mm:ss'}) {
+  DateTime? toDateTime({String format = 'EEE MMMM dd yyyy HH:mm:ss'}) {
     try {
       return DateFormat(format).parse(this);
     } catch (e) {
-      return null;
+      // Try alternate format with abbreviated month names
+      try {
+        final alternateFormat = 'EEE MMM dd yyyy HH:mm:ss';
+        return DateFormat(alternateFormat).parse(this);
+      } catch (e) {
+        return null;
+      }
     }
   }
 }
