@@ -62,6 +62,8 @@ class MainBillPage extends ConsumerWidget {
                 context,
                 content: KnownIndividualDialog(),
                 title: 'Known Individual',
+                height: MediaQuery.of(context).size.height * 0.8,
+                width: MediaQuery.of(context).size.width * 0.8,
                 onClose: () {
                   ref
                       .read(knownIndividualProvider.notifier)
