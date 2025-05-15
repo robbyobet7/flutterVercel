@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
@@ -123,6 +122,8 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
 
     return ListView.builder(
       itemCount: reservations.length,
+      physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      cacheExtent: 100,
       itemBuilder: (context, groupIndex) {
         final group = reservations[groupIndex];
         if (group.isEmpty) return SizedBox.shrink();
@@ -146,6 +147,7 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
             ),
             // Container with reservations
             Container(
+              clipBehavior: Clip.hardEdge,
               decoration: BoxDecoration(
                 border: Border.all(color: theme.colorScheme.surfaceContainer),
                 borderRadius: BorderRadius.circular(12),
@@ -194,73 +196,97 @@ class ReservationListItem extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 24),
-      decoration: BoxDecoration(),
-      child: Row(
-        spacing: 12,
-        children: [
-          // Name
-          Expanded(
-            flex: 3,
-            child: Text(
-              reservation.name,
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
+      padding: EdgeInsets.symmetric(horizontal: 24),
+      height: 60,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: theme.colorScheme.surfaceContainer,
+            width: .5,
+          ),
+        ),
+      ),
+      child: SizedBox(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          spacing: 12,
+          children: [
+            // Name
+            Expanded(
+              flex: 3,
+              child: Text(
+                reservation.name,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          ),
-          // Time
-          Expanded(
-            flex: 2,
-            child: Text(reservation.time, textAlign: TextAlign.center),
-          ),
-          // Duration
-          Expanded(
-            flex: 2,
-            child: Text(
-              '${reservation.duration} min',
-              textAlign: TextAlign.center,
+            // Time
+            Expanded(
+              flex: 2,
+              child: Text(reservation.time, textAlign: TextAlign.center),
             ),
-          ),
-          // Headcount
-          Expanded(
-            flex: 2,
-            child: Text(
-              '${reservation.headcount}',
-              textAlign: TextAlign.center,
+            // Duration
+            Expanded(
+              flex: 2,
+              child: Text(
+                '${reservation.duration} min',
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
-          // Table
-          Expanded(
-            flex: 2,
-            child: Text(
-              reservation.tableName,
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
+            // Headcount
+            Expanded(
+              flex: 2,
+              child: Text(
+                '${reservation.headcount}',
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
-          // Remarks
-          Expanded(
-            flex: 3,
-            child: Text(
-              reservation.remarks,
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
+            // Table
+            Expanded(
+              flex: 2,
+              child: Text(
+                reservation.tableName,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          // Action
-          Expanded(
-            flex: 1,
-            child: IconButton(
-              icon: Icon(Icons.more_vert, size: 18),
-              onPressed: () {
-                // Show actions menu for this reservation
-              },
+            // Remarks
+            Expanded(
+              flex: 3,
+              child: Text(
+                reservation.remarks,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-        ],
+            // Action
+            Expanded(
+              flex: 1,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Flexible(
+                    child: Icon(
+                      Icons.receipt,
+                      size: 20,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  Flexible(
+                    child: Icon(
+                      Icons.delete_outline,
+                      size: 20,
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -273,7 +299,7 @@ class ReservationListHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: EdgeInsets.only(left: 12, right: 24, top: 12, bottom: 12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.only(
