@@ -62,8 +62,7 @@ class MainBillPage extends ConsumerWidget {
                 context,
                 content: KnownIndividualDialog(),
                 title: 'Known Individual',
-                height: MediaQuery.of(context).size.height * 0.8,
-                width: MediaQuery.of(context).size.width * 0.8,
+                dialogType: DialogType.large,
                 onClose: () {
                   ref
                       .read(knownIndividualProvider.notifier)
@@ -179,8 +178,7 @@ class MainBillPage extends ConsumerWidget {
                       AppDialog.showCustom(
                         context,
                         content: TableDialog(tableType: TableType.bill),
-                        height: MediaQuery.of(context).size.height * 0.8,
-                        width: MediaQuery.of(context).size.width * 0.8,
+                        dialogType: DialogType.large,
                         title: 'Assign Table',
                       );
                     },

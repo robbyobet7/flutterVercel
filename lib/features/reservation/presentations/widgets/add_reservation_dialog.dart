@@ -33,9 +33,8 @@ class AddReservationDialog extends StatelessWidget {
                           Navigator.pop(context),
                           AppDialog.showCustom(
                             context,
+                            dialogType: DialogType.large,
                             title: 'Reservations',
-                            height: MediaQuery.of(context).size.height * 0.8,
-                            width: MediaQuery.of(context).size.width * 0.8,
                             content: const ReservationDialog(),
                           ),
                         },

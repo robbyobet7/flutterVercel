@@ -38,11 +38,10 @@ class ProductCard extends ConsumerWidget {
         AppDialog.showCustom(
           context,
           content: ProductDetail(product: product),
-          width: MediaQuery.of(context).size.width * .8,
-          height:
+          dialogType:
               (product.multipleDiscounts!.isEmpty && product.option == null)
-                  ? MediaQuery.of(context).size.height * .43
-                  : MediaQuery.of(context).size.height * .8,
+                  ? DialogType.small
+                  : DialogType.large,
           padding: const EdgeInsets.all(12),
         );
       },

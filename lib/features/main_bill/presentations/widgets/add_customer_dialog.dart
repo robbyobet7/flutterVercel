@@ -180,8 +180,7 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
                               context,
                               content: KnownIndividualDialog(),
                               title: 'Known Individual',
-                              height: MediaQuery.of(context).size.height * 0.8,
-                              width: MediaQuery.of(context).size.width * 0.8,
+                              dialogType: DialogType.large,
                               onClose: () {
                                 ref
                                     .read(knownIndividualProvider.notifier)

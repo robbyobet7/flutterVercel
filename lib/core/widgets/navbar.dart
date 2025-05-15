@@ -171,9 +171,8 @@ class _NavFeaturesState extends State<NavFeatures> {
   void handleTableTap() {
     AppDialog.showCustom(
       context,
+      dialogType: DialogType.large,
       title: 'Tables',
-      height: MediaQuery.of(context).size.height * 0.8,
-      width: MediaQuery.of(context).size.width * 0.8,
       content: const TableDialog(),
     );
   }
@@ -181,9 +180,8 @@ class _NavFeaturesState extends State<NavFeatures> {
   void handleReservationTap() {
     AppDialog.showCustom(
       context,
+      dialogType: DialogType.large,
       title: 'Reservations',
-      height: MediaQuery.of(context).size.height * 0.8,
-      width: MediaQuery.of(context).size.width * 0.8,
       content: const ReservationDialog(),
     );
   }

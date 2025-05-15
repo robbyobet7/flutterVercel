@@ -21,9 +21,8 @@ class TableDialog extends ConsumerWidget {
     void navTableTap(int index) {
       AppDialog.showCustom(
         context,
+        dialogType: DialogType.large,
         title: '${tables[index].tableName} - Bills',
-        height: MediaQuery.of(context).size.height * 0.8,
-        width: MediaQuery.of(context).size.width * 0.8,
         content: BillTableDialog(table: tables[index]),
       );
     }
