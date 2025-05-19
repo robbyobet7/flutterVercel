@@ -74,10 +74,12 @@ class AddReservationContent extends ConsumerStatefulWidget {
 class _AddReservationContentState extends ConsumerState<AddReservationContent> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _remarksController = TextEditingController();
   @override
   void dispose() {
     _formKey.currentState?.dispose();
     _nameController.dispose();
+    _remarksController.dispose();
     super.dispose();
   }
 
@@ -195,7 +197,32 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
                   ),
                 ],
               ),
-              Column(children: [LabelText(text: 'Table (optional)')]),
+              Column(
+                children: [
+                  LabelText(text: 'Table (optional)'),
+                  GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 5,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      mainAxisExtent: 50, // Fixed height for each row
+                    ),
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: tables.length,
+                    itemBuilder: (context, index) {
+                      return OptionContainer(text: tables[index].tableName);
+                    },
+                  ),
+                ],
+              ),
+              AppTextField(
+                controller: _remarksController,
+                labelText: 'Remarks (optional)',
+                hintText: 'Enter Remarks',
+                minLines: 3,
+                maxLines: 5,
+              ),
             ],
           ),
         ),
