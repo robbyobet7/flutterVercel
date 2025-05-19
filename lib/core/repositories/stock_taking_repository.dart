@@ -3,24 +3,22 @@ import 'package:flutter/services.dart';
 import 'package:rebill_flutter/features/stock-taking/models/stock_taking.dart';
 
 class StockTakingRepository {
-  Future<List<List<StockTaking>>> getStockTakings() async {
+  Future<List<StockTaking>> getStockTakings() async {
     try {
       final String jsonString = await rootBundle.loadString(
         'assets/stocks.json',
       );
-      final List<dynamic> jsonData = json.decode(jsonString);
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
 
-      List<List<StockTaking>> result = [];
+      // Get the dataProducts array from the JSON
+      final List<dynamic> productsData =
+          jsonData['dataProducts'] as List<dynamic>;
 
-      for (var group in jsonData) {
-        List<StockTaking> groupStockTakings = [];
-        for (var item in group) {
-          groupStockTakings.add(StockTaking.fromJson(item));
-        }
-        result.add(groupStockTakings);
-      }
+      // Convert the data to StockTaking objects
+      final List<StockTaking> stockTakings =
+          productsData.map((item) => StockTaking.fromJson(item)).toList();
 
-      return result;
+      return stockTakings;
     } catch (e) {
       print('Error loading stock takings: $e');
       return [];

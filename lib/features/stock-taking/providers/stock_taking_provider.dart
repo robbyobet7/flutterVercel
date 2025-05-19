@@ -3,7 +3,7 @@ import 'package:rebill_flutter/core/repositories/stock_taking_repository.dart';
 import 'package:rebill_flutter/features/stock-taking/models/stock_taking.dart';
 
 class StockTakingState {
-  final List<List<StockTaking>> stockTakings;
+  final List<StockTaking> stockTakings;
   final bool isLoading;
   final String? error;
 
@@ -14,7 +14,7 @@ class StockTakingState {
   });
 
   StockTakingState copyWith({
-    List<List<StockTaking>>? stockTakings,
+    List<StockTaking>? stockTakings,
     bool? isLoading,
     String? error,
   }) {
@@ -45,10 +45,10 @@ class StockTakingNotifier extends StateNotifier<StockTakingState> {
       state = state.copyWith(error: e.toString(), isLoading: false);
     }
   }
-
-  final stockTakingProvider =
-      StateNotifierProvider<StockTakingNotifier, StockTakingState>((ref) {
-        final repository = ref.watch(stockTakingRepositoryProvider);
-        return StockTakingNotifier(repository);
-      });
 }
+
+final stockTakingProvider =
+    StateNotifierProvider<StockTakingNotifier, StockTakingState>((ref) {
+      final repository = ref.watch(stockTakingRepositoryProvider);
+      return StockTakingNotifier(repository);
+    });

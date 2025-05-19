@@ -8,6 +8,7 @@ import 'package:rebill_flutter/core/widgets/profile_avatar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
 import 'package:rebill_flutter/features/reservation/presentations/widgets/reservation_dialog.dart';
+import 'package:rebill_flutter/features/stock-taking/presentations/widgets/stock_taking_dialog.dart';
 
 class Navbar extends ConsumerWidget {
   const Navbar({super.key});
@@ -186,6 +187,15 @@ class _NavFeaturesState extends State<NavFeatures> {
     );
   }
 
+  void handleStockTakingTap() {
+    AppDialog.showCustom(
+      context,
+      dialogType: DialogType.large,
+      title: 'Stock Taking',
+      content: const StockTakingDialog(),
+    );
+  }
+
   late final List<NavMenu> _features;
 
   @override
@@ -201,7 +211,11 @@ class _NavFeaturesState extends State<NavFeatures> {
       NavMenu(icon: Icons.restaurant, label: 'Kitchen Orders', onTap: () {}),
       NavMenu(icon: Icons.lock, label: 'Lock / Switch', onTap: () {}),
       NavMenu(icon: Icons.assessment, label: 'Daily Report', onTap: () {}),
-      NavMenu(icon: Icons.inventory_2, label: 'Stock Taking', onTap: () {}),
+      NavMenu(
+        icon: Icons.inventory_2,
+        label: 'Stock Taking',
+        onTap: handleStockTakingTap,
+      ),
     ];
   }
 
