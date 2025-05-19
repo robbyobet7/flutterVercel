@@ -75,6 +75,7 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _remarksController = TextEditingController();
+
   @override
   void dispose() {
     _formKey.currentState?.dispose();
@@ -89,7 +90,8 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
     const spacing = 16.0;
     final theme = Theme.of(context);
 
-    final tables = ref.read(tableProvider).allTables;
+    final tables = ref.watch(tableProvider).tables;
+    print(tables);
 
     return Expanded(
       child: SingleChildScrollView(

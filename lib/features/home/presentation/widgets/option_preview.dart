@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:rebill_flutter/core/widgets/app_dialog.dart';
+import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 
 import '../../../../core/providers/product_provider.dart';
 import '../../../../core/providers/products_providers.dart';
@@ -30,251 +32,6 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
           .read(productProvider.notifier)
           .initializeProductOptions(widget.productId);
     });
-  }
-
-  // Show product selection popup
-  void _showProductPopup(
-    BuildContext context,
-    String optionId,
-    String optionName,
-  ) {
-    final TextEditingController searchController = TextEditingController();
-    final theme = Theme.of(context);
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Select $optionName',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.of(context).pop(),
-                          iconSize: 20,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Search field
-                    Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: searchController,
-                              decoration: const InputDecoration(
-                                hintText: 'Search products...',
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.symmetric(
-                                  vertical: 10,
-                                ),
-                              ),
-                              onChanged: (value) {
-                                setState(() {});
-                              },
-                            ),
-                          ),
-                          Icon(Icons.search, size: 20),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Product list
-                    Consumer(
-                      builder: (context, ref, child) {
-                        // Get all products
-                        final productList = ref.watch(
-                          availableProductsProvider,
-                        );
-                        // Get currently selected product for this option
-                        final selectedOption = ref
-                            .watch(productProvider.notifier)
-                            .getSelectedOption(widget.productId, optionId);
-
-                        return productList.when(
-                          data: (products) {
-                            // Filter products based on search
-                            final searchText =
-                                searchController.text.toLowerCase();
-                            final filteredProducts =
-                                products
-                                    .where(
-                                      (product) =>
-                                          product.productsName
-                                              ?.toLowerCase()
-                                              .contains(searchText) ??
-                                          false,
-                                    )
-                                    .toList();
-
-                            if (filteredProducts.isEmpty) {
-                              return const Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: Center(child: Text('No products found')),
-                              );
-                            }
-
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (selectedOption != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 8.0),
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        // Remove product selection
-                                        ref
-                                            .read(productProvider.notifier)
-                                            .removeProductOption(
-                                              widget.productId,
-                                              optionId,
-                                            );
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: theme
-                                              .colorScheme
-                                              .errorContainer
-                                              .withOpacity(0.3),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.delete_outline,
-                                              size: 16,
-                                              color: theme.colorScheme.error,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              'Clear selection',
-                                              style: theme.textTheme.bodySmall
-                                                  ?.copyWith(
-                                                    color:
-                                                        theme.colorScheme.error,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                SizedBox(
-                                  height: 300, // Fixed height for scrolling
-                                  child: ListView.builder(
-                                    itemCount: filteredProducts.length,
-                                    itemBuilder: (context, index) {
-                                      final product = filteredProducts[index];
-                                      // Check if this product is selected
-                                      final isSelected =
-                                          selectedOption != null &&
-                                          selectedOption['id'] == product.id;
-
-                                      return ListTile(
-                                        title: Text(
-                                          product.productsName ?? 'Unknown',
-                                          style:
-                                              isSelected
-                                                  ? TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        theme
-                                                            .colorScheme
-                                                            .primary,
-                                                  )
-                                                  : null,
-                                        ),
-                                        subtitle: Text(
-                                          NumberFormat.currency(
-                                            locale: 'id',
-                                            symbol: 'Rp',
-                                            decimalDigits: 0,
-                                          ).format(product.productsPrice ?? 0),
-                                          style: theme.textTheme.bodySmall,
-                                        ),
-                                        trailing:
-                                            isSelected
-                                                ? Icon(
-                                                  Icons.check_circle,
-                                                  color:
-                                                      theme.colorScheme.primary,
-                                                )
-                                                : null,
-                                        onTap: () {
-                                          // Set product as complimentary option
-                                          ref
-                                              .read(productProvider.notifier)
-                                              .setProductOption(
-                                                widget.productId,
-                                                optionId,
-                                                {
-                                                  'id': product.id,
-                                                  'name': product.productsName,
-                                                  'price':
-                                                      product.productsPrice,
-                                                  'isComplimentary': true,
-                                                },
-                                                'option',
-                                              );
-                                          Navigator.of(context).pop();
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                          loading:
-                              () => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                          error:
-                              (_, __) => const Center(
-                                child: Text('Error loading products'),
-                              ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 
   @override
@@ -544,114 +301,315 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
               );
               final hasSelectedProduct = selectedOption != null;
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: GestureDetector(
-                  onTap: () {
-                    _showProductPopup(context, optionId, optionName);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          hasSelectedProduct
-                              ? theme.colorScheme.primaryContainer.withOpacity(
-                                0.3,
-                              )
-                              : theme.colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: theme.colorScheme.primary,
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.card_giftcard,
-                          size: 18,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Complimentary: ${selectedOption != null && selectedOption is Map ? (selectedOption["name"] ?? "Select Item") : "Select Item"}',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              if (hasSelectedProduct &&
-                                  selectedOption['name'] != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
+              return GestureDetector(
+                onTap: () {
+                  AppDialog.showCustom(
+                    context,
+                    title: 'Select Complimentary',
+                    content: Expanded(
+                      child: Column(
+                        spacing: 16,
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AppSearchBar(hintText: 'Search products...'),
+                          // Product list
+                          Expanded(
+                            child: Consumer(
+                              builder: (context, ref, child) {
+                                // Get all products
+                                final productList = ref.watch(
+                                  availableProductsProvider,
+                                );
+                                // Get currently selected product for this option
+                                final selectedOption = ref
+                                    .watch(productProvider.notifier)
+                                    .getSelectedOption(
+                                      widget.productId,
+                                      optionId,
+                                    );
+
+                                return productList.when(
+                                  data: (products) {
+                                    // Filter products based on search
+                                    final searchText = '';
+                                    final filteredProducts =
+                                        products
+                                            .where(
+                                              (product) =>
+                                                  product.productsName
+                                                      ?.toLowerCase()
+                                                      .contains(searchText) ??
+                                                  false,
+                                            )
+                                            .toList();
+
+                                    if (filteredProducts.isEmpty) {
+                                      return const Padding(
+                                        padding: EdgeInsets.all(16.0),
+                                        child: Center(
+                                          child: Text('No products found'),
                                         ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              theme
-                                                  .colorScheme
-                                                  .primaryContainer,
-                                          borderRadius: BorderRadius.circular(
-                                            4,
+                                      );
+                                    }
+
+                                    return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (selectedOption != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 16.0,
+                                            ),
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                // Remove product selection
+                                                ref
+                                                    .read(
+                                                      productProvider.notifier,
+                                                    )
+                                                    .removeProductOption(
+                                                      widget.productId,
+                                                      optionId,
+                                                    );
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 8,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: theme
+                                                      .colorScheme
+                                                      .errorContainer
+                                                      .withOpacity(0.3),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.delete_outline,
+                                                      size: 16,
+                                                      color:
+                                                          theme
+                                                              .colorScheme
+                                                              .error,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      'Clear selection',
+                                                      style: theme
+                                                          .textTheme
+                                                          .bodySmall
+                                                          ?.copyWith(
+                                                            color:
+                                                                theme
+                                                                    .colorScheme
+                                                                    .error,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        Expanded(
+                                          child: ListView.builder(
+                                            itemCount: filteredProducts.length,
+                                            itemBuilder: (context, index) {
+                                              final product =
+                                                  filteredProducts[index];
+                                              // Check if this product is selected
+                                              final isSelected =
+                                                  selectedOption != null &&
+                                                  selectedOption['id'] ==
+                                                      product.id;
+
+                                              return ListTile(
+                                                title: Text(
+                                                  product.productsName ??
+                                                      'Unknown',
+                                                  style:
+                                                      isSelected
+                                                          ? TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color:
+                                                                theme
+                                                                    .colorScheme
+                                                                    .primary,
+                                                          )
+                                                          : null,
+                                                ),
+                                                subtitle: Text(
+                                                  NumberFormat.currency(
+                                                    locale: 'id',
+                                                    symbol: 'Rp',
+                                                    decimalDigits: 0,
+                                                  ).format(
+                                                    product.productsPrice ?? 0,
+                                                  ),
+                                                  style:
+                                                      theme.textTheme.bodySmall,
+                                                ),
+                                                trailing:
+                                                    isSelected
+                                                        ? Icon(
+                                                          Icons.check_circle,
+                                                          color:
+                                                              theme
+                                                                  .colorScheme
+                                                                  .primary,
+                                                        )
+                                                        : null,
+                                                onTap: () {
+                                                  // Set product as complimentary option
+                                                  ref
+                                                      .read(
+                                                        productProvider
+                                                            .notifier,
+                                                      )
+                                                      .setProductOption(
+                                                        widget.productId,
+                                                        optionId,
+                                                        {
+                                                          'id': product.id,
+                                                          'name':
+                                                              product
+                                                                  .productsName,
+                                                          'price':
+                                                              product
+                                                                  .productsPrice,
+                                                          'isComplimentary':
+                                                              true,
+                                                        },
+                                                        'option',
+                                                      );
+                                                  Navigator.of(context).pop();
+                                                },
+                                              );
+                                            },
                                           ),
                                         ),
+                                      ],
+                                    );
+                                  },
+                                  loading:
+                                      () => const Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                  error:
+                                      (_, __) => const Center(
+                                        child: Text('Error loading products'),
+                                      ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    dialogType: DialogType.medium,
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        hasSelectedProduct
+                            ? theme.colorScheme.primaryContainer.withOpacity(
+                              0.3,
+                            )
+                            : theme.colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: theme.colorScheme.primary,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.card_giftcard,
+                        size: 18,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Complimentary: ${selectedOption != null && selectedOption is Map ? (selectedOption["name"] ?? "Select Item") : "Select Item"}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            if (hasSelectedProduct &&
+                                selectedOption['name'] != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            theme.colorScheme.primaryContainer,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'FREE',
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme.colorScheme.primary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ),
+                                    if (selectedOption['price'] != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 4),
                                         child: Text(
-                                          'FREE',
+                                          NumberFormat.currency(
+                                            locale: 'id',
+                                            symbol: 'Rp',
+                                            decimalDigits: 0,
+                                          ).format(selectedOption['price']),
                                           style: theme.textTheme.bodySmall
                                               ?.copyWith(
-                                                color:
-                                                    theme.colorScheme.primary,
-                                                fontWeight: FontWeight.bold,
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                                color: theme
+                                                    .colorScheme
+                                                    .onSurfaceVariant
+                                                    .withOpacity(0.7),
                                               ),
                                         ),
                                       ),
-                                      if (selectedOption['price'] != null)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 4,
-                                          ),
-                                          child: Text(
-                                            NumberFormat.currency(
-                                              locale: 'id',
-                                              symbol: 'Rp',
-                                              decimalDigits: 0,
-                                            ).format(selectedOption['price']),
-                                            style: theme.textTheme.bodySmall
-                                                ?.copyWith(
-                                                  decoration:
-                                                      TextDecoration
-                                                          .lineThrough,
-                                                  color: theme
-                                                      .colorScheme
-                                                      .onSurfaceVariant
-                                                      .withOpacity(0.7),
-                                                ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
+                                  ],
                                 ),
-                            ],
-                          ),
+                              ),
+                          ],
                         ),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ],
-                    ),
+                      ),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ],
                   ),
                 ),
               );

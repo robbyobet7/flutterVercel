@@ -8,7 +8,7 @@ class StockTaking {
   final int productInfinityStock;
   final String productCategory;
   final int status;
-  final String type;
+  final StockTakingType type;
   final String? barcodeProduct;
   final String? qrCodeProduct;
 
@@ -33,7 +33,16 @@ class StockTaking {
       productInfinityStock: json['product_infinity_stock'],
       productCategory: json['product_category'],
       status: json['status'],
-      type: json['type'],
+      type:
+          json['type'] == 'prep'
+              ? StockTakingType.prep
+              : json['type'] == 'product'
+              ? StockTakingType.product
+              : json['type'] == 'volume' || json['type'] == 'prep_volume'
+              ? StockTakingType.volume
+              : json['type'] == 'piece' || json['type'] == 'prep_piece'
+              ? StockTakingType.piece
+              : StockTakingType.weight,
       barcodeProduct: json['barcode_product'],
       qrCodeProduct: json['qr_code_product'],
     );
@@ -60,3 +69,5 @@ class StockTaking {
     return jsonEncode(toJson());
   }
 }
+
+enum StockTakingType { prep, product, volume, weight, piece }

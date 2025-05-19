@@ -52,3 +52,37 @@ final stockTakingProvider =
       final repository = ref.watch(stockTakingRepositoryProvider);
       return StockTakingNotifier(repository);
     });
+
+final prepStockTakingProvider = Provider<List<StockTaking>>((ref) {
+  final repository =
+      ref
+          .watch(stockTakingProvider)
+          .stockTakings
+          .where((e) => e.type == StockTakingType.prep)
+          .toList();
+  return repository;
+});
+
+final productStockTakingProvider = Provider<List<StockTaking>>((ref) {
+  final repository =
+      ref
+          .watch(stockTakingProvider)
+          .stockTakings
+          .where((e) => e.type == StockTakingType.product)
+          .toList();
+  return repository;
+});
+
+final ingredientStockTakingProvider = Provider<List<StockTaking>>((ref) {
+  final repository =
+      ref
+          .watch(stockTakingProvider)
+          .stockTakings
+          .where(
+            (e) =>
+                e.type != StockTakingType.product &&
+                e.type != StockTakingType.prep,
+          )
+          .toList();
+  return repository;
+});
