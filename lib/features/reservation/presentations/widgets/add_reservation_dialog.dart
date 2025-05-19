@@ -195,7 +195,11 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
                   Row(
                     spacing: 12,
                     children:
-                        duration.map((e) => OptionContainer(text: e)).toList(),
+                        duration
+                            .map(
+                              (e) => Expanded(child: OptionContainer(text: e)),
+                            )
+                            .toList(),
                   ),
                 ],
               ),
@@ -263,19 +267,17 @@ class OptionContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Expanded(
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+    return Container(
+      height: 50,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Text(
+          text,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ),
