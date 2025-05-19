@@ -23,8 +23,7 @@ class MainDefaultPage extends ConsumerWidget {
           AppDialog.showCustom(
             context,
             content: TableDialog(tableType: TableType.qr),
-            height: MediaQuery.of(context).size.height * 0.8,
-            width: MediaQuery.of(context).size.width * 0.8,
+            dialogType: DialogType.large,
             title: 'Select Table',
           );
         },

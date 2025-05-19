@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
+import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 import 'package:rebill_flutter/features/reservation/models/reservation.dart';
+import 'package:rebill_flutter/features/reservation/presentations/widgets/add_reservation_dialog.dart';
 import 'package:rebill_flutter/features/reservation/providers/reservation_provider.dart';
 
 class ReservationDialog extends ConsumerStatefulWidget {
@@ -44,10 +46,21 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
                   width: MediaQuery.of(context).size.width / 3,
                   child: AppSearchBar(hintText: 'Search reservations...'),
                 ),
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: theme.colorScheme.primary,
-                  child: Icon(Icons.add),
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                    AppDialog.showCustom(
+                      context,
+                      content: AddReservationDialog(),
+                      title: 'Add New Reservation',
+                      dialogType: DialogType.medium,
+                    );
+                  },
+                  child: CircleAvatar(
+                    radius: 20,
+                    backgroundColor: theme.colorScheme.primary,
+                    child: Icon(Icons.add),
+                  ),
                 ),
               ],
             ),

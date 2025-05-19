@@ -180,6 +180,7 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
                               context,
                               content: KnownIndividualDialog(),
                               title: 'Known Individual',
+                              dialogType: DialogType.large,
                               onClose: () {
                                 ref
                                     .read(knownIndividualProvider.notifier)
