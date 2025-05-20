@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
@@ -35,13 +36,13 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
     final error = reservationState.error;
 
     final headers = [
-      Header(flex: 4, text: 'Name'),
-      Header(flex: 4, text: 'Time'),
-      Header(flex: 2, text: 'Duration'),
-      Header(flex: 2, text: 'Headcount'),
-      Header(flex: 2, text: 'Table'),
-      Header(flex: 3, text: 'Remark'),
-      Header(flex: 1, text: 'Action'),
+      Header(flex: 4, textAlign: TextAlign.left, text: 'Name'),
+      Header(flex: 2, textAlign: TextAlign.center, text: 'Time'),
+      Header(flex: 2, textAlign: TextAlign.center, text: 'Duration'),
+      Header(flex: 2, textAlign: TextAlign.center, text: 'Headcount'),
+      Header(flex: 2, textAlign: TextAlign.center, text: 'Table'),
+      Header(flex: 3, textAlign: TextAlign.center, text: 'Remark'),
+      Header(flex: 1, textAlign: TextAlign.center, text: 'Action'),
     ];
     return Expanded(
       child: Column(
@@ -217,6 +218,27 @@ class ReservationListItem extends StatelessWidget {
 
   const ReservationListItem({super.key, required this.reservation});
 
+  String _formatTimeDisplay(String time) {
+    // Check if the time string contains a date with format like "20 May 2025 14:04"
+    final RegExp dateTimePattern = RegExp(
+      r'^\d{1,2}\s+[A-Za-z]+\s+\d{4}\s+\d{1,2}:\d{2}$',
+    );
+
+    if (dateTimePattern.hasMatch(time)) {
+      try {
+        // Parse the date using intl package for more robust parsing
+        final parsedDate = DateFormat('d MMMM yyyy HH:mm').parse(time);
+        return DateFormat('dd/MM/yyyy HH:mm').format(parsedDate);
+      } catch (e) {
+        // If parsing fails, return the original string
+        return time;
+      }
+    }
+
+    // If it's just a time or doesn't match the pattern, return it as is
+    return time;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -253,15 +275,18 @@ class ReservationListItem extends StatelessWidget {
             ),
             // Time
             Expanded(
-              flex: 4,
-              child: Text(reservation.time, textAlign: TextAlign.left),
+              flex: 2,
+              child: Text(
+                _formatTimeDisplay(reservation.time),
+                textAlign: TextAlign.center,
+              ),
             ),
             // Duration
             Expanded(
               flex: 2,
               child: Text(
                 '${reservation.duration} min',
-                textAlign: TextAlign.left,
+                textAlign: TextAlign.center,
               ),
             ),
             // Headcount
@@ -269,7 +294,7 @@ class ReservationListItem extends StatelessWidget {
               flex: 2,
               child: Text(
                 '${reservation.headcount}',
-                textAlign: TextAlign.left,
+                textAlign: TextAlign.center,
               ),
             ),
             // Table
@@ -277,7 +302,7 @@ class ReservationListItem extends StatelessWidget {
               flex: 2,
               child: Text(
                 reservation.tableName,
-                textAlign: TextAlign.left,
+                textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -286,7 +311,7 @@ class ReservationListItem extends StatelessWidget {
               flex: 3,
               child: Text(
                 reservation.remarks,
-                textAlign: TextAlign.left,
+                textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
               ),
             ),

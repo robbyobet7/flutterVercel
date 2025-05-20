@@ -5,6 +5,8 @@ import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
+import 'package:rebill_flutter/core/widgets/decrement_button.dart';
+import 'package:rebill_flutter/core/widgets/increment_button.dart';
 import 'package:rebill_flutter/features/reservation/presentations/widgets/reservation_dialog.dart';
 
 class AddReservationDialog extends StatelessWidget {
@@ -110,9 +112,10 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
                 hintText: 'Enter customer name',
               ),
               Row(
-                spacing: 30,
+                spacing: 24,
                 children: [
                   Expanded(
+                    flex: 2,
                     child: Column(
                       children: [
                         LabelText(text: 'Head Count'),
@@ -123,21 +126,10 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             spacing: 12,
                             children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.surfaceContainer,
-                                  borderRadius: BorderRadius.circular(9999),
-                                ),
-                                child: IconButton(
-                                  onPressed: () {},
-                                  icon: const Icon(Icons.remove),
-                                ),
-                              ),
+                              DecrementButton(),
                               Expanded(
                                 child: SizedBox(
-                                  height: 50,
+                                  height: 45,
                                   child: AppTextField(
                                     showLabel: false,
                                     textAlign: TextAlign.center,
@@ -146,7 +138,6 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
                                     keyboardType: TextInputType.number,
                                     hintText: 'Qty',
                                     labelText: 'Qty',
-                                    constraints: BoxConstraints(maxHeight: 50),
                                     contentPadding: EdgeInsets.symmetric(
                                       horizontal: 12,
                                       vertical: 0,
@@ -154,21 +145,7 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
                                   ),
                                 ),
                               ),
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary,
-                                  borderRadius: BorderRadius.circular(9999),
-                                ),
-                                child: IconButton(
-                                  onPressed: () {},
-                                  icon: Icon(
-                                    Icons.add,
-                                    color: theme.colorScheme.onPrimary,
-                                  ),
-                                ),
-                              ),
+                              IncrementButton(),
                             ],
                           ),
                         ),
@@ -176,7 +153,7 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
                     ),
                   ),
                   Expanded(
-                    flex: 2,
+                    flex: 3,
                     child: AppTextField(
                       controller: _nameController,
                       labelText: 'Date & Time',
@@ -193,7 +170,7 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
                 children: [
                   LabelText(text: 'Duration'),
                   Row(
-                    spacing: 12,
+                    spacing: 8,
                     children:
                         duration
                             .map(
@@ -211,7 +188,7 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
                       crossAxisCount: 5,
                       mainAxisSpacing: 8,
                       crossAxisSpacing: 8,
-                      mainAxisExtent: 50, // Fixed height for each row
+                      mainAxisExtent: 45, // Fixed height for each row
                     ),
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
@@ -268,14 +245,16 @@ class OptionContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      height: 50,
+      height: 45,
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(12),
       ),
+      padding: EdgeInsets.symmetric(horizontal: 8),
       child: Center(
         child: Text(
           text,
+          overflow: TextOverflow.ellipsis,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

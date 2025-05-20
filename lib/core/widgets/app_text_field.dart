@@ -101,11 +101,13 @@ class AppTextField extends StatelessWidget {
             minLines: minLines,
             textInputAction: textInputAction,
             onTap: onTap,
-            style: textStyle,
+            style: textStyle ?? theme.textTheme.bodyMedium,
             autofocus: autofocus,
             decoration: InputDecoration(
               hintText: hintText,
-              constraints: constraints,
+              constraints:
+                  constraints ??
+                  (maxLines != 1 ? null : BoxConstraints(maxHeight: 45)),
               prefixIcon: prefix,
               suffixIcon: suffix,
               fillColor: theme.colorScheme.surfaceContainer,
