@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:math' show min;
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
@@ -68,18 +69,16 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               child: Column(
-                spacing: 16,
-
                 children: [
-                  ExpansionStockTaking(
+                  CustomExpansionWidget(
                     title: 'Products',
                     items: productStockTaking,
                   ),
-                  ExpansionStockTaking(
+                  CustomExpansionWidget(
                     title: 'Ingredients',
                     items: ingredientStockTaking,
                   ),
-                  ExpansionStockTaking(title: 'Preps', items: prepStockTaking),
+                  CustomExpansionWidget(title: 'Preps', items: prepStockTaking),
                 ],
               ),
             ),
@@ -123,62 +122,109 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
   }
 }
 
-class ExpansionStockTaking extends StatelessWidget {
-  const ExpansionStockTaking({
-    super.key,
-    required this.title,
-    required this.items,
-  });
-
+class CustomExpansionWidget extends StatefulWidget {
   final String title;
   final List<StockTaking> items;
+
+  const CustomExpansionWidget({
+    Key? key,
+    required this.title,
+    required this.items,
+  }) : super(key: key);
+
+  @override
+  State<CustomExpansionWidget> createState() => _CustomExpansionWidgetState();
+}
+
+class _CustomExpansionWidgetState extends State<CustomExpansionWidget> {
+  bool _isExpanded = true;
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ExpansionTile(
-      showTrailingIcon: false,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(width: 1, color: theme.colorScheme.surfaceContainer),
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(width: 1, color: theme.colorScheme.surfaceContainer),
       ),
-      collapsedShape: RoundedRectangleBorder(
-        side: BorderSide(width: 1, color: theme.colorScheme.surfaceContainer),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      expandedAlignment: Alignment.centerLeft,
-      tilePadding: EdgeInsets.symmetric(horizontal: 24),
-      childrenPadding: EdgeInsets.zero,
-      backgroundColor: theme.colorScheme.primaryContainer,
-      collapsedBackgroundColor: theme.colorScheme.primaryContainer,
-      title: Container(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: theme.textTheme.displaySmall),
-            Row(
-              children: [
-                Icon(Icons.expand_more, color: theme.colorScheme.primary),
-                Checkbox(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    side: BorderSide(
-                      width: 1,
-                      color: theme.colorScheme.primary,
-                    ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header
+          InkWell(
+            onTap: _toggleExpanded,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(widget.title, style: theme.textTheme.displaySmall),
+                  Row(
+                    children: [
+                      AnimatedRotation(
+                        turns: _isExpanded ? 0 : -0.25,
+                        duration: Duration(milliseconds: 200),
+                        child: Icon(
+                          Icons.expand_more,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Checkbox(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                          side: BorderSide(
+                            width: 1,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        side: BorderSide(
+                          width: 2,
+                          color: theme.colorScheme.primary,
+                        ),
+                        materialTapTargetSize: MaterialTapTargetSize.padded,
+                        value: false,
+                        onChanged: (value) {},
+                      ),
+                    ],
                   ),
-                  side: BorderSide(width: 2, color: theme.colorScheme.primary),
-                  materialTapTargetSize: MaterialTapTargetSize.padded,
-                  value: false,
-                  onChanged: (value) {},
-                ),
-              ],
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+
+          // Direct ListView.builder for content
+          if (_isExpanded)
+            Container(
+              color: theme.colorScheme.surface,
+              constraints: BoxConstraints(
+                maxHeight:
+                    double
+                        .infinity, // Allow content to expand with parent scrolling
+              ),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                cacheExtent: 100,
+                shrinkWrap: true, // Let the list expand to its full height
+                physics:
+                    ClampingScrollPhysics(), // Match parent scrolling behavior
+                itemCount: widget.items.length,
+                itemBuilder:
+                    (context, index) =>
+                        ExpansionContainer(item: widget.items[index]),
+              ),
+            ),
+        ],
       ),
-      initiallyExpanded: true,
-      children: items.map((e) => ExpansionContainer(item: e)).toList(),
     );
   }
 }
