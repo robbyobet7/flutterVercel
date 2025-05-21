@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:math' show min;
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
+import 'package:rebill_flutter/core/widgets/decrement_button.dart';
 import 'package:rebill_flutter/core/widgets/header_column.dart';
+import 'package:rebill_flutter/core/widgets/increment_button.dart';
 import 'package:rebill_flutter/core/widgets/list_header.dart';
 import 'package:rebill_flutter/features/stock-taking/models/stock_taking.dart';
 import 'package:rebill_flutter/features/stock-taking/presentations/widgets/type_filter_container.dart';
@@ -20,19 +21,11 @@ class StockTakingDialog extends ConsumerStatefulWidget {
 
 class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(stockTakingProvider.notifier).fetchStockTakings();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final productStockTaking = ref.watch(productStockTakingProvider);
-    final prepStockTaking = ref.watch(prepStockTakingProvider);
     final ingredientStockTaking = ref.watch(ingredientStockTakingProvider);
+    final prepStockTaking = ref.watch(prepStockTakingProvider);
 
     final headers = [
       Header(flex: 3, text: 'Item'),
@@ -43,9 +36,9 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
 
     return Expanded(
       child: Column(
-        spacing: 16,
         children: [
           AppDivider(),
+          SizedBox(height: 16),
           Container(
             height: 40,
             width: double.infinity,
@@ -59,6 +52,8 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
               ],
             ),
           ),
+          SizedBox(height: 16),
+
           ListHeader(
             headers: headers,
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -70,19 +65,21 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
               ),
               child: Column(
                 children: [
-                  CustomExpansionWidget(
+                  ExpandedList(
+                    stockTaking: productStockTaking,
                     title: 'Products',
-                    items: productStockTaking,
                   ),
-                  CustomExpansionWidget(
+                  ExpandedList(
+                    stockTaking: ingredientStockTaking,
                     title: 'Ingredients',
-                    items: ingredientStockTaking,
                   ),
-                  CustomExpansionWidget(title: 'Preps', items: prepStockTaking),
+                  ExpandedList(stockTaking: prepStockTaking, title: 'Preps'),
                 ],
               ),
             ),
           ),
+          AppDivider(),
+          SizedBox(height: 16),
           SizedBox(
             height: 40,
             child: Row(
@@ -122,219 +119,177 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
   }
 }
 
-class CustomExpansionWidget extends StatefulWidget {
-  final String title;
-  final List<StockTaking> items;
-
-  const CustomExpansionWidget({
-    Key? key,
+class ExpandedList extends ConsumerStatefulWidget {
+  const ExpandedList({
+    super.key,
+    required this.stockTaking,
     required this.title,
-    required this.items,
-  }) : super(key: key);
+  });
+
+  final List<StockTaking> stockTaking;
+  final String title;
 
   @override
-  State<CustomExpansionWidget> createState() => _CustomExpansionWidgetState();
+  ConsumerState<ExpandedList> createState() => _ExpandedListState();
 }
 
-class _CustomExpansionWidgetState extends State<CustomExpansionWidget> {
-  bool _isExpanded = true;
-
-  void _toggleExpanded() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(width: 1, color: theme.colorScheme.surfaceContainer),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header
-          InkWell(
-            onTap: _toggleExpanded,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(widget.title, style: theme.textTheme.displaySmall),
-                  Row(
-                    children: [
-                      AnimatedRotation(
-                        turns: _isExpanded ? 0 : -0.25,
-                        duration: Duration(milliseconds: 200),
-                        child: Icon(
-                          Icons.expand_more,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Checkbox(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          side: BorderSide(
-                            width: 1,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                        side: BorderSide(
-                          width: 2,
-                          color: theme.colorScheme.primary,
-                        ),
-                        materialTapTargetSize: MaterialTapTargetSize.padded,
-                        value: false,
-                        onChanged: (value) {},
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Direct ListView.builder for content
-          if (_isExpanded)
-            Container(
-              color: theme.colorScheme.surface,
-              constraints: BoxConstraints(
-                maxHeight:
-                    double
-                        .infinity, // Allow content to expand with parent scrolling
-              ),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                cacheExtent: 100,
-                shrinkWrap: true, // Let the list expand to its full height
-                physics:
-                    ClampingScrollPhysics(), // Match parent scrolling behavior
-                itemCount: widget.items.length,
-                itemBuilder:
-                    (context, index) =>
-                        ExpansionContainer(item: widget.items[index]),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class ExpansionContainer extends StatelessWidget {
-  const ExpansionContainer({super.key, required this.item});
-
-  final StockTaking item;
+class _ExpandedListState extends ConsumerState<ExpandedList> {
+  bool isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
       children: [
-        Container(
-          color: theme.colorScheme.surface,
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-          child: Row(
-            children: [
-              CellColumn(flex: 3, text: item.productName),
-              CellColumn(
-                flex: 2,
-                text: item.productStock.toString(),
-                textAlign: TextAlign.center,
+        SizedBox(height: 16),
+        GestureDetector(
+          onTap: () {
+            setState(() => isExpanded = !isExpanded);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+                bottomLeft: !isExpanded ? Radius.circular(12) : Radius.zero,
+                bottomRight: !isExpanded ? Radius.circular(12) : Radius.zero,
               ),
-              CellColumn(
-                flex: 2,
-                text: '',
-                child: Row(
-                  spacing: 16,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 35,
-                      height: 35,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(9999),
-                      ),
-                      child: Icon(Icons.remove),
-                    ),
-                    Flexible(
-                      child: SizedBox(
-                        height: 40,
-                        width: 100,
-                        child: AppTextField(
-                          showLabel: false,
-                          textAlign: TextAlign.center,
-                          textStyle: theme.textTheme.bodyMedium,
-                          controller: TextEditingController(),
-                          onChanged: (_) {},
-                          keyboardType: TextInputType.number,
-                          hintText: 'Qty',
-                          labelText: 'Qty',
-                          constraints: BoxConstraints(
-                            maxHeight: 40,
-                            maxWidth: 100,
-                          ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 0,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      width: 35,
-                      height: 35,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        borderRadius: BorderRadius.circular(9999),
-                      ),
-                      child: Icon(
-                        Icons.add,
-                        color: theme.colorScheme.onPrimary,
-                      ),
-                    ),
-                  ],
+            ),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  widget.title,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              CellColumn(
-                flex: 1,
-                text: '',
-                textAlign: TextAlign.end,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Row(
                   children: [
+                    AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
                     Checkbox(
+                      value: false,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
-                        side: BorderSide(
-                          width: 1,
-                          color: theme.colorScheme.primary,
-                        ),
+                        side: BorderSide(color: theme.colorScheme.primary),
                       ),
                       side: BorderSide(
-                        width: 2,
                         color: theme.colorScheme.primary,
+                        width: 2,
                       ),
-                      materialTapTargetSize: MaterialTapTargetSize.padded,
-                      value: false,
                       onChanged: (value) {},
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-        AppDivider(),
+        ClipRect(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            height: isExpanded ? null : 0,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: isExpanded ? 1.0 : 0.0,
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: widget.stockTaking.length,
+                itemBuilder:
+                    (context, index) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: theme.colorScheme.surfaceContainer,
+                          ),
+                          left: BorderSide(
+                            color: theme.colorScheme.surfaceContainer,
+                          ),
+                          right: BorderSide(
+                            color: theme.colorScheme.surfaceContainer,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          CellColumn(
+                            flex: 3,
+                            text: widget.stockTaking[index].productName,
+                          ),
+                          CellColumn(
+                            flex: 2,
+                            text:
+                                widget.stockTaking[index].productStock
+                                    .toString(),
+                            textAlign: TextAlign.center,
+                          ),
+                          CellColumn(
+                            flex: 2,
+                            text: '',
+                            child: Row(
+                              spacing: 12,
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                DecrementButton(),
+                                Expanded(
+                                  child: AppTextField(
+                                    showLabel: false,
+                                    controller: TextEditingController(),
+                                  ),
+                                ),
+                                IncrementButton(),
+                              ],
+                            ),
+                          ),
+                          CellColumn(
+                            flex: 1,
+                            text: '',
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Checkbox(
+                                  value: false,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                    side: BorderSide(
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                                  side: BorderSide(
+                                    color: theme.colorScheme.primary,
+                                    width: 2,
+                                  ),
+                                  onChanged: (value) {},
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

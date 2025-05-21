@@ -33,9 +33,11 @@ final stockTakingRepositoryProvider = Provider<StockTakingRepository>((ref) {
 class StockTakingNotifier extends StateNotifier<StockTakingState> {
   final StockTakingRepository _repository;
 
-  StockTakingNotifier(this._repository) : super(const StockTakingState());
+  StockTakingNotifier(this._repository) : super(const StockTakingState()) {
+    fetchStockTakings();
+  }
 
-  Future<void> fetchStockTakings() async {
+  Future fetchStockTakings() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
