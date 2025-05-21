@@ -74,6 +74,13 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                     title: 'Ingredients',
                   ),
                   ExpandedList(stockTaking: prepStockTaking, title: 'Preps'),
+                  SizedBox(height: 16),
+                  AppTextField(
+                    controller: TextEditingController(),
+                    maxLines: 3,
+                    showLabel: false,
+                    hintText: 'Notes',
+                  ),
                 ],
               ),
             ),
@@ -206,6 +213,7 @@ class _ExpandedListState extends ConsumerState<ExpandedList> {
               duration: const Duration(milliseconds: 200),
               opacity: isExpanded ? 1.0 : 0.0,
               child: ListView.builder(
+                cacheExtent: 200,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: widget.stockTaking.length,
