@@ -3,7 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:rebill_flutter/features/stock-taking/models/stock_taking.dart';
 
 class StockTakingRepository {
+  List<StockTaking>? _cachedStockTakings;
+
   Future<List<StockTaking>> getStockTakings() async {
+    // Return cached data if available
+    if (_cachedStockTakings != null) {
+      return _cachedStockTakings!;
+    }
+
     try {
       final String jsonString = await rootBundle.loadString(
         'assets/stocks.json',
@@ -15,13 +22,18 @@ class StockTakingRepository {
           jsonData['dataProducts'] as List<dynamic>;
 
       // Convert the data to StockTaking objects
-      final List<StockTaking> stockTakings =
+      _cachedStockTakings =
           productsData.map((item) => StockTaking.fromJson(item)).toList();
 
-      return stockTakings;
+      return _cachedStockTakings!;
     } catch (e) {
       print('Error loading stock takings: $e');
       return [];
     }
+  }
+
+  // Method to clear cache if needed
+  void clearCache() {
+    _cachedStockTakings = null;
   }
 }

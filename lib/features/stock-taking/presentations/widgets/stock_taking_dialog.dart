@@ -20,12 +20,32 @@ class StockTakingDialog extends ConsumerStatefulWidget {
 }
 
 class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
+  String _searchQuery = '';
+  String _selectedType = 'All';
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final productStockTaking = ref.watch(productStockTakingProvider);
-    final ingredientStockTaking = ref.watch(ingredientStockTakingProvider);
-    final prepStockTaking = ref.watch(prepStockTakingProvider);
+
+    // Use select instead of watch to only rebuild on relevant changes
+    final stockTakingState = ref.watch(stockTakingProvider);
+    final isLoading = stockTakingState.isLoading;
+
+    // Apply filtering here
+    List<StockTaking> filteredProductStockTaking = _filterStockTakings(
+      stockTakingState.productStockTakings,
+      _searchQuery,
+    );
+
+    List<StockTaking> filteredIngredientStockTaking = _filterStockTakings(
+      stockTakingState.ingredientStockTakings,
+      _searchQuery,
+    );
+
+    List<StockTaking> filteredPrepStockTaking = _filterStockTakings(
+      stockTakingState.prepStockTakings,
+      _searchQuery,
+    );
 
     final headers = [
       Header(flex: 3, text: 'Item'),
@@ -45,10 +65,27 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
             child: Row(
               spacing: 12,
               children: [
-                TypeFilterContainer(type: 'Products'),
-                TypeFilterContainer(type: 'Ingredients'),
-                TypeFilterContainer(type: 'Preps'),
-                Expanded(child: AppSearchBar(hintText: 'Search Item...')),
+                TypeFilterContainer(
+                  type: 'Products',
+                  isSelected: _selectedType == 'Products',
+                  onTap: () => _updateFilter('Products'),
+                ),
+                TypeFilterContainer(
+                  type: 'Ingredients',
+                  isSelected: _selectedType == 'Ingredients',
+                  onTap: () => _updateFilter('Ingredients'),
+                ),
+                TypeFilterContainer(
+                  type: 'Preps',
+                  isSelected: _selectedType == 'Preps',
+                  onTap: () => _updateFilter('Preps'),
+                ),
+                Expanded(
+                  child: AppSearchBar(
+                    hintText: 'Search Item...',
+                    onSearch: _updateSearchQuery,
+                  ),
+                ),
               ],
             ),
           ),
@@ -58,33 +95,45 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
             headers: headers,
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              child: Column(
-                children: [
-                  ExpandedList(
-                    stockTaking: productStockTaking,
-                    title: 'Products',
-                  ),
-                  ExpandedList(
-                    stockTaking: ingredientStockTaking,
-                    title: 'Ingredients',
-                  ),
-                  ExpandedList(stockTaking: prepStockTaking, title: 'Preps'),
-                  SizedBox(height: 16),
-                  AppTextField(
-                    controller: TextEditingController(),
-                    maxLines: 3,
-                    showLabel: false,
-                    hintText: 'Notes',
-                  ),
-                ],
+
+          if (isLoading)
+            Expanded(child: Center(child: CircularProgressIndicator()))
+          else
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                child: Column(
+                  children: [
+                    // Only show sections based on filter
+                    if (_selectedType == 'All' || _selectedType == 'Products')
+                      ExpandedList(
+                        stockTaking: filteredProductStockTaking,
+                        title: 'Products',
+                      ),
+                    if (_selectedType == 'All' ||
+                        _selectedType == 'Ingredients')
+                      ExpandedList(
+                        stockTaking: filteredIngredientStockTaking,
+                        title: 'Ingredients',
+                      ),
+                    if (_selectedType == 'All' || _selectedType == 'Preps')
+                      ExpandedList(
+                        stockTaking: filteredPrepStockTaking,
+                        title: 'Preps',
+                      ),
+                    SizedBox(height: 16),
+                    AppTextField(
+                      controller: TextEditingController(),
+                      maxLines: 3,
+                      showLabel: false,
+                      hintText: 'Notes',
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
           AppDivider(),
           SizedBox(height: 16),
           SizedBox(
@@ -124,9 +173,38 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
       ),
     );
   }
+
+  // Helper method to filter stock takings based on search query
+  List<StockTaking> _filterStockTakings(
+    List<StockTaking> stockTakings,
+    String query,
+  ) {
+    if (query.isEmpty) return stockTakings;
+
+    return stockTakings
+        .where(
+          (item) =>
+              item.productName.toLowerCase().contains(query.toLowerCase()),
+        )
+        .toList();
+  }
+
+  // Update search query and trigger rebuild
+  void _updateSearchQuery(String query) {
+    setState(() {
+      _searchQuery = query;
+    });
+  }
+
+  // Update filter type and trigger rebuild
+  void _updateFilter(String type) {
+    setState(() {
+      _selectedType = _selectedType == type ? 'All' : type;
+    });
+  }
 }
 
-class ExpandedList extends ConsumerStatefulWidget {
+class ExpandedList extends StatefulWidget {
   const ExpandedList({
     super.key,
     required this.stockTaking,
@@ -137,15 +215,21 @@ class ExpandedList extends ConsumerStatefulWidget {
   final String title;
 
   @override
-  ConsumerState<ExpandedList> createState() => _ExpandedListState();
+  State<ExpandedList> createState() => _ExpandedListState();
 }
 
-class _ExpandedListState extends ConsumerState<ExpandedList> {
+class _ExpandedListState extends State<ExpandedList> {
   bool isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    // Don't render if list is empty
+    if (widget.stockTaking.isEmpty) {
+      return SizedBox.shrink();
+    }
+
     return Column(
       children: [
         SizedBox(height: 16),
@@ -204,101 +288,87 @@ class _ExpandedListState extends ConsumerState<ExpandedList> {
             ),
           ),
         ),
-        ClipRect(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            height: isExpanded ? null : 0,
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 200),
-              opacity: isExpanded ? 1.0 : 0.0,
-              child: ListView.builder(
-                cacheExtent: 200,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: widget.stockTaking.length,
-                itemBuilder:
-                    (context, index) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: theme.colorScheme.surfaceContainer,
-                          ),
-                          left: BorderSide(
-                            color: theme.colorScheme.surfaceContainer,
-                          ),
-                          right: BorderSide(
-                            color: theme.colorScheme.surfaceContainer,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          CellColumn(
-                            flex: 3,
-                            text: widget.stockTaking[index].productName,
-                          ),
-                          CellColumn(
-                            flex: 2,
-                            text:
-                                widget.stockTaking[index].productStock
-                                    .toString(),
-                            textAlign: TextAlign.center,
-                          ),
-                          CellColumn(
-                            flex: 2,
-                            text: '',
-                            child: Row(
-                              spacing: 12,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                DecrementButton(),
-                                Expanded(
-                                  child: AppTextField(
-                                    showLabel: false,
-                                    controller: TextEditingController(),
-                                  ),
-                                ),
-                                IncrementButton(),
-                              ],
-                            ),
-                          ),
-                          CellColumn(
-                            flex: 1,
-                            text: '',
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Checkbox(
-                                  value: false,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                    side: BorderSide(
-                                      color: theme.colorScheme.primary,
-                                    ),
-                                  ),
-                                  side: BorderSide(
-                                    color: theme.colorScheme.primary,
-                                    width: 2,
-                                  ),
-                                  onChanged: (value) {},
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-              ),
+        if (isExpanded)
+          ListView.builder(
+            cacheExtent: 200,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widget.stockTaking.length,
+            itemBuilder:
+                (context, index) =>
+                    StockTakingItem(stockTaking: widget.stockTaking[index]),
+          ),
+      ],
+    );
+  }
+}
+
+// Extract item to separate widget to prevent rebuilds of parent
+class StockTakingItem extends StatelessWidget {
+  final StockTaking stockTaking;
+
+  const StockTakingItem({super.key, required this.stockTaking});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.surfaceContainer),
+          left: BorderSide(color: theme.colorScheme.surfaceContainer),
+          right: BorderSide(color: theme.colorScheme.surfaceContainer),
+        ),
+      ),
+      child: Row(
+        children: [
+          CellColumn(flex: 3, text: stockTaking.productName),
+          CellColumn(
+            flex: 2,
+            text: stockTaking.productStock.toString(),
+            textAlign: TextAlign.center,
+          ),
+          CellColumn(
+            flex: 2,
+            text: '',
+            child: Row(
+              spacing: 12,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                DecrementButton(),
+                Expanded(
+                  child: AppTextField(
+                    showLabel: false,
+                    controller: TextEditingController(),
+                  ),
+                ),
+                IncrementButton(),
+              ],
             ),
           ),
-        ),
-      ],
+          CellColumn(
+            flex: 1,
+            text: '',
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Checkbox(
+                  value: false,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                    side: BorderSide(color: theme.colorScheme.primary),
+                  ),
+                  side: BorderSide(color: theme.colorScheme.primary, width: 2),
+                  onChanged: (value) {},
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
