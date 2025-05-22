@@ -23,10 +23,7 @@ class TypeFilterContainer extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : null,
           border: Border.all(
-            color:
-                isSelected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.outline,
+            color: theme.colorScheme.primary,
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
