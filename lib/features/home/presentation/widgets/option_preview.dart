@@ -231,28 +231,22 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                         widget.productId,
                         optionId,
                         opt,
-                        'extra',
+                        'option',
                       );
                     }
                   },
                   behavior: HitTestBehavior.opaque,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color:
                           isSelected
                               ? theme.colorScheme.primaryContainer
                               : theme.colorScheme.surfaceContainer,
                       borderRadius: BorderRadius.circular(8),
-                      border:
-                          isSelected
-                              ? Border.all(
-                                color: theme.colorScheme.tertiary.withOpacity(
-                                  0.5,
-                                ),
-                                width: 1,
-                              )
-                              : null,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
