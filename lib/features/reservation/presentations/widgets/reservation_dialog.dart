@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
+import 'package:rebill_flutter/core/widgets/list_header.dart';
 import 'package:rebill_flutter/features/reservation/models/reservation.dart';
 import 'package:rebill_flutter/features/reservation/presentations/widgets/add_reservation_dialog.dart';
 import 'package:rebill_flutter/features/reservation/providers/reservation_provider.dart';
@@ -33,6 +35,15 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
     final isLoading = reservationState.isLoading;
     final error = reservationState.error;
 
+    final headers = [
+      Header(flex: 4, textAlign: TextAlign.left, text: 'Name'),
+      Header(flex: 2, textAlign: TextAlign.center, text: 'Time'),
+      Header(flex: 2, textAlign: TextAlign.center, text: 'Duration'),
+      Header(flex: 2, textAlign: TextAlign.center, text: 'Headcount'),
+      Header(flex: 2, textAlign: TextAlign.center, text: 'Table'),
+      Header(flex: 3, textAlign: TextAlign.center, text: 'Remark'),
+      Header(flex: 1, textAlign: TextAlign.center, text: 'Action'),
+    ];
     return Expanded(
       child: Column(
         children: [
@@ -70,7 +81,10 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
             child: Container(
               child: Column(
                 children: [
-                  ReservationListHeader(),
+                  ListHeader(
+                    headers: headers,
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
 
                   // Reservation list view with error and loading states
                   Expanded(
@@ -204,6 +218,27 @@ class ReservationListItem extends StatelessWidget {
 
   const ReservationListItem({super.key, required this.reservation});
 
+  String _formatTimeDisplay(String time) {
+    // Check if the time string contains a date with format like "20 May 2025 14:04"
+    final RegExp dateTimePattern = RegExp(
+      r'^\d{1,2}\s+[A-Za-z]+\s+\d{4}\s+\d{1,2}:\d{2}$',
+    );
+
+    if (dateTimePattern.hasMatch(time)) {
+      try {
+        // Parse the date using intl package for more robust parsing
+        final parsedDate = DateFormat('d MMMM yyyy HH:mm').parse(time);
+        return DateFormat('dd/MM/yyyy HH:mm').format(parsedDate);
+      } catch (e) {
+        // If parsing fails, return the original string
+        return time;
+      }
+    }
+
+    // If it's just a time or doesn't match the pattern, return it as is
+    return time;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -222,24 +257,29 @@ class ReservationListItem extends StatelessWidget {
       child: SizedBox(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
-          spacing: 12,
           children: [
             // Name
             Expanded(
-              flex: 3,
-              child: Text(
-                reservation.name,
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
+              flex: 4,
+              child: Container(
+                padding: EdgeInsets.only(right: 12),
+                child: Text(
+                  reservation.name,
+                  textAlign: TextAlign.left,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
             // Time
             Expanded(
               flex: 2,
-              child: Text(reservation.time, textAlign: TextAlign.center),
+              child: Text(
+                _formatTimeDisplay(reservation.time),
+                textAlign: TextAlign.center,
+              ),
             ),
             // Duration
             Expanded(
@@ -300,57 +340,6 @@ class ReservationListItem extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class ReservationListHeader extends StatelessWidget {
-  const ReservationListHeader({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: EdgeInsets.only(left: 12, right: 24, top: 12, bottom: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(12),
-          topRight: Radius.circular(12),
-        ),
-      ),
-      child: Row(
-        children: [
-          HeaderColumn(flex: 3, text: 'Name'),
-          HeaderColumn(flex: 2, text: 'Time'),
-          HeaderColumn(flex: 2, text: 'Duration'),
-          HeaderColumn(flex: 2, text: 'Headcount'),
-          HeaderColumn(flex: 2, text: 'Table'),
-          HeaderColumn(flex: 3, text: 'Remark'),
-          HeaderColumn(flex: 1, text: 'Action'),
-        ],
-      ),
-    );
-  }
-}
-
-class HeaderColumn extends StatelessWidget {
-  const HeaderColumn({super.key, required this.flex, required this.text});
-
-  final int flex;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: Theme.of(
-          context,
-        ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
       ),
     );
   }

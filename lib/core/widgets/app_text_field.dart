@@ -22,6 +22,7 @@ class AppTextField extends StatelessWidget {
   final BoxConstraints? constraints;
   final bool? required;
   final TextAlign? textAlign;
+  final TextStyle? textStyle;
   const AppTextField({
     super.key,
     required this.controller,
@@ -45,6 +46,7 @@ class AppTextField extends StatelessWidget {
     this.required = false,
     this.textAlign,
     this.constraints,
+    this.textStyle,
   });
 
   @override
@@ -99,10 +101,13 @@ class AppTextField extends StatelessWidget {
             minLines: minLines,
             textInputAction: textInputAction,
             onTap: onTap,
+            style: textStyle ?? theme.textTheme.bodyMedium,
             autofocus: autofocus,
             decoration: InputDecoration(
               hintText: hintText,
-              constraints: constraints,
+              constraints:
+                  constraints ??
+                  (maxLines != 1 ? null : BoxConstraints(maxHeight: 45)),
               prefixIcon: prefix,
               suffixIcon: suffix,
               fillColor: theme.colorScheme.surfaceContainer,
