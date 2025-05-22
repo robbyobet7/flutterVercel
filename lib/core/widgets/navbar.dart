@@ -7,6 +7,7 @@ import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/profile_avatar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
+import 'package:rebill_flutter/features/printer-settings/presentations/widgets/printer_dialog.dart';
 import 'package:rebill_flutter/features/reservation/presentations/widgets/reservation_dialog.dart';
 import 'package:rebill_flutter/features/stock-taking/presentations/widgets/stock_taking_dialog.dart';
 
@@ -15,6 +16,15 @@ class Navbar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    void handlePrinterTap() {
+      AppDialog.showCustom(
+        context,
+        dialogType: DialogType.medium,
+        title: 'Printer Settings',
+        content: const PrinterDialog(),
+      );
+    }
+
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -60,6 +70,7 @@ class Navbar extends ConsumerWidget {
                     switch (value) {
                       case 'printer':
                         // Handle printer action
+                        handlePrinterTap();
                         break;
                       case 'darkmode':
                         // Handle dark mode toggle safely
