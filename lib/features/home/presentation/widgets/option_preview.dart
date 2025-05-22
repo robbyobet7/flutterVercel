@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:rebill_flutter/core/widgets/app_checkbox.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 
@@ -236,7 +237,8 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                     }
                   },
                   behavior: HitTestBehavior.opaque,
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 12,
@@ -252,25 +254,15 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Icon(
-                          isSelected
-                              ? Icons.check_box
-                              : Icons.check_box_outline_blank,
-                          size: 18,
-                          color:
-                              isSelected
-                                  ? theme.colorScheme.onTertiaryContainer
-                                  : theme.colorScheme.onSurfaceVariant,
+                        AppCheckbox(
+                          value: isSelected,
+                          size: 16,
+                          borderRadius: 4,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           optionName,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight:
-                                isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                          ),
+                          style: theme.textTheme.bodyMedium?.copyWith(),
                         ),
                         const Spacer(),
                         if (price > 0)
