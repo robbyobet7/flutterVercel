@@ -18,3 +18,16 @@ final printerProvider = StateNotifierProvider<PrinterNotifier, PrinterModel?>((
 ) {
   return PrinterNotifier();
 });
+
+class PrinterLayoutNotifier extends StateNotifier<String> {
+  PrinterLayoutNotifier() : super('Normal');
+
+  void setLayout(String layout) {
+    state = layout;
+  }
+}
+
+final printerLayoutProvider =
+    StateNotifierProvider<PrinterLayoutNotifier, String>((ref) {
+      return PrinterLayoutNotifier();
+    });
