@@ -177,6 +177,8 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
                                         ),
                                       ],
                                     ),
+
+                                    //options
                                     if (item.options != null &&
                                         item.options!.isNotEmpty)
                                       Column(
@@ -184,38 +186,54 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
                                             CrossAxisAlignment.start,
                                         children:
                                             item.options!.map((option) {
-                                              return Padding(
-                                                padding: const EdgeInsets.only(
-                                                  bottom: 2.0,
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Text(
-                                                      '• ${option.optionName}: ',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color:
-                                                            Colors
-                                                                .grey
-                                                                .shade700,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
+                                              return Row(
+                                                children: [
+                                                  Text(
+                                                    '• ${option.optionName}: ',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color:
+                                                          Colors.grey.shade700,
+                                                      fontWeight:
+                                                          FontWeight.w500,
                                                     ),
-                                                    Text(
-                                                      option.name,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color:
-                                                            Colors
-                                                                .grey
-                                                                .shade700,
-                                                      ),
+                                                  ),
+                                                  Text(
+                                                    option.name,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color:
+                                                          Colors.grey.shade700,
                                                     ),
-                                                  ],
-                                                ),
+                                                  ),
+                                                ],
                                               );
                                             }).toList(),
+                                      ),
+
+                                    //notes
+                                    if (item.productNotes != null &&
+                                        item.productNotes!.isNotEmpty)
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '• Notes: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey.shade700,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          Text(
+                                            item.productNotes!,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey.shade700,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     AppDivider(),
                                   ],

@@ -61,6 +61,7 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
 
     // Build the option selectors for each option type
     return Column(
+      spacing: 12,
       crossAxisAlignment: CrossAxisAlignment.start,
       children:
           options.map((opt) {
@@ -75,6 +76,7 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
               if (choices.isEmpty) return const SizedBox.shrink();
 
               return Column(
+                spacing: 8,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -101,7 +103,6 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
                   SizedBox(
                     height: 36,
                     child: ListView.builder(
@@ -201,7 +202,6 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 12),
                 ],
               );
             }
@@ -213,67 +213,60 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                 optionId,
               );
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: GestureDetector(
-                  onTap: () {
-                    final isSelected = productNotifier.isExtraSelected(
+              return GestureDetector(
+                onTap: () {
+                  final isSelected = productNotifier.isExtraSelected(
+                    widget.productId,
+                    optionId,
+                  );
+
+                  if (isSelected) {
+                    productNotifier.removeProductOption(
                       widget.productId,
                       optionId,
                     );
-
-                    if (isSelected) {
-                      productNotifier.removeProductOption(
-                        widget.productId,
-                        optionId,
-                      );
-                    } else {
-                      productNotifier.setProductOption(
-                        widget.productId,
-                        optionId,
-                        opt,
-                        'option',
-                      );
-                    }
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          isSelected
-                              ? theme.colorScheme.primaryContainer
-                              : theme.colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        AppCheckbox(
-                          value: isSelected,
-                          size: 16,
-                          borderRadius: 4,
-                        ),
-                        const SizedBox(width: 8),
+                  } else {
+                    productNotifier.setProductOption(
+                      widget.productId,
+                      optionId,
+                      opt,
+                      'option',
+                    );
+                  }
+                },
+                behavior: HitTestBehavior.opaque,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        isSelected
+                            ? theme.colorScheme.primaryContainer
+                            : theme.colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      AppCheckbox(value: isSelected, size: 16, borderRadius: 4),
+                      const SizedBox(width: 8),
+                      Text(
+                        optionName,
+                        style: theme.textTheme.bodyMedium?.copyWith(),
+                      ),
+                      const Spacer(),
+                      if (price > 0)
                         Text(
-                          optionName,
-                          style: theme.textTheme.bodyMedium?.copyWith(),
-                        ),
-                        const Spacer(),
-                        if (price > 0)
-                          Text(
-                            '+${NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(price)}',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
+                          '+${NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(price)}',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
                           ),
-                      ],
-                    ),
+                        ),
+                    ],
                   ),
                 ),
               );
