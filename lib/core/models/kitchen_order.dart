@@ -9,7 +9,7 @@ class ListOrder {
   final String tableName;
   final List<CartItemOption>? options;
   final String? productNotes;
-  final int billPrinter;
+  final dynamic billPrinter;
 
   ListOrder({
     required this.name,
@@ -29,13 +29,16 @@ class ListOrder {
               .toList();
     }
 
+    // Handle both int and List types for bill_printer
+    dynamic billPrinter = json['bill_printer'];
+
     return ListOrder(
       name: json['name'] ?? '',
       quantity: json['quantity'] ?? 0,
       tableName: json['table_name'] ?? '-',
       options: optionsList,
       productNotes: json['productNotes'],
-      billPrinter: json['bill_printer'] ?? 0,
+      billPrinter: billPrinter ?? 0,
     );
   }
 
@@ -171,10 +174,20 @@ class KitchenOrder {
   // Static method to parse kitchen orders from JSON string
   static List<KitchenOrder> parseKitchenOrders(String jsonString) {
     try {
-      final List<dynamic> parsed = jsonDecode(jsonString);
+      final dynamic parsed = jsonDecode(jsonString);
+
+      // Handle the case where the JSON is wrapped in an extra array
+      final List<dynamic> ordersData;
+      if (parsed is List && parsed.isNotEmpty && parsed[0] is List) {
+        // The data is in format [[{order1}, {order2}]] - take the first inner array
+        ordersData = parsed[0];
+      } else {
+        // The data is in format [{order1}, {order2}]
+        ordersData = parsed;
+      }
 
       final List<KitchenOrder> orders = [];
-      for (var json in parsed) {
+      for (var json in ordersData) {
         try {
           orders.add(KitchenOrder.fromJson(json));
         } catch (e) {

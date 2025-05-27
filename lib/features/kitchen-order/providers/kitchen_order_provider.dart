@@ -112,15 +112,9 @@ final processingKitchenOrdersProvider = Provider<List<KitchenOrder>>((ref) {
 });
 
 // Provider to get completed kitchen orders
-final completedKitchenOrdersProvider = Provider<List<KitchenOrder>>((ref) {
+final finishedKitchenOrdersProvider = Provider<List<KitchenOrder>>((ref) {
   final allOrders = ref.watch(kitchenOrdersProvider);
-  return allOrders.where((order) => order.states == 'completed').toList();
-});
-
-// Provider to get cancelled kitchen orders
-final cancelledKitchenOrdersProvider = Provider<List<KitchenOrder>>((ref) {
-  final allOrders = ref.watch(kitchenOrdersProvider);
-  return allOrders.where((order) => order.states == 'cancelled').toList();
+  return allOrders.where((order) => order.states == 'finished').toList();
 });
 
 // Provider to get kitchen orders by status

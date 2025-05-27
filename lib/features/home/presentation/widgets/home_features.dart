@@ -9,11 +9,32 @@ import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/proc
 import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/submitted_order.dart';
 import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/finished_order.dart';
 
-class HomeFeatures extends ConsumerWidget {
+class HomeFeatures extends ConsumerStatefulWidget {
   const HomeFeatures({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeFeatures> createState() => _HomeFeaturesState();
+}
+
+class _HomeFeaturesState extends ConsumerState<HomeFeatures> {
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeKitchenOrders();
+  }
+
+  Future<void> _initializeKitchenOrders() async {
+    // This ensures kitchen orders are loaded before they are displayed
+    await initializeKitchenOrders();
+    setState(() {
+      _isInitialized = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isLandscape = ref.watch(orientationProvider);
     final theme = Theme.of(context);
     final kitchenMode = ref.watch(isKitchenOrderModeProvider);
@@ -24,6 +45,22 @@ class HomeFeatures extends ConsumerWidget {
       ProcessedOrder(),
       FinishedOrder(),
     ];
+
+    // If kitchen orders are still initializing, show a loading indicator
+    if (kitchenMode && !_isInitialized) {
+      return Flexible(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Loading kitchen orders...'),
+            ],
+          ),
+        ),
+      );
+    }
 
     if (isLandscape) {
       // Landscape layout with Row
