@@ -164,6 +164,7 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
                                   horizontal: 12,
                                 ),
                                 child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   spacing: 8,
                                   children: [
                                     Row(
@@ -176,6 +177,46 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
                                         ),
                                       ],
                                     ),
+                                    if (item.options != null &&
+                                        item.options!.isNotEmpty)
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children:
+                                            item.options!.map((option) {
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 2.0,
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Text(
+                                                      '• ${option.optionName}: ',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color:
+                                                            Colors
+                                                                .grey
+                                                                .shade700,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      option.name,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color:
+                                                            Colors
+                                                                .grey
+                                                                .shade700,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            }).toList(),
+                                      ),
                                     AppDivider(),
                                   ],
                                 ),
