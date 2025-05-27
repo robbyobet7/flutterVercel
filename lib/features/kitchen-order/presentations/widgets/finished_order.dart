@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
-import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
+import 'package:rebill_flutter/core/widgets/app_checkbox.dart';
 import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/kitchen_order_container.dart';
 import 'package:rebill_flutter/features/kitchen-order/providers/kitchen_order_provider.dart';
 
@@ -12,7 +12,6 @@ class FinishedOrder extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final finishedOrders = ref.watch(finishedKitchenOrdersProvider);
-    print(finishedOrders.length);
     return Container(
       height: double.infinity,
       decoration: BoxDecoration(
@@ -37,11 +36,17 @@ class FinishedOrder extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Expanded(
-                  child: AppSearchBar(
-                    onSearch: (value) {},
-                    hintText: 'Search Orders...',
-                  ),
+                Row(
+                  spacing: 12,
+                  children: [
+                    Text(
+                      'Show Today',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    AppCheckbox(size: 20),
+                  ],
                 ),
               ],
             ),
@@ -57,7 +62,10 @@ class FinishedOrder extends ConsumerWidget {
               itemBuilder: (context, index) {
                 return Column(
                   children: [
-                    KitchenOrderContainer(order: finishedOrders[index]),
+                    KitchenOrderContainer(
+                      order: finishedOrders[index],
+                      type: KitchenOrderType.finished,
+                    ),
                     const SizedBox(height: 10),
                   ],
                 );

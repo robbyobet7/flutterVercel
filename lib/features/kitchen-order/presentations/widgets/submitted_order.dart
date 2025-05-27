@@ -12,7 +12,6 @@ class SubmittedOrder extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final submittedOrders = ref.watch(submittedKitchenOrdersProvider);
-    print(submittedOrders.length);
     return Container(
       height: double.infinity,
       decoration: BoxDecoration(
@@ -57,7 +56,10 @@ class SubmittedOrder extends ConsumerWidget {
               itemBuilder: (context, index) {
                 return Column(
                   children: [
-                    KitchenOrderContainer(order: submittedOrders[index]),
+                    KitchenOrderContainer(
+                      order: submittedOrders[index],
+                      type: KitchenOrderType.submitted,
+                    ),
                     const SizedBox(height: 10),
                   ],
                 );

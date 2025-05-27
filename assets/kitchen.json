@@ -1588,7 +1588,7 @@
                     "bill_printer": 0
                 }
             ],
-            "states": "submitted",
+            "states": "processing",
             "outlet_id": 16,
             "notes": null,
             "staff": "John",

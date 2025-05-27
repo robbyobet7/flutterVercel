@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:rebill_flutter/core/models/kitchen_order.dart';
+import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_material.dart';
 import 'package:rebill_flutter/core/widgets/header_column.dart';
 import 'package:rebill_flutter/core/widgets/list_header.dart';
 
+enum KitchenOrderType { submitted, processing, finished }
+
 class KitchenOrderContainer extends StatefulWidget {
   final KitchenOrder order;
-  const KitchenOrderContainer({super.key, required this.order});
+  final KitchenOrderType type;
+  const KitchenOrderContainer({
+    super.key,
+    required this.order,
+    required this.type,
+  });
 
   @override
   State<KitchenOrderContainer> createState() => _KitchenOrderContainerState();
@@ -36,6 +44,20 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final order = widget.order;
+    final type = widget.type;
+    final backgroundColor =
+        type == KitchenOrderType.submitted
+            ? theme.colorScheme.errorContainer
+            : type == KitchenOrderType.processing
+            ? AppTheme.warningContainer
+            : AppTheme.successContainer;
+
+    final borderColor =
+        type == KitchenOrderType.submitted
+            ? theme.colorScheme.error
+            : type == KitchenOrderType.processing
+            ? AppTheme.warning
+            : AppTheme.success;
 
     final headers = [
       Header(flex: 1, text: 'Item', textAlign: TextAlign.left),
@@ -46,14 +68,25 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.primary),
+        border: Border.all(color: borderColor),
       ),
       clipBehavior: Clip.hardEdge,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           AppMaterial(
-            borderRadius: BorderRadius.zero,
+            borderRadius:
+                type == KitchenOrderType.finished
+                    ? isExpanded
+                        ? BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          topRight: Radius.circular(12),
+                        )
+                        : BorderRadius.circular(12)
+                    : BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
             onTap: () {
               setState(() {
                 isExpanded = !isExpanded;
@@ -62,9 +95,7 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
             child: Container(
               padding: EdgeInsets.all(12),
               width: double.infinity,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
-              ),
+              decoration: BoxDecoration(color: backgroundColor),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -185,18 +216,43 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
                     : SizedBox.shrink(),
           ),
 
-          Container(
-            padding: EdgeInsets.only(left: 12, right: 12, bottom: 10, top: 12),
-            width: double.infinity,
-            child: AppButton(
-              onPressed: () {},
-              text: 'Process',
-              backgroundColor: theme.colorScheme.primary,
-              textStyle: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onPrimary,
+          if (type != KitchenOrderType.finished)
+            Container(
+              padding: EdgeInsets.only(
+                left: 12,
+                right: 12,
+                bottom: 10,
+                top: 12,
+              ),
+              width: double.infinity,
+              child: Row(
+                spacing: 12,
+                children: [
+                  if (type == KitchenOrderType.processing)
+                    Expanded(
+                      child: AppButton(
+                        onPressed: () {},
+                        text: 'Cancel',
+                        backgroundColor: theme.colorScheme.errorContainer,
+                        textStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.error,
+                        ),
+                      ),
+                    ),
+
+                  Expanded(
+                    child: AppButton(
+                      onPressed: () {},
+                      text: 'Process',
+                      backgroundColor: theme.colorScheme.primary,
+                      textStyle: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onPrimary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
         ],
       ),
     );
