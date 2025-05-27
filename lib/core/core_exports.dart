@@ -19,6 +19,11 @@ export 'middleware/table_middleware.dart';
 // Product-related exports
 export 'models/product.dart';
 
+// Kitchen Order-related exports
+export 'models/kitchen_order.dart';
+export 'repositories/kitchen_order_repository.dart';
+export 'middleware/kitchen_order_middleware.dart';
+
 // Add orientation provider
 export 'providers/orientation_provider.dart';
 
