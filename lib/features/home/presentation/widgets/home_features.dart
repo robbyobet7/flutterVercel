@@ -20,8 +20,8 @@ class HomeFeatures extends ConsumerWidget {
 
     const homeFeatures = [HomeProducts(), MainPage(), HomeBill()];
     const kitchenOrderFeatures = [
-      ProcessedOrder(),
       SubmittedOrder(),
+      ProcessedOrder(),
       FinishedOrder(),
     ];
 
