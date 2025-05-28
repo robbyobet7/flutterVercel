@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rebill_flutter/core/widgets/app_material.dart';
 
 class TypeFilterContainer extends StatelessWidget {
   const TypeFilterContainer({
@@ -15,7 +16,8 @@ class TypeFilterContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return GestureDetector(
+    return AppMaterial(
+      borderRadius: BorderRadius.circular(8),
       onTap: onTap,
       child: Container(
         height: 40,
