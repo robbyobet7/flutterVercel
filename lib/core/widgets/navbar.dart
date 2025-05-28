@@ -4,9 +4,12 @@ import 'package:rebill_flutter/core/models/navbar.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/theme/theme_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
+import 'package:rebill_flutter/core/widgets/app_material.dart';
 import 'package:rebill_flutter/core/widgets/profile_avatar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
+import 'package:rebill_flutter/features/kitchen-order/providers/kitchen_order_provider.dart';
+import 'package:rebill_flutter/features/printer-settings/presentations/widgets/printer_dialog.dart';
 import 'package:rebill_flutter/features/reservation/presentations/widgets/reservation_dialog.dart';
 import 'package:rebill_flutter/features/stock-taking/presentations/widgets/stock_taking_dialog.dart';
 
@@ -15,6 +18,15 @@ class Navbar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    void handlePrinterTap() {
+      AppDialog.showCustom(
+        context,
+        dialogType: DialogType.medium,
+        title: 'Printer Settings',
+        content: const PrinterDialog(),
+      );
+    }
+
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -60,6 +72,7 @@ class Navbar extends ConsumerWidget {
                     switch (value) {
                       case 'printer':
                         // Handle printer action
+                        handlePrinterTap();
                         break;
                       case 'darkmode':
                         // Handle dark mode toggle safely
@@ -159,14 +172,14 @@ class Navbar extends ConsumerWidget {
   }
 }
 
-class NavFeatures extends StatefulWidget {
+class NavFeatures extends ConsumerStatefulWidget {
   const NavFeatures({super.key});
 
   @override
-  State<NavFeatures> createState() => _NavFeaturesState();
+  ConsumerState<NavFeatures> createState() => _NavFeaturesState();
 }
 
-class _NavFeaturesState extends State<NavFeatures> {
+class _NavFeaturesState extends ConsumerState<NavFeatures> {
   final ScrollController _scrollController = ScrollController();
 
   void handleTableTap() {
@@ -196,6 +209,11 @@ class _NavFeaturesState extends State<NavFeatures> {
     );
   }
 
+  void handleKitchenOrderTap() {
+    ref.read(isKitchenOrderModeProvider.notifier).state =
+        !ref.watch(isKitchenOrderModeProvider);
+  }
+
   late final List<NavMenu> _features;
 
   @override
@@ -208,7 +226,11 @@ class _NavFeaturesState extends State<NavFeatures> {
         label: 'Reservations',
         onTap: handleReservationTap,
       ),
-      NavMenu(icon: Icons.restaurant, label: 'Kitchen Orders', onTap: () {}),
+      NavMenu(
+        icon: Icons.restaurant,
+        label: 'Kitchen Orders',
+        onTap: handleKitchenOrderTap,
+      ),
       NavMenu(icon: Icons.lock, label: 'Lock / Switch', onTap: () {}),
       NavMenu(icon: Icons.assessment, label: 'Daily Report', onTap: () {}),
       NavMenu(
@@ -374,34 +396,56 @@ class _NavFeaturesState extends State<NavFeatures> {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
+    final kitchenMode =
+        ref.watch(isKitchenOrderModeProvider) && label == 'Kitchen Orders';
 
     return SizedBox(
       height: double.infinity,
-      child: TextButton(
-        onPressed: onTap,
-        style: TextButton.styleFrom(
+      child: AppMaterial(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          minimumSize: Size(100, 60),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          backgroundColor: theme.colorScheme.surfaceContainer,
-        ),
-        child: Tooltip(
-          message: label,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 20),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 8,
-                  color: theme.colorScheme.onSurfaceVariant,
-                  overflow: TextOverflow.ellipsis,
+          constraints: BoxConstraints(minWidth: 100, minHeight: 60),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border:
+                kitchenMode
+                    ? Border.all(color: theme.colorScheme.primary, width: 1)
+                    : null,
+            color:
+                kitchenMode
+                    ? theme.colorScheme.primaryContainer
+                    : theme.colorScheme.surfaceContainer,
+          ),
+          child: Tooltip(
+            message: label,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color:
+                      kitchenMode
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurfaceVariant,
+                  size: 20,
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 8,
+                    color:
+                        kitchenMode
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

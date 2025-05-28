@@ -91,9 +91,12 @@ class _AppSearchBarState extends ConsumerState<AppSearchBar> {
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
                 decoration: InputDecoration(
+                  hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   hintText: widget.hintText,
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 13),
                 ),
                 onChanged: (value) {
                   ref.read(_searchProvider.notifier).updateSearchQuery(value);

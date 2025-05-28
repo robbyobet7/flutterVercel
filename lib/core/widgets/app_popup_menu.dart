@@ -35,6 +35,7 @@ class AppPopupMenu<T> extends StatefulWidget {
   final Widget? icon;
   final PopupMenuPosition position;
   final Offset offset;
+  final double elevation;
 
   const AppPopupMenu({
     super.key,
@@ -45,6 +46,7 @@ class AppPopupMenu<T> extends StatefulWidget {
     this.icon,
     this.position = PopupMenuPosition.under,
     this.offset = const Offset(0, 8),
+    this.elevation = 2,
   });
 
   @override
@@ -72,7 +74,6 @@ class _AppPopupMenuState<T> extends State<AppPopupMenu<T>> {
 
     return Focus(
       focusNode: _menuFocusNode,
-      // Prevent keyboard from showing when this widget gets focus
       onFocusChange: (hasFocus) {
         if (hasFocus) {
           // When menu gets focus, ensure keyboard is hidden
@@ -84,7 +85,9 @@ class _AppPopupMenuState<T> extends State<AppPopupMenu<T>> {
         icon: widget.icon,
         position: widget.position,
         offset: widget.offset,
-        elevation: 2,
+        elevation: widget.elevation,
+        clipBehavior: Clip.hardEdge,
+        borderRadius: BorderRadius.circular(12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         color: theme.colorScheme.surface,
         // When popup menu is opened, ensure keyboard is dismissed

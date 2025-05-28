@@ -233,58 +233,73 @@ class _ExpandedListState extends State<ExpandedList> {
     return Column(
       children: [
         SizedBox(height: 16),
-        GestureDetector(
-          onTap: () {
-            setState(() => isExpanded = !isExpanded);
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-                bottomLeft: !isExpanded ? Radius.circular(12) : Radius.zero,
-                bottomRight: !isExpanded ? Radius.circular(12) : Radius.zero,
-              ),
-            ),
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  widget.title,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+        ClipRRect(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+            bottomLeft: !isExpanded ? Radius.circular(12) : Radius.zero,
+            bottomRight: !isExpanded ? Radius.circular(12) : Radius.zero,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                setState(() => isExpanded = !isExpanded);
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                    bottomLeft: !isExpanded ? Radius.circular(12) : Radius.zero,
+                    bottomRight:
+                        !isExpanded ? Radius.circular(12) : Radius.zero,
                   ),
                 ),
-                Row(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    AnimatedRotation(
-                      turns: isExpanded ? 0.5 : 0.0,
-                      duration: const Duration(milliseconds: 300),
-                      child: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: theme.colorScheme.primary,
+                    Text(
+                      widget.title,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Checkbox(
-                      value: false,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                        side: BorderSide(color: theme.colorScheme.primary),
-                      ),
-                      side: BorderSide(
-                        color: theme.colorScheme.primary,
-                        width: 2,
-                      ),
-                      onChanged: (value) {},
+                    Row(
+                      children: [
+                        AnimatedRotation(
+                          turns: isExpanded ? 0.5 : 0.0,
+                          duration: const Duration(milliseconds: 300),
+                          child: Icon(
+                            Icons.keyboard_arrow_down,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        Checkbox(
+                          value: false,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                            side: BorderSide(color: theme.colorScheme.primary),
+                          ),
+                          side: BorderSide(
+                            color: theme.colorScheme.primary,
+                            width: 2,
+                          ),
+                          onChanged: (value) {},
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

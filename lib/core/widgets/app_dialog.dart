@@ -87,6 +87,7 @@ class AppDialog extends StatelessWidget {
         child: Container(
           width: width,
           height: height,
+          constraints: BoxConstraints(minWidth: 600),
           child: Padding(
             padding: padding ?? const EdgeInsets.all(24.0),
             child: Column(
