@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rebill_flutter/core/widgets/app_material.dart';
 
 class TypeFilterContainer extends StatelessWidget {
   const TypeFilterContainer({
@@ -15,17 +16,17 @@ class TypeFilterContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return GestureDetector(
+    return AppMaterial(
+      borderRadius: BorderRadius.circular(8),
+
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         height: 40,
         padding: EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : null,
-          border: Border.all(
-            color: theme.colorScheme.primary,
-            width: isSelected ? 2 : 1,
-          ),
+          color: isSelected ? theme.colorScheme.primaryContainer : null,
+          border: Border.all(color: theme.colorScheme.primary),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Center(
