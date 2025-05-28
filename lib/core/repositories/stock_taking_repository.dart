@@ -1,39 +1,25 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'package:rebill_flutter/features/stock-taking/models/stock_taking.dart';
 
 class StockTakingRepository {
-  List<StockTaking>? _cachedStockTakings;
+  List<StockTaking> _stockTakings = [];
+  bool _isInitialized = false;
 
-  Future<List<StockTaking>> getStockTakings() async {
-    // Return cached data if available
-    if (_cachedStockTakings != null) {
-      return _cachedStockTakings!;
-    }
+  // Singleton pattern
+  StockTakingRepository._();
+  static final StockTakingRepository _instance = StockTakingRepository._();
+  static StockTakingRepository get instance => _instance;
 
-    try {
-      final String jsonString = await rootBundle.loadString(
-        'assets/stocks.json',
-      );
-      final Map<String, dynamic> jsonData = json.decode(jsonString);
-
-      // Get the dataProducts array from the JSON
-      final List<dynamic> productsData =
-          jsonData['dataProducts'] as List<dynamic>;
-
-      // Convert the data to StockTaking objects
-      _cachedStockTakings =
-          productsData.map((item) => StockTaking.fromJson(item)).toList();
-
-      return _cachedStockTakings!;
-    } catch (e) {
-      print('Error loading stock takings: $e');
-      return [];
-    }
+  void setStockTakings(List<StockTaking> stockTakings) {
+    _stockTakings = stockTakings;
+    _isInitialized = true;
   }
 
-  // Method to clear cache if needed
-  void clearCache() {
-    _cachedStockTakings = null;
+  bool get isInitialized => _isInitialized;
+
+  List<StockTaking> getAllStockTakings() {
+    if (!_isInitialized) {
+      throw Exception('Stock taking repository not initialized');
+    }
+    return _stockTakings;
   }
 }

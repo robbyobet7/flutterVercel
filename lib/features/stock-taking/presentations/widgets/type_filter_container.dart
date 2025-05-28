@@ -18,7 +18,6 @@ class TypeFilterContainer extends StatelessWidget {
     final theme = Theme.of(context);
     return AppMaterial(
       borderRadius: BorderRadius.circular(8),
-
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
