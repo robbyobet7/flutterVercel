@@ -156,6 +156,8 @@ class ProductCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text.rich(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         TextSpan(
                           children: [
                             TextSpan(
