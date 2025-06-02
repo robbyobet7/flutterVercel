@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
+import 'package:rebill_flutter/core/providers/merge_bill_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/user_bills_dropdown.dart';
@@ -28,6 +29,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
     // Load bills when widget initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(billProvider.notifier).loadBills();
+      ref.read(mergeBillProvider.notifier).loadBills();
     });
   }
 
