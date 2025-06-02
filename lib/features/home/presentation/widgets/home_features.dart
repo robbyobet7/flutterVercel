@@ -22,12 +22,12 @@ class _HomeFeaturesState extends ConsumerState<HomeFeatures> {
   @override
   void initState() {
     super.initState();
-    _initializeKitchenOrders();
+    _initializeData();
   }
 
-  Future<void> _initializeKitchenOrders() async {
+  Future<void> _initializeData() async {
     // This ensures kitchen orders are loaded before they are displayed
-    await initializeKitchenOrders();
+    await Future.wait([initializeKitchenOrders()]);
     setState(() {
       _isInitialized = true;
     });

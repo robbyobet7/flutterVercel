@@ -68,6 +68,32 @@ class StockTaking {
   String toJsonString() {
     return jsonEncode(toJson());
   }
+
+  // Static method to parse stock takings from JSON string
+  static List<StockTaking> parseStockTakings(String jsonString) {
+    try {
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
+
+      // Get the dataProducts array from the JSON
+      final List<dynamic> productsData =
+          jsonData['dataProducts'] as List<dynamic>;
+
+      final List<StockTaking> stockTakings = [];
+      for (var json in productsData) {
+        try {
+          stockTakings.add(StockTaking.fromJson(json));
+        } catch (e) {
+          print('Error parsing stock taking: $e');
+          print('Problematic stock taking data: $json');
+          // Continue with next item instead of rethrowing
+        }
+      }
+      return stockTakings;
+    } catch (e) {
+      print('Error parsing stock takings JSON: $e');
+      return [];
+    }
+  }
 }
 
 enum StockTakingType { prep, product, volume, weight, piece }

@@ -1,105 +1,111 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/middleware/stock_taking_middleware.dart';
 import 'package:rebill_flutter/core/repositories/stock_taking_repository.dart';
 import 'package:rebill_flutter/features/stock-taking/models/stock_taking.dart';
 
+// ==================== Stock Taking State ====================
+
 class StockTakingState {
   final List<StockTaking> stockTakings;
-  final List<StockTaking> productStockTakings;
-  final List<StockTaking> ingredientStockTakings;
-  final List<StockTaking> prepStockTakings;
   final bool isLoading;
   final String? error;
 
-  const StockTakingState({
-    this.stockTakings = const [],
-    this.productStockTakings = const [],
-    this.ingredientStockTakings = const [],
-    this.prepStockTakings = const [],
+  StockTakingState({
+    required this.stockTakings,
     this.isLoading = false,
     this.error,
   });
 
   StockTakingState copyWith({
     List<StockTaking>? stockTakings,
-    List<StockTaking>? productStockTakings,
-    List<StockTaking>? ingredientStockTakings,
-    List<StockTaking>? prepStockTakings,
     bool? isLoading,
     String? error,
   }) {
     return StockTakingState(
       stockTakings: stockTakings ?? this.stockTakings,
-      productStockTakings: productStockTakings ?? this.productStockTakings,
-      ingredientStockTakings:
-          ingredientStockTakings ?? this.ingredientStockTakings,
-      prepStockTakings: prepStockTakings ?? this.prepStockTakings,
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+      error: error,
     );
   }
 }
 
-final stockTakingRepositoryProvider = Provider<StockTakingRepository>((ref) {
-  return StockTakingRepository();
-});
+// ==================== Stock Taking Notifier ====================
 
 class StockTakingNotifier extends StateNotifier<StockTakingState> {
-  final StockTakingRepository _repository;
+  StockTakingNotifier() : super(StockTakingState(stockTakings: []));
 
-  StockTakingNotifier(this._repository) : super(const StockTakingState()) {
-    fetchStockTakings();
-  }
-
-  Future fetchStockTakings() async {
+  // Load all stock takings
+  Future<void> loadStockTakings() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final stockTakings = await _repository.getStockTakings();
-
-      // Pre-filter data for better performance
-      final productStockTakings =
-          stockTakings.where((e) => e.type == StockTakingType.product).toList();
-
-      final prepStockTakings =
-          stockTakings.where((e) => e.type == StockTakingType.prep).toList();
-
-      final ingredientStockTakings =
-          stockTakings
-              .where(
-                (e) =>
-                    e.type != StockTakingType.product &&
-                    e.type != StockTakingType.prep,
-              )
-              .toList();
-
-      state = state.copyWith(
-        stockTakings: stockTakings,
-        productStockTakings: productStockTakings,
-        ingredientStockTakings: ingredientStockTakings,
-        prepStockTakings: prepStockTakings,
-        isLoading: false,
-      );
+      final stockTakings = StockTakingRepository.instance.getAllStockTakings();
+      state = state.copyWith(stockTakings: stockTakings, isLoading: false);
     } catch (e) {
-      state = state.copyWith(error: e.toString(), isLoading: false);
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to load stock takings: $e',
+      );
     }
   }
 }
 
-final stockTakingProvider =
+// ==================== Providers ====================
+
+final stockTakingNotifierProvider =
     StateNotifierProvider<StockTakingNotifier, StockTakingState>((ref) {
-      final repository = ref.watch(stockTakingRepositoryProvider);
-      return StockTakingNotifier(repository);
+      return StockTakingNotifier();
     });
 
-// These providers now just return pre-filtered data, avoiding repetitive filtering
-final prepStockTakingProvider = Provider<List<StockTaking>>((ref) {
-  return ref.watch(stockTakingProvider).prepStockTakings;
+// Provider to get submitted kitchen orders
+final productStockProvider = Provider<List<StockTaking>>((ref) {
+  final allStockTakings = ref.watch(stockTakingsProvider);
+  return allStockTakings
+      .where((stockTaking) => stockTaking.type == StockTakingType.product)
+      .toList();
 });
 
-final productStockTakingProvider = Provider<List<StockTaking>>((ref) {
-  return ref.watch(stockTakingProvider).productStockTakings;
+final ingredientsProvider = Provider<List<StockTaking>>((ref) {
+  final allStockTakings = ref.watch(stockTakingsProvider);
+  return allStockTakings
+      .where(
+        (stockTaking) =>
+            stockTaking.type != StockTakingType.product &&
+            stockTaking.type != StockTakingType.prep,
+      )
+      .toList();
 });
 
-final ingredientStockTakingProvider = Provider<List<StockTaking>>((ref) {
-  return ref.watch(stockTakingProvider).ingredientStockTakings;
+final prepsProvider = Provider<List<StockTaking>>((ref) {
+  final allStockTakings = ref.watch(stockTakingsProvider);
+  return allStockTakings
+      .where((stockTaking) => stockTaking.type == StockTakingType.prep)
+      .toList();
 });
+
+final stockTakingsProvider = Provider<List<StockTaking>>((ref) {
+  try {
+    return StockTakingRepository.instance.getAllStockTakings();
+  } catch (e) {
+    return [];
+  }
+});
+
+final stockTakingsLoadingProvider = StateProvider<bool>((ref) => false);
+
+// ==================== Helper Functions ====================
+
+Future<void> initializeStockTakings() async {
+  if (!StockTakingMiddleware.instance.isInitialized) {
+    await StockTakingMiddleware.instance.loadStockTakings();
+  }
+}
+
+Future<void> reloadStockTakings(WidgetRef ref) async {
+  ref.read(stockTakingsLoadingProvider.notifier).state = true;
+  await StockTakingMiddleware.instance.reloadStockTakings();
+  ref.read(stockTakingsLoadingProvider.notifier).state = false;
+
+  // Also reload the notifier state
+  await ref.read(stockTakingNotifierProvider.notifier).loadStockTakings();
+}
