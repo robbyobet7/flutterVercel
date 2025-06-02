@@ -71,15 +71,8 @@ class _HomeFeaturesState extends ConsumerState<HomeFeatures> {
             duration: const Duration(milliseconds: 300),
             reverseDuration: const Duration(milliseconds: 300),
             transitionBuilder: (child, animation) {
-              final isForward =
-                  animation.status == AnimationStatus.forward ||
-                  animation.status == AnimationStatus.completed;
-
               final slideAnimation = Tween<Offset>(
-                begin:
-                    isForward
-                        ? const Offset(-1.0, 0.0)
-                        : const Offset(1.0, 0.0),
+                begin: const Offset(0, 1.0),
                 end: Offset.zero,
               ).animate(
                 CurvedAnimation(
