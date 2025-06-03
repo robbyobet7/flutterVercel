@@ -5,9 +5,9 @@ import 'package:rebill_flutter/core/providers/customer_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
-import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/widgets/add_customer_dialog.dart';
-import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
+import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/widgets/add_customer_dialog.dart';
+import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
 // Provider for temporarily selected customer
 final tempSelectedCustomerProvider = StateProvider<CustomerModel?>(

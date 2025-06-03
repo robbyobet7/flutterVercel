@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
-import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/widgets/main_default_card.dart';
+import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/widgets/main_default_card.dart';
 
 class MainDefaultPage extends ConsumerWidget {
   const MainDefaultPage({super.key});

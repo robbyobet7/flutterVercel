@@ -6,8 +6,8 @@ import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/table_bill_provider.dart';
 import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
-import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
-import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
+import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
 class TableBillCard extends ConsumerWidget {
   const TableBillCard({super.key, required this.bill});

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/pages/main_bill_page.dart';
-import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
-import 'package:rebill_flutter/features/main_bill/models/main_bill.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/pages/main_default_page.dart';
+import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/pages/main_bill_page.dart';
+import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
+import 'package:rebill_flutter/features/main-bill/models/main_bill.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/pages/main_default_page.dart';
 
 class MainPage extends ConsumerWidget {
   const MainPage({super.key});

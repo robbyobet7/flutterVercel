@@ -4,9 +4,9 @@ import 'package:rebill_flutter/core/models/customers.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/widgets/known_individual_dialog.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/widgets/known_individual_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
-import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
+import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
 class AddCustomerDialog extends ConsumerStatefulWidget {
   const AddCustomerDialog({super.key});

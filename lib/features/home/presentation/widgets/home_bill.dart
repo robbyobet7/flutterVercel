@@ -6,9 +6,11 @@ import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/merge_bill_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
+import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/user_bills_dropdown.dart';
-import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
-import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
+import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
+import 'package:rebill_flutter/features/merge-bill/presentations/widgets/merge_bill_dialog.dart';
 
 class HomeBill extends ConsumerStatefulWidget {
   const HomeBill({super.key});
@@ -98,7 +100,17 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    AppButton(onPressed: () {}, text: 'Merge Bills'),
+                    AppButton(
+                      onPressed: () {
+                        AppDialog.showCustom(
+                          context,
+                          content: MergeBillDialog(),
+                          dialogType: DialogType.large,
+                          title: 'Merge Bills',
+                        );
+                      },
+                      text: 'Merge Bills',
+                    ),
                   ],
                 ),
               ),

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/customers.dart';
-import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/core/middleware/customer_middleware.dart';
 
 class MainBillNotifier extends StateNotifier<MainBillComponent> {
