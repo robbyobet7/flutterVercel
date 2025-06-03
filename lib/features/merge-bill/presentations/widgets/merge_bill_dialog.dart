@@ -8,7 +8,7 @@ import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_material.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 
-final tempSelectedBillProvider = StateProvider<BillModel?>((ref) => null);
+final tempSelectedBillsProvider = StateProvider<List<BillModel>>((ref) => []);
 
 class MergeBillDialog extends ConsumerWidget {
   const MergeBillDialog({super.key});
@@ -23,7 +23,7 @@ class MergeBillDialog extends ConsumerWidget {
 
     final theme = Theme.of(context);
     final mergeBills = ref.watch(mergeBillProvider);
-    final tempSelectedBill = ref.watch(tempSelectedBillProvider);
+    final tempSelectedBills = ref.watch(tempSelectedBillsProvider);
     final selectedBill = ref.watch(selectedMergeBillProvider);
     return Expanded(
       child: Column(
@@ -122,16 +122,39 @@ class MergeBillDialog extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       // Get customer data
                       final bill = mergeBills.bills[index];
+                      final isSelected = tempSelectedBills.any(
+                        (selected) => selected.billId == bill.billId,
+                      );
+                      final isFixedSelected =
+                          selectedBill?.billId == bill.billId;
 
                       return Column(
                         children: [
                           AppMaterial(
                             borderRadius: BorderRadius.circular(8),
-
                             onTap: () {
-                              ref
-                                  .read(tempSelectedBillProvider.notifier)
-                                  .state = bill;
+                              final notifier = ref.read(
+                                tempSelectedBillsProvider.notifier,
+                              );
+                              final currentSelected = [...tempSelectedBills];
+
+                              if (isSelected) {
+                                // If already selected, remove it
+                                currentSelected.removeWhere(
+                                  (item) => item.billId == bill.billId,
+                                );
+                                notifier.state = currentSelected;
+                              } else {
+                                // If not selected, check if we already have 2 selections
+                                if (currentSelected.length >= 2) {
+                                  // Reset selection and select only this one
+                                  notifier.state = [bill];
+                                } else {
+                                  // Add this one to selection
+                                  currentSelected.add(bill);
+                                  notifier.state = currentSelected;
+                                }
+                              }
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
@@ -142,17 +165,14 @@ class MergeBillDialog extends ConsumerWidget {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 color:
-                                    tempSelectedBill?.billId == bill.billId ||
-                                            selectedBill?.billId == bill.billId
+                                    isSelected || isFixedSelected
                                         ? theme.colorScheme.primaryContainer
                                         : index % 2 == 0
                                         ? theme.colorScheme.surfaceContainer
                                         : theme.colorScheme.surface,
                                 border: Border.all(
                                   color:
-                                      tempSelectedBill?.billId == bill.billId ||
-                                              selectedBill?.billId ==
-                                                  bill.billId
+                                      isSelected || isFixedSelected
                                           ? theme.colorScheme.primary
                                           : index % 2 == 0
                                           ? Colors.transparent
@@ -240,6 +260,7 @@ class MergeBillDialog extends ConsumerWidget {
                                   ),
                                   Expanded(
                                     child: AppMaterial(
+                                      onTap: () {},
                                       borderRadius: BorderRadius.circular(8),
                                       child: Container(
                                         height: 30,
@@ -292,8 +313,9 @@ class MergeBillDialog extends ConsumerWidget {
                   ),
                 ),
                 AppButton(
-                  onPressed: () {},
+                  onPressed: tempSelectedBills.length == 2 ? () {} : null,
                   text: 'Merge Bills',
+                  disabled: tempSelectedBills.length != 2,
                   backgroundColor: theme.colorScheme.primary,
                   textStyle: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onPrimary,
