@@ -327,16 +327,6 @@ class CartNotifier extends StateNotifier<CartState> {
     state = state.copyWith(items: items);
   }
 
-  // Apply an additional discount to the cart
-  void applyDiscount(double amount, {String? note}) {
-    state = state.copyWith(additionalDiscount: amount, discountNote: note);
-  }
-
-  // Remove the additional discount
-  void removeDiscount() {
-    state = state.copyWith(additionalDiscount: null, discountNote: null);
-  }
-
   // Update service fee percentage
   void updateServiceFeePercentage(double percentage) {
     state = state.copyWith(serviceFeePercentage: percentage);
@@ -345,11 +335,6 @@ class CartNotifier extends StateNotifier<CartState> {
   // Update tax percentage
   void updateTaxPercentage(double percentage) {
     state = state.copyWith(taxPercentage: percentage);
-  }
-
-  // Set whether tax is included in the price
-  void setTaxIncluded(bool included) {
-    state = state.copyWith(taxIncluded: included);
   }
 
   // Update gratuity percentage

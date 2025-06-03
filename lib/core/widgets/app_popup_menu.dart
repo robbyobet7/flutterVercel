@@ -7,6 +7,8 @@ class AppPopupMenuItem<T> {
   final Color? iconColor;
   final Color? textColor;
   final bool isDivider;
+  final Widget? trailing;
+  final double? height;
 
   const AppPopupMenuItem({
     required this.value,
@@ -15,6 +17,8 @@ class AppPopupMenuItem<T> {
     this.iconColor,
     this.textColor,
     this.isDivider = false,
+    this.trailing,
+    this.height,
   });
 
   factory AppPopupMenuItem.divider() {
@@ -35,6 +39,8 @@ class AppPopupMenu<T> extends StatefulWidget {
   final Widget? icon;
   final PopupMenuPosition position;
   final Offset offset;
+  final double elevation;
+  final double? borderRadius;
 
   const AppPopupMenu({
     super.key,
@@ -45,6 +51,8 @@ class AppPopupMenu<T> extends StatefulWidget {
     this.icon,
     this.position = PopupMenuPosition.under,
     this.offset = const Offset(0, 8),
+    this.elevation = 2,
+    this.borderRadius,
   });
 
   @override
@@ -72,7 +80,6 @@ class _AppPopupMenuState<T> extends State<AppPopupMenu<T>> {
 
     return Focus(
       focusNode: _menuFocusNode,
-      // Prevent keyboard from showing when this widget gets focus
       onFocusChange: (hasFocus) {
         if (hasFocus) {
           // When menu gets focus, ensure keyboard is hidden
@@ -84,8 +91,12 @@ class _AppPopupMenuState<T> extends State<AppPopupMenu<T>> {
         icon: widget.icon,
         position: widget.position,
         offset: widget.offset,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: widget.elevation,
+        clipBehavior: Clip.hardEdge,
+        borderRadius: BorderRadius.circular(widget.borderRadius ?? 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(widget.borderRadius ?? 12),
+        ),
         color: theme.colorScheme.surface,
         // When popup menu is opened, ensure keyboard is dismissed
         onOpened: () {
@@ -116,6 +127,7 @@ class _AppPopupMenuState<T> extends State<AppPopupMenu<T>> {
 
                   return PopupMenuItem<T>(
                     value: item.value,
+                    height: item.height ?? kMinInteractiveDimension,
                     child: Row(
                       children: [
                         if (item.icon != null) ...[
@@ -137,6 +149,7 @@ class _AppPopupMenuState<T> extends State<AppPopupMenu<T>> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        if (item.trailing != null) ...[item.trailing!],
                       ],
                     ),
                   );

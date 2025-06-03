@@ -12,6 +12,11 @@ class AppTheme {
     ),
   ];
 
+  static const Color success = Color(0xFF87C991);
+  static const Color warning = Color(0xFFFFB259);
+  static const Color successContainer = Color(0xFFE5F7DB);
+  static const Color warningContainer = Color(0xFFF8EED3);
+
   // Light theme
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
@@ -28,7 +33,7 @@ class AppTheme {
       primaryContainer: const Color(0xFF598DFF).withOpacity(0.2),
     ),
     scaffoldBackgroundColor: const Color(0xFFF1F4FD),
-    disabledColor: const Color(0xFF776F70),
+    disabledColor: const Color(0xFFD9DBE3),
     appBarTheme: const AppBarTheme(
       elevation: 0,
       centerTitle: true,

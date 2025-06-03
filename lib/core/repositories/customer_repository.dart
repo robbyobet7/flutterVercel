@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 import '../models/customers.dart';
 
 class CustomerRepository {
@@ -12,28 +10,28 @@ class CustomerRepository {
   static final CustomerRepository _instance = CustomerRepository._();
   static CustomerRepository get instance => _instance;
 
-  // Initialize the repository with data from the JSON file
-  Future<void> initialize() async {
-    if (_isInitialized) return;
-
-    try {
-      final jsonString = await rootBundle.loadString('assets/customers.json');
-      _customers = CustomerModel.parseCustomers(jsonString);
-      _isInitialized = true;
-    } catch (e) {
-      _customers = [];
-    }
+  // Set customers data (called from middleware)
+  void setCustomers(List<CustomerModel> customers) {
+    _customers = customers;
+    _isInitialized = true;
   }
 
+  // Check if initialized
+  bool get isInitialized => _isInitialized;
+
   // Get all customers
-  Future<List<CustomerModel>> getAllCustomers() async {
-    if (!_isInitialized) await initialize();
+  List<CustomerModel> getAllCustomers() {
+    if (!_isInitialized) {
+      throw Exception('Customer repository not initialized');
+    }
     return _customers;
   }
 
   // Get customer by ID
-  Future<CustomerModel?> getCustomerById(int id) async {
-    if (!_isInitialized) await initialize();
+  CustomerModel? getCustomerById(int id) {
+    if (!_isInitialized) {
+      throw Exception('Customer repository not initialized');
+    }
     return _customers.firstWhere(
       (customer) => customer.customerId == id,
       orElse: () => throw Exception('Customer not found with ID: $id'),
@@ -41,8 +39,10 @@ class CustomerRepository {
   }
 
   // Search customers by name
-  Future<List<CustomerModel>> searchCustomersByName(String query) async {
-    if (!_isInitialized) await initialize();
+  List<CustomerModel> searchCustomersByName(String query) {
+    if (!_isInitialized) {
+      throw Exception('Customer repository not initialized');
+    }
     final lowercaseQuery = query.toLowerCase();
     return _customers
         .where(
@@ -53,8 +53,10 @@ class CustomerRepository {
   }
 
   // Add a new customer
-  Future<CustomerModel> addCustomer(CustomerModel customer) async {
-    if (!_isInitialized) await initialize();
+  CustomerModel addCustomer(CustomerModel customer) {
+    if (!_isInitialized) {
+      throw Exception('Customer repository not initialized');
+    }
 
     // Assign a new ID if none provided
     final newCustomer =
@@ -72,8 +74,10 @@ class CustomerRepository {
   }
 
   // Update an existing customer
-  Future<CustomerModel> updateCustomer(CustomerModel updatedCustomer) async {
-    if (!_isInitialized) await initialize();
+  CustomerModel updateCustomer(CustomerModel updatedCustomer) {
+    if (!_isInitialized) {
+      throw Exception('Customer repository not initialized');
+    }
 
     final index = _customers.indexWhere(
       (c) => c.customerId == updatedCustomer.customerId,
@@ -92,8 +96,10 @@ class CustomerRepository {
   }
 
   // Delete a customer
-  Future<void> deleteCustomer(int id) async {
-    if (!_isInitialized) await initialize();
+  void deleteCustomer(int id) {
+    if (!_isInitialized) {
+      throw Exception('Customer repository not initialized');
+    }
 
     final index = _customers.indexWhere((c) => c.customerId == id);
     if (index == -1) {
@@ -104,8 +110,10 @@ class CustomerRepository {
   }
 
   // Get customers with loyalty points
-  Future<List<CustomerModel>> getCustomersWithPoints() async {
-    if (!_isInitialized) await initialize();
+  List<CustomerModel> getCustomersWithPoints() {
+    if (!_isInitialized) {
+      throw Exception('Customer repository not initialized');
+    }
     return _customers.where((c) => c.point > 0).toList();
   }
 
@@ -118,12 +126,11 @@ class CustomerRepository {
         1;
   }
 
-  // Save customers to JSON
-  Future<void> saveCustomersToJson() async {
-    // This is just a placeholder - in a real app, you would save to a database or file
-    final jsonList = _customers.map((c) => c.toJson()).toList();
-    final jsonString = json.encode(jsonList);
-
-    // Here you might write to a file, API or database
+  // Get customers for serialization
+  List<Map<String, dynamic>> getCustomersForSerialization() {
+    if (!_isInitialized) {
+      throw Exception('Customer repository not initialized');
+    }
+    return _customers.map((c) => c.toJson()).toList();
   }
 }

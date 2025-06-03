@@ -266,102 +266,109 @@ class BillModel {
     }
 
     return BillModel(
-      billId: json['bill_id'],
-      customerName: json['customer_name'],
-      orderCollection: json['order_collection'],
+      billId: json['bill_id'] ?? 0,
+      customerName: json['customer_name'] ?? 'Unknown',
+      orderCollection: json['order_collection'] ?? '[]',
       total:
           json['total'] is int
               ? (json['total'] as int).toDouble()
-              : json['total'],
+              : (json['total'] ?? 0).toDouble(),
       finalTotal:
           json['final_total'] is int
               ? (json['final_total'] as int).toDouble()
-              : json['final_total'],
+              : (json['final_total'] ?? 0).toDouble(),
       downPayment:
           json['down_payment'] is int
               ? (json['down_payment'] as int).toDouble()
-              : json['down_payment'],
-      usersId: json['users_id'],
-      states: json['states'],
+              : (json['down_payment'] ?? 0).toDouble(),
+      usersId: json['users_id'] ?? 0,
+      states: json['states'] ?? 'open',
       paymentMethod: json['payment_method'],
       splitPayment: json['split_payment'],
-      delivery: json['delivery'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      delivery: json['delivery'] ?? 'direct',
+      createdAt:
+          json['created_at'] != null
+              ? DateTime.parse(json['created_at'])
+              : DateTime.now(),
+      updatedAt:
+          json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'])
+              : DateTime.now(),
       deletedAt:
           json['deleted_at'] != null
               ? DateTime.parse(json['deleted_at'])
               : null,
-      outletId: json['outlet_id'],
-      servicefee: json['servicefee'],
-      gratuity: json['gratuity'],
-      vat: json['vat'],
+      outletId: json['outlet_id'] ?? 0,
+      servicefee: json['servicefee'] ?? '0.00',
+      gratuity: json['gratuity'] ?? '0.00',
+      vat: json['vat'] ?? '0.00',
       customerId: json['customer_id'],
-      billDiscount: json['bill_discount'],
+      billDiscount: json['bill_discount'] ?? '0.00',
       tableId: json['table_id'],
-      totalDiscount: json['total_discount'],
-      hashBill: json['hash_bill'],
-      rewardPoints: json['reward_points'],
-      totalReward: json['total_reward'],
-      rewardBill: json['reward_bill'],
-      cBillId: json['c_bill_id'],
-      rounding: json['rounding'],
-      isQR: json['isQR'],
+      totalDiscount: json['total_discount'] ?? 0,
+      hashBill: json['hash_bill'] ?? '',
+      rewardPoints:
+          json['reward_points'] ?? '{"initial":0,"redeem":0,"earn":0}',
+      totalReward: json['total_reward'] ?? 0,
+      rewardBill: json['reward_bill'] ?? '0.00',
+      cBillId: json['c_bill_id']?.toString() ?? '0',
+      rounding: json['rounding'] ?? 0,
+      isQR: json['isQR'] ?? 0,
       notes: json['notes'],
       amountPaid:
           json['amount_paid'] is int
               ? (json['amount_paid'] as int).toDouble()
-              : json['amount_paid'],
+              : (json['amount_paid'] ?? 0).toDouble(),
       ccNumber: json['cc_number'],
       ccType: json['cc_type'],
-      productDiscount: json['product_discount'],
+      productDiscount: json['product_discount'] ?? 0,
       merchantOrderId: json['merchant_order_id'],
       discountList: json['discount_list'],
-      key: json['key'],
+      key: json['key'] ?? 0,
       affiliate: json['affiliate'],
       customerPhone: json['customer_phone'],
-      totaldiscount: json['totaldiscount'],
+      totaldiscount: json['totaldiscount'] ?? 0,
       totalafterdiscount:
           json['totalafterdiscount'] is int
               ? (json['totalafterdiscount'] as int).toDouble()
-              : json['totalafterdiscount'],
-      cashier: json['cashier'],
-      lastcashier: json['lastcashier'],
-      firstcashier: json['firstcashier'],
+              : (json['totalafterdiscount'] ?? 0).toDouble(),
+      cashier: json['cashier'] ?? 'Unknown',
+      lastcashier: json['lastcashier'] ?? 'Unknown',
+      firstcashier: json['firstcashier'] ?? 'Unknown',
       totalgratuity:
           json['totalgratuity'] is int
               ? (json['totalgratuity'] as int).toDouble()
-              : json['totalgratuity'],
+              : (json['totalgratuity'] ?? 0).toDouble(),
       totalservicefee:
           json['totalservicefee'] is int
               ? (json['totalservicefee'] as int).toDouble()
-              : json['totalservicefee'],
+              : (json['totalservicefee'] ?? 0).toDouble(),
       totalbeforetax:
           json['totalbeforetax'] is int
               ? (json['totalbeforetax'] as int).toDouble()
-              : json['totalbeforetax'],
+              : (json['totalbeforetax'] ?? 0).toDouble(),
       totalvat:
           json['totalvat'] is int
               ? (json['totalvat'] as int).toDouble()
-              : json['totalvat'],
+              : (json['totalvat'] ?? 0).toDouble(),
       totalaftertax:
           json['totalaftertax'] is int
               ? (json['totalaftertax'] as int).toDouble()
-              : json['totalaftertax'],
-      roundingSetting: json['rounding_setting'],
+              : (json['totalaftertax'] ?? 0).toDouble(),
+      roundingSetting: json['rounding_setting'] ?? 0,
       totalafterrounding:
           json['totalafterrounding'] is int
               ? (json['totalafterrounding'] as int).toDouble()
-              : json['totalafterrounding'],
-      div: json['div'],
-      billDate: json['bill_date'],
-      posBillDate: json['pos_bill_date'],
-      posPaidBillDate: json['pos_paid_bill_date'],
-      rewardoption: json['rewardoption'],
+              : (json['totalafterrounding'] ?? 0).toDouble(),
+      div: json['div'] ?? 0,
+      billDate: json['bill_date'] ?? '',
+      posBillDate: json['pos_bill_date'] ?? '',
+      posPaidBillDate: json['pos_paid_bill_date'] ?? '',
+      rewardoption: json['rewardoption'] ?? '',
       return_:
           json['return'] is int
               ? (json['return'] as int).toDouble()
-              : json['return'],
+              : (json['return'] ?? 0).toDouble(),
       proof: json['proof'],
       proofStaffId: json['proof_staff_id'],
       tableName: json['table_name'],
@@ -443,14 +450,19 @@ class BillModel {
     try {
       final List<dynamic> parsed = jsonDecode(jsonString);
 
-      return parsed.map<BillModel>((json) {
+      final List<BillModel> bills = [];
+      for (var json in parsed) {
         try {
-          return BillModel.fromJson(json);
+          bills.add(BillModel.fromJson(json));
         } catch (e) {
-          rethrow;
+          print('Error parsing bill: $e');
+          print('Problematic bill data: $json');
+          // Continue with next bill instead of rethrowing
         }
-      }).toList();
+      }
+      return bills;
     } catch (e) {
+      print('Error parsing bills JSON: $e');
       return [];
     }
   }

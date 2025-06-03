@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
+import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/product_detail.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends ConsumerWidget {
   const ProductCard({
     super.key,
     required this.price,
@@ -17,18 +19,29 @@ class ProductCard extends StatelessWidget {
   final Product product;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final items = ref.watch(cartProvider);
+    final bool isInCart = items.items.any(
+      (item) => item.id == product.productsId,
+    );
+    final int count =
+        items.items
+            .where((item) => item.id == product.productsId)
+            .firstOrNull
+            ?.quantity
+            .toInt() ??
+        0;
+
     return GestureDetector(
       onTap: () {
         AppDialog.showCustom(
           context,
           content: ProductDetail(product: product),
-          width: MediaQuery.of(context).size.width * .7,
-          height:
+          dialogType:
               (product.multipleDiscounts!.isEmpty && product.option == null)
-                  ? MediaQuery.of(context).size.height * .43
-                  : MediaQuery.of(context).size.height,
+                  ? DialogType.small
+                  : DialogType.large,
           padding: const EdgeInsets.all(12),
         );
       },
@@ -49,7 +62,9 @@ class ProductCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 clipBehavior: Clip.hardEdge,
-                child:
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
                     product.productImage != null &&
                             product.productImage!.isNotEmpty
                         ? Image.network(
@@ -98,6 +113,27 @@ class ProductCard extends StatelessWidget {
                             );
                           },
                         ),
+
+                    // Check if the product is in the cart
+                    isInCart
+                        ? Positioned(
+                          top: 8,
+                          right: 8,
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: theme.colorScheme.primary,
+                            child: Text(
+                              count.toString(),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onPrimary,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        )
+                        : const SizedBox(),
+                  ],
+                ),
               ),
             ),
             Padding(
@@ -120,6 +156,8 @@ class ProductCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text.rich(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         TextSpan(
                           children: [
                             TextSpan(

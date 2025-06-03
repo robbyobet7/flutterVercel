@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import '../models/customers.dart';
 import '../repositories/customer_repository.dart';
 
@@ -29,17 +31,30 @@ class CustomerMiddleware {
   // Initialize the middleware
   Future<void> initialize() async {
     try {
-      await _repository.initialize();
+      if (!_repository.isInitialized) {
+        await _loadCustomersFromJson();
+      }
       refreshCustomers();
     } catch (e) {
       _customerErrorController.add('Failed to initialize customer data: $e');
     }
   }
 
+  // Load customers from JSON
+  Future<void> _loadCustomersFromJson() async {
+    try {
+      final jsonString = await rootBundle.loadString('assets/customers.json');
+      final customers = CustomerModel.parseCustomers(jsonString);
+      _repository.setCustomers(customers);
+    } catch (e) {
+      _customerErrorController.add('Failed to load customers from JSON: $e');
+    }
+  }
+
   // Load and broadcast all customers
   Future<void> refreshCustomers() async {
     try {
-      final customers = await _repository.getAllCustomers();
+      final customers = _repository.getAllCustomers();
       _customerStreamController.add(customers);
     } catch (e) {
       _customerErrorController.add('Failed to load customers: $e');
@@ -49,7 +64,7 @@ class CustomerMiddleware {
   // Get a single customer by ID
   Future<CustomerModel?> getCustomer(int id) async {
     try {
-      return await _repository.getCustomerById(id);
+      return _repository.getCustomerById(id);
     } catch (e) {
       _customerErrorController.add('Failed to get customer with ID $id: $e');
       return null;
@@ -59,7 +74,7 @@ class CustomerMiddleware {
   // Add a new customer
   Future<void> addCustomer(CustomerModel customer) async {
     try {
-      await _repository.addCustomer(customer);
+      _repository.addCustomer(customer);
       refreshCustomers();
     } catch (e) {
       _customerErrorController.add('Failed to add customer: $e');
@@ -69,7 +84,7 @@ class CustomerMiddleware {
   // Update an existing customer
   Future<void> updateCustomer(CustomerModel customer) async {
     try {
-      await _repository.updateCustomer(customer);
+      _repository.updateCustomer(customer);
       refreshCustomers();
     } catch (e) {
       _customerErrorController.add('Failed to update customer: $e');
@@ -79,7 +94,7 @@ class CustomerMiddleware {
   // Delete a customer
   Future<void> deleteCustomer(int id) async {
     try {
-      await _repository.deleteCustomer(id);
+      _repository.deleteCustomer(id);
       refreshCustomers();
     } catch (e) {
       _customerErrorController.add('Failed to delete customer: $e');
@@ -90,9 +105,9 @@ class CustomerMiddleware {
   Future<List<CustomerModel>> searchCustomers(String query) async {
     try {
       if (query.isEmpty) {
-        return await _repository.getAllCustomers();
+        return _repository.getAllCustomers();
       }
-      return await _repository.searchCustomersByName(query);
+      return _repository.searchCustomersByName(query);
     } catch (e) {
       _customerErrorController.add('Failed to search customers: $e');
       return [];
@@ -102,7 +117,7 @@ class CustomerMiddleware {
   // Get customers with loyalty points
   Future<List<CustomerModel>> getCustomersWithPoints() async {
     try {
-      return await _repository.getCustomersWithPoints();
+      return _repository.getCustomersWithPoints();
     } catch (e) {
       _customerErrorController.add('Failed to get loyalty customers: $e');
       return [];
@@ -112,7 +127,12 @@ class CustomerMiddleware {
   // Save all customer data
   Future<void> saveCustomers() async {
     try {
-      await _repository.saveCustomersToJson();
+      // This would be implemented to save to JSON/DB in a real app
+      final jsonList = _repository.getCustomersForSerialization();
+      // ignore: unused_local_variable
+      final jsonString = json.encode(jsonList);
+
+      // In a real app: await file.writeAsString(jsonString);
     } catch (e) {
       _customerErrorController.add('Failed to save customers: $e');
     }

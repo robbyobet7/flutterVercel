@@ -87,6 +87,7 @@ class AppDialog extends StatelessWidget {
         child: Container(
           width: width,
           height: height,
+          constraints: BoxConstraints(minWidth: 600),
           child: Padding(
             padding: padding ?? const EdgeInsets.all(24.0),
             child: Column(
@@ -258,8 +259,7 @@ class AppDialog extends StatelessWidget {
     IconData? icon,
     Color? iconColor,
     VoidCallback? onClose,
-    double? width,
-    double? height,
+    required DialogType dialogType,
     EdgeInsets? padding,
   }) {
     return showDialog<T>(
@@ -276,10 +276,22 @@ class AppDialog extends StatelessWidget {
             iconColor: iconColor,
             isCustom: true,
             onClose: onClose,
-            width: width,
-            height: height,
+            width:
+                dialogType == DialogType.small
+                    ? MediaQuery.of(context).size.width * 0.5
+                    : dialogType == DialogType.medium
+                    ? MediaQuery.of(context).size.width * 0.5
+                    : MediaQuery.of(context).size.width * 0.8,
+            height:
+                dialogType == DialogType.small
+                    ? MediaQuery.of(context).size.height * 0.5
+                    : dialogType == DialogType.medium
+                    ? MediaQuery.of(context).size.height * 0.8
+                    : MediaQuery.of(context).size.height * 0.8,
             padding: padding,
           ),
     );
   }
 }
+
+enum DialogType { small, medium, large }
