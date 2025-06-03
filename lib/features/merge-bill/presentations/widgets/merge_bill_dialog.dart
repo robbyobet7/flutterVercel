@@ -281,7 +281,9 @@ class MergeBillDialog extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 AppButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
                   text: 'Cancel',
                   backgroundColor: theme.colorScheme.errorContainer,
                   textStyle: theme.textTheme.bodySmall?.copyWith(
@@ -316,6 +318,7 @@ class MergeBillProductList extends StatelessWidget {
     final theme = Theme.of(context);
     return Expanded(
       child: AppPopupMenu(
+        borderRadius: 8,
         items:
             bill.items != null || bill.items!.isNotEmpty
                 ? bill.items!

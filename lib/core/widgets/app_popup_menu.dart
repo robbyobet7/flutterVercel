@@ -40,6 +40,7 @@ class AppPopupMenu<T> extends StatefulWidget {
   final PopupMenuPosition position;
   final Offset offset;
   final double elevation;
+  final double? borderRadius;
 
   const AppPopupMenu({
     super.key,
@@ -51,6 +52,7 @@ class AppPopupMenu<T> extends StatefulWidget {
     this.position = PopupMenuPosition.under,
     this.offset = const Offset(0, 8),
     this.elevation = 2,
+    this.borderRadius,
   });
 
   @override
@@ -91,8 +93,10 @@ class _AppPopupMenuState<T> extends State<AppPopupMenu<T>> {
         offset: widget.offset,
         elevation: widget.elevation,
         clipBehavior: Clip.hardEdge,
-        borderRadius: BorderRadius.circular(12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        borderRadius: BorderRadius.circular(widget.borderRadius ?? 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(widget.borderRadius ?? 12),
+        ),
         color: theme.colorScheme.surface,
         // When popup menu is opened, ensure keyboard is dismissed
         onOpened: () {
