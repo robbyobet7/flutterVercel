@@ -4,6 +4,7 @@ import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 import 'package:rebill_flutter/core/widgets/list_header.dart';
+import 'package:rebill_flutter/features/stock-taking/models/stock_taking.dart';
 import 'package:rebill_flutter/features/stock-taking/presentations/widgets/expandable_list.dart';
 import 'package:rebill_flutter/features/stock-taking/presentations/widgets/type_filter_container.dart';
 import 'package:rebill_flutter/features/stock-taking/providers/stock_taking_provider.dart';
@@ -16,6 +17,22 @@ class StockTakingDialog extends ConsumerStatefulWidget {
 }
 
 class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
+  // Track search text
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  // Filter lists based on search
+  List<StockTaking> _filterList(List<StockTaking> list) {
+    if (_searchQuery.isEmpty) return list;
+    return list
+        .where((item) => item.productName.toLowerCase().contains(_searchQuery))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -43,7 +60,20 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                 TypeFilterContainer(type: 'Products'),
                 TypeFilterContainer(type: 'Ingredients'),
                 TypeFilterContainer(type: 'Preps'),
-                Expanded(child: AppSearchBar()),
+                Expanded(
+                  child: AppSearchBar(
+                    onSearch: (value) {
+                      setState(() {
+                        _searchQuery = value.toLowerCase();
+                      });
+                    },
+                    onClear: () {
+                      setState(() {
+                        _searchQuery = '';
+                      });
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -64,26 +94,25 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
 
-                final ingredients = ref.watch(ingredientsProvider);
-                final products = ref.watch(productStockProvider);
-                final preps = ref.watch(prepsProvider);
+                final ingredients = _filterList(ref.watch(ingredientsProvider));
+                final products = _filterList(ref.watch(productStockProvider));
+                final preps = _filterList(ref.watch(prepsProvider));
 
-                return SingleChildScrollView(
+                return ListView(
                   physics: BouncingScrollPhysics(
                     parent: AlwaysScrollableScrollPhysics(),
                   ),
-                  child: Column(
-                    spacing: 12,
-                    children: [
-                      ExpandableList(title: 'Products', stockTakings: products),
-                      ExpandableList(
-                        title: 'Ingredients',
-                        stockTakings: ingredients,
-                      ),
-                      ExpandableList(title: 'Preps', stockTakings: preps),
-                      AppDivider(),
-                    ],
-                  ),
+                  children: [
+                    ExpandableList(title: 'Products', stockTakings: products),
+                    SizedBox(height: 12),
+                    ExpandableList(
+                      title: 'Ingredients',
+                      stockTakings: ingredients,
+                    ),
+                    SizedBox(height: 12),
+                    ExpandableList(title: 'Preps', stockTakings: preps),
+                    AppDivider(),
+                  ],
                 );
               },
             ),
