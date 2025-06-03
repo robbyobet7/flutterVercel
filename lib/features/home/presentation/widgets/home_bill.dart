@@ -240,6 +240,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                           flex: 2,
                           child: Text(
                             'Status',
+                            textAlign: TextAlign.center,
                             style: theme.textTheme.labelLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),

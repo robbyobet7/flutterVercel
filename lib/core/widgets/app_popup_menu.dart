@@ -7,6 +7,8 @@ class AppPopupMenuItem<T> {
   final Color? iconColor;
   final Color? textColor;
   final bool isDivider;
+  final Widget? trailing;
+  final double? height;
 
   const AppPopupMenuItem({
     required this.value,
@@ -15,6 +17,8 @@ class AppPopupMenuItem<T> {
     this.iconColor,
     this.textColor,
     this.isDivider = false,
+    this.trailing,
+    this.height,
   });
 
   factory AppPopupMenuItem.divider() {
@@ -119,6 +123,7 @@ class _AppPopupMenuState<T> extends State<AppPopupMenu<T>> {
 
                   return PopupMenuItem<T>(
                     value: item.value,
+                    height: item.height ?? kMinInteractiveDimension,
                     child: Row(
                       children: [
                         if (item.icon != null) ...[
@@ -140,6 +145,7 @@ class _AppPopupMenuState<T> extends State<AppPopupMenu<T>> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        if (item.trailing != null) ...[item.trailing!],
                       ],
                     ),
                   );

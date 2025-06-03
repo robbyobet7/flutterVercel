@@ -6,6 +6,7 @@ import 'package:rebill_flutter/core/providers/merge_bill_provider.dart';
 import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_material.dart';
+import 'package:rebill_flutter/core/widgets/app_popup_menu.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 
 final tempSelectedBillsProvider = StateProvider<List<BillModel>>((ref) => []);
@@ -258,32 +259,7 @@ class MergeBillDialog extends ConsumerWidget {
                                           ),
                                     ),
                                   ),
-                                  Expanded(
-                                    child: AppMaterial(
-                                      onTap: () {},
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Container(
-                                        height: 30,
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.surface,
-                                          border: Border.all(
-                                            color: theme.colorScheme.primary,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            'Show',
-                                            style:
-                                                theme.textTheme.titleSmall
-                                                    ?.copyWith(),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                  MergeBillProductList(bill: bill),
                                 ],
                               ),
                             ),
@@ -325,6 +301,46 @@ class MergeBillDialog extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class MergeBillProductList extends StatelessWidget {
+  const MergeBillProductList({super.key, required this.bill});
+
+  final BillModel bill;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: AppPopupMenu(
+        items:
+            bill.items != null || bill.items!.isNotEmpty
+                ? bill.items!
+                    .map(
+                      (e) => AppPopupMenuItem(
+                        text: e.name,
+                        value: e.name,
+                        trailing: Text(' : ${e.quantity.toInt()}'),
+                        height: 25,
+                      ),
+                    )
+                    .toList()
+                : [AppPopupMenuItem(value: 'empty', text: 'Empty')],
+        onSelected: (value) {},
+        child: Container(
+          height: 30,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            border: Border.all(color: theme.colorScheme.primary),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: Text('Show', style: theme.textTheme.titleSmall?.copyWith()),
+          ),
+        ),
       ),
     );
   }
