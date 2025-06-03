@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class DecrementButton extends StatelessWidget {
-  const DecrementButton({super.key});
+  const DecrementButton({super.key, this.onTap});
+
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +18,7 @@ class DecrementButton extends StatelessWidget {
       child: IconButton(
         iconSize: 20,
         padding: EdgeInsets.all(0),
-        onPressed: () {},
+        onPressed: onTap,
         icon: const Icon(Icons.remove),
       ),
     );

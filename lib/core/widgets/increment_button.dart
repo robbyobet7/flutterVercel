@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class IncrementButton extends StatelessWidget {
-  const IncrementButton({super.key});
+  const IncrementButton({super.key, this.onTap});
+
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +16,7 @@ class IncrementButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(9999),
       ),
       child: IconButton(
-        onPressed: () {},
+        onPressed: onTap,
         iconSize: 20,
         padding: EdgeInsets.all(0),
         icon: Icon(Icons.add, color: theme.colorScheme.onPrimary),

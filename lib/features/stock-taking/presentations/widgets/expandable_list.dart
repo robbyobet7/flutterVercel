@@ -22,10 +22,23 @@ class ExpandableList extends ConsumerStatefulWidget {
   ConsumerState<ExpandableList> createState() => _ExpandableListState();
 }
 
-class _ExpandableListState extends ConsumerState<ExpandableList> {
+class _ExpandableListState extends ConsumerState<ExpandableList>
+    with SingleTickerProviderStateMixin {
   // Use a map for better access patterns with large lists
   final Map<int, TextEditingController> _controllerCache = {};
   bool _isExpanded = true;
+  late final AnimationController _controller;
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _scrollController = ScrollController();
+  }
 
   // Get or create controller as needed
   TextEditingController _getController(int id) {
@@ -42,6 +55,8 @@ class _ExpandableListState extends ConsumerState<ExpandableList> {
       controller.dispose();
     }
     _controllerCache.clear();
+    _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -49,6 +64,13 @@ class _ExpandableListState extends ConsumerState<ExpandableList> {
   Widget build(BuildContext context) {
     final stockTakings = widget.stockTakings;
     final theme = Theme.of(context);
+
+    if (_isExpanded) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+
     return AnimatedSize(
       duration: Duration(milliseconds: 200),
       reverseDuration: Duration(milliseconds: 200),
@@ -121,80 +143,116 @@ class _ExpandableListState extends ConsumerState<ExpandableList> {
                             child: Text('No items available'),
                           ),
                         )
-                        : ListView.builder(
-                          shrinkWrap: true,
-                          physics: AlwaysScrollableScrollPhysics(),
-                          itemCount: stockTakings.length,
-                          itemExtent: 70.0, // Fixed height improves performance
-                          cacheExtent:
-                              300, // Increase cache for smoother scrolling
-                          itemBuilder: (context, index) {
-                            final item = stockTakings[index];
-                            // Get or create controller for this item
-                            final controller = _getController(item.id);
+                        : Scrollbar(
+                          controller: _scrollController,
+                          thumbVisibility: true,
+                          trackVisibility: true,
+                          thickness: 6,
+                          radius: Radius.circular(10),
+                          child: ListView.builder(
+                            controller: _scrollController,
+                            shrinkWrap: true,
+                            physics: const ClampingScrollPhysics(),
+                            itemCount: stockTakings.length,
+                            itemExtent:
+                                70.0, // Fixed height improves performance
+                            cacheExtent:
+                                500, // Increase cache for smoother scrolling
+                            keyboardDismissBehavior:
+                                ScrollViewKeyboardDismissBehavior.onDrag,
+                            itemBuilder: (context, index) {
+                              final item = stockTakings[index];
+                              // Get or create controller for this item
+                              final controller = _getController(item.id);
 
-                            return Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom:
-                                      index != stockTakings.length - 1
-                                          ? BorderSide(
-                                            color:
-                                                theme
-                                                    .colorScheme
-                                                    .surfaceContainer,
-                                          )
-                                          : BorderSide.none,
+                              return Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
                                 ),
-                              ),
-                              child: Row(
-                                children: [
-                                  CellColumn(flex: 2, text: item.productName),
-                                  CellColumn(
-                                    flex: 1,
-                                    text: item.productStock.toString(),
-                                    textAlign: TextAlign.center,
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom:
+                                        index != stockTakings.length - 1
+                                            ? BorderSide(
+                                              color:
+                                                  theme
+                                                      .colorScheme
+                                                      .surfaceContainer,
+                                            )
+                                            : BorderSide.none,
                                   ),
-                                  CellColumn(
-                                    flex: 1,
-                                    text: '',
-                                    child: Container(
-                                      height: 45,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        spacing: 12,
-                                        children: [
-                                          DecrementButton(),
-                                          Expanded(
-                                            child: AppTextField(
-                                              showLabel: false,
-                                              controller: controller,
-                                              keyboardType:
-                                                  TextInputType.number,
+                                ),
+                                child: Row(
+                                  children: [
+                                    CellColumn(flex: 2, text: item.productName),
+                                    CellColumn(
+                                      flex: 1,
+                                      text: item.productStock.toString(),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    CellColumn(
+                                      flex: 1,
+                                      text: '',
+                                      child: Container(
+                                        height: 45,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          spacing: 12,
+                                          children: [
+                                            DecrementButton(
+                                              onTap: () {
+                                                final currentValue =
+                                                    int.tryParse(
+                                                      controller.text,
+                                                    ) ??
+                                                    0;
+                                                if (currentValue > 0) {
+                                                  controller.text =
+                                                      (currentValue - 1)
+                                                          .toString();
+                                                }
+                                              },
                                             ),
-                                          ),
-                                          IncrementButton(),
-                                        ],
+                                            Expanded(
+                                              child: AppTextField(
+                                                showLabel: false,
+                                                controller: controller,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                              ),
+                                            ),
+                                            IncrementButton(
+                                              onTap: () {
+                                                final currentValue =
+                                                    int.tryParse(
+                                                      controller.text,
+                                                    ) ??
+                                                    0;
+                                                controller.text =
+                                                    (currentValue + 1)
+                                                        .toString();
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  CellColumn(
-                                    flex: 1,
-                                    text: '',
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [AppCheckbox()],
+                                    CellColumn(
+                                      flex: 1,
+                                      text: '',
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [AppCheckbox()],
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                         ),
               ),
           ],

@@ -19,9 +19,17 @@ class StockTakingDialog extends ConsumerStatefulWidget {
 class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
   // Track search text
   String _searchQuery = '';
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -98,21 +106,46 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                 final products = _filterList(ref.watch(productStockProvider));
                 final preps = _filterList(ref.watch(prepsProvider));
 
-                return ListView(
-                  physics: BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
-                  children: [
-                    ExpandableList(title: 'Products', stockTakings: products),
-                    SizedBox(height: 12),
-                    ExpandableList(
-                      title: 'Ingredients',
-                      stockTakings: ingredients,
-                    ),
-                    SizedBox(height: 12),
-                    ExpandableList(title: 'Preps', stockTakings: preps),
-                    AppDivider(),
-                  ],
+                return ListView.builder(
+                  controller: _scrollController,
+                  physics: const ClampingScrollPhysics(),
+                  cacheExtent: 1000, // Increased cache for smoother scrolling
+                  addSemanticIndexes: false, // Performance optimization
+                  itemCount: 3, // Fixed number of expandable lists
+                  itemExtent:
+                      products.isEmpty && ingredients.isEmpty && preps.isEmpty
+                          ? 100 // Smaller height if all empty
+                          : null, // Dynamic height based on content
+                  itemBuilder: (context, index) {
+                    // Each index represents one of our expandable lists
+                    switch (index) {
+                      case 0:
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: ExpandableList(
+                            title: 'Products',
+                            stockTakings: products,
+                          ),
+                        );
+                      case 1:
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: ExpandableList(
+                            title: 'Ingredients',
+                            stockTakings: ingredients,
+                          ),
+                        );
+                      case 2:
+                        return Column(
+                          children: [
+                            ExpandableList(title: 'Preps', stockTakings: preps),
+                            AppDivider(),
+                          ],
+                        );
+                      default:
+                        return SizedBox.shrink();
+                    }
+                  },
                 );
               },
             ),
