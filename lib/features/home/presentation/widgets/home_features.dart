@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/features/kitchen-order/providers/kitchen_order_provider.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/pages/main_component_page.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/pages/main_component_page.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/home_bill.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/home_products.dart';
 import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/processed_order.dart';

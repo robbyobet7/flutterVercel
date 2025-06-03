@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/middleware/merge_bill_middleware.dart';
 import 'package:rebill_flutter/core/models/bill.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
-import 'package:rebill_flutter/core/middleware/bill_middleware.dart';
 import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
-class BillState {
+class MergeBillState {
   final List<BillModel> bills;
   final BillModel? selectedBill;
   final bool isLoading;
@@ -16,7 +16,7 @@ class BillState {
   final DateTime? endDate;
   final String? filterStatus;
 
-  const BillState({
+  const MergeBillState({
     this.bills = const [],
     this.selectedBill,
     this.isLoading = false,
@@ -27,7 +27,7 @@ class BillState {
     this.filterStatus,
   });
 
-  BillState copyWith({
+  MergeBillState copyWith({
     List<BillModel>? bills,
     BillModel? selectedBill,
     bool? isLoading,
@@ -41,7 +41,7 @@ class BillState {
     bool clearDateRange = false,
     bool clearFilterStatus = false,
   }) {
-    return BillState(
+    return MergeBillState(
       bills: bills ?? this.bills,
       selectedBill:
           clearSelectedBill ? null : selectedBill ?? this.selectedBill,
@@ -64,16 +64,16 @@ class BillState {
       bills.where((bill) => bill.states == 'closed').toList();
 }
 
-class BillNotifier extends StateNotifier<BillState> {
-  final BillMiddleware _billMiddleware;
+class MergeBillNotifier extends StateNotifier<MergeBillState> {
+  final MergeBillMiddleware _mergeBillMiddleware;
 
-  BillNotifier(this._billMiddleware) : super(const BillState()) {
+  MergeBillNotifier(this._mergeBillMiddleware) : super(const MergeBillState()) {
     // Set up listeners for the middleware streams
-    _billMiddleware.billsStream.listen((bills) {
+    _mergeBillMiddleware.billsStream.listen((bills) {
       state = state.copyWith(bills: bills, isLoading: false);
     });
 
-    _billMiddleware.errorStream.listen((errorMessage) {
+    _mergeBillMiddleware.errorStream.listen((errorMessage) {
       state = state.copyWith(error: errorMessage, isLoading: false);
     });
   }
@@ -118,8 +118,8 @@ class BillNotifier extends StateNotifier<BillState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      await _billMiddleware.initialize();
-      await _billMiddleware.refreshBills();
+      await _mergeBillMiddleware.initialize();
+      await _mergeBillMiddleware.refreshBills();
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -148,7 +148,7 @@ class BillNotifier extends StateNotifier<BillState> {
     );
 
     try {
-      final filteredBills = await _billMiddleware.getBillsByStatus(status);
+      final filteredBills = await _mergeBillMiddleware.getBillsByStatus(status);
       state = state.copyWith(bills: filteredBills, isLoading: false);
     } catch (e) {
       state = state.copyWith(
@@ -220,7 +220,7 @@ class BillNotifier extends StateNotifier<BillState> {
     KnownIndividualNotifier knownIndividualNotifier,
     CustomerTypeNotifier customerTypeNotifier,
   ) async {
-    final bill = await _billMiddleware.getBill(billId);
+    final bill = await _mergeBillMiddleware.getBill(billId);
     if (bill != null) {
       selectBill(bill);
       bill.loadIntoCart(cartNotifier);
@@ -238,100 +238,33 @@ class BillNotifier extends StateNotifier<BillState> {
   }
 }
 
-final billMiddlewareProvider = Provider<BillMiddleware>((ref) {
-  return BillMiddleware();
+final mergeBillMiddlewareProvider = Provider<MergeBillMiddleware>((ref) {
+  return MergeBillMiddleware();
 });
 
 // Provider for the bill state
-final billProvider = StateNotifierProvider<BillNotifier, BillState>((ref) {
-  final billMiddleware = ref.read(billMiddlewareProvider);
-  return BillNotifier(billMiddleware);
-});
-
-// Provider for all bills
-final allBillsProvider = Provider<List<BillsByDate>>((ref) {
-  final billState = ref.watch(billProvider);
-
-  // Group bills by date
-  final Map<String, List<BillItem>> billsByDate = {};
-
-  for (final bill in billState.bills) {
-    // Format date as readable string (e.g., "Monday, Jan 1, 2023")
-    final dateKey = bill.createdAt.toString().split(' ')[0];
-    final dateString = dateKey;
-
-    // Convert bill to simplified BillItem
-    final billItem = BillItem(
-      billId: bill.billId,
-      name: bill.customerName,
-      total: bill.total.toDouble(),
-      finalTotal: bill.finalTotal,
-      status: bill.states,
-    );
-
-    // Add debug print to see BillItem properties
-
-    // Add debug print to see actual total value
-
-    if (billsByDate.containsKey(dateString)) {
-      billsByDate[dateString]!.add(billItem);
-    } else {
-      billsByDate[dateString] = [billItem];
-    }
-  }
-
-  // Convert map to list and sort by date (most recent first)
-  final result =
-      billsByDate.entries
-          .map((entry) => BillsByDate(date: entry.key, bills: entry.value))
-          .toList();
-
-  // Sort by date (most recent first)
-  result.sort((a, b) => b.date.compareTo(a.date));
-
-  return result;
-});
+final mergeBillProvider =
+    StateNotifierProvider<MergeBillNotifier, MergeBillState>((ref) {
+      final mergeBillMiddleware = ref.read(mergeBillMiddlewareProvider);
+      return MergeBillNotifier(mergeBillMiddleware);
+    });
 
 // Provider for open bills
 final openBillsProvider = Provider<List<BillModel>>((ref) {
-  return ref.watch(billProvider).openBills;
+  return ref.watch(mergeBillProvider).openBills;
 });
 
 // Provider for closed bills
 final closedBillsProvider = Provider<List<BillModel>>((ref) {
-  return ref.watch(billProvider).closedBills;
+  return ref.watch(mergeBillProvider).closedBills;
 });
 
 // Provider for selected bill
-final selectedBillProvider = Provider<BillModel?>((ref) {
-  return ref.watch(billProvider).selectedBill;
+final selectedMergeBillProvider = Provider<BillModel?>((ref) {
+  return ref.watch(mergeBillProvider).selectedBill;
 });
 
 // Provider for loading state
-final billLoadingProvider = Provider<bool>((ref) {
-  return ref.watch(billProvider).isLoading;
+final mergeBillLoadingProvider = Provider<bool>((ref) {
+  return ref.watch(mergeBillProvider).isLoading;
 });
-
-class BillsByDate {
-  final String date;
-  final List<BillItem> bills;
-
-  BillsByDate({required this.date, required this.bills});
-}
-
-// Simple model for bill list item display
-class BillItem {
-  final int billId;
-  final String name;
-  final double total;
-  final double finalTotal;
-  final String status;
-
-  BillItem({
-    required this.billId,
-    required this.name,
-    required this.total,
-    required this.finalTotal,
-    required this.status,
-  });
-}

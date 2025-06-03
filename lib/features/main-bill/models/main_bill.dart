@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 
 class MainBill {
   final MainBillComponent id;

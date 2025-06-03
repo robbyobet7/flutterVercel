@@ -10,8 +10,8 @@ import 'package:rebill_flutter/core/models/cart_item.dart';
 import 'package:rebill_flutter/core/providers/product_provider.dart';
 
 import 'package:rebill_flutter/features/home/presentation/widgets/product_option.dart';
-import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
-import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
+import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
 class ProductDetail extends ConsumerStatefulWidget {
   const ProductDetail({super.key, required this.product});

@@ -5,13 +5,13 @@ import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
-import 'package:rebill_flutter/features/main_bill/constants/bill_constants.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/widgets/known_individual_dialog.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/widgets/bill.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/widgets/empty_cart.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/widgets/total_price_card.dart';
-import 'package:rebill_flutter/features/main_bill/providers/main_bill_provider.dart';
-import 'package:rebill_flutter/features/main_bill/presentations/widgets/customer_expandable.dart';
+import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/widgets/known_individual_dialog.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/widgets/bill.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/widgets/empty_cart.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/widgets/total_price_card.dart';
+import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/widgets/customer_expandable.dart';
 
 class MainBillPage extends ConsumerWidget {
   const MainBillPage({super.key});
