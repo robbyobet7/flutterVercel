@@ -87,9 +87,6 @@ final kitchenOrderNotifierProvider =
       return KitchenOrderNotifier();
     });
 
-// Provider to toggle kitchen order mode
-final isKitchenOrderModeProvider = StateProvider<bool>((ref) => false);
-
 // Provider to get all kitchen orders
 final kitchenOrdersProvider = Provider<List<KitchenOrder>>((ref) {
   try {
