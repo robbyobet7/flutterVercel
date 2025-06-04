@@ -7,10 +7,8 @@ import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_material.dart';
 import 'package:rebill_flutter/core/widgets/profile_avatar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rebill_flutter/core/widgets/table_dialog.dart';
-import 'package:rebill_flutter/features/kitchen-order/providers/kitchen_order_provider.dart';
+import 'package:rebill_flutter/features/home/providers/home_component_provider.dart';
 import 'package:rebill_flutter/features/printer-settings/presentations/widgets/printer_dialog.dart';
-import 'package:rebill_flutter/features/reservation/presentations/widgets/reservation_dialog.dart';
 import 'package:rebill_flutter/features/stock-taking/presentations/widgets/stock_taking_dialog.dart';
 
 class Navbar extends ConsumerWidget {
@@ -182,22 +180,20 @@ class NavFeatures extends ConsumerStatefulWidget {
 class _NavFeaturesState extends ConsumerState<NavFeatures> {
   final ScrollController _scrollController = ScrollController();
 
+  void toggleMode(HomeComponent mode) {
+    if (ref.read(homeComponentProvider) == mode) {
+      ref.read(homeComponentProvider.notifier).state = HomeComponent.home;
+    } else {
+      ref.read(homeComponentProvider.notifier).state = mode;
+    }
+  }
+
   void handleTableTap() {
-    AppDialog.showCustom(
-      context,
-      dialogType: DialogType.large,
-      title: 'Tables',
-      content: const TableDialog(),
-    );
+    toggleMode(HomeComponent.tables);
   }
 
   void handleReservationTap() {
-    AppDialog.showCustom(
-      context,
-      dialogType: DialogType.large,
-      title: 'Reservations',
-      content: const ReservationDialog(),
-    );
+    toggleMode(HomeComponent.reservations);
   }
 
   void handleStockTakingTap() {
@@ -210,8 +206,7 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
   }
 
   void handleKitchenOrderTap() {
-    ref.read(isKitchenOrderModeProvider.notifier).state =
-        !ref.watch(isKitchenOrderModeProvider);
+    toggleMode(HomeComponent.kitchenOrders);
   }
 
   late final List<NavMenu> _features;
@@ -396,8 +391,7 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    final kitchenMode =
-        ref.watch(isKitchenOrderModeProvider) && label == 'Kitchen Orders';
+    final active = ref.watch(homeComponentProvider).name == label;
 
     return SizedBox(
       height: double.infinity,
@@ -411,11 +405,11 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border:
-                kitchenMode
+                active
                     ? Border.all(color: theme.colorScheme.primary, width: 1)
                     : null,
             color:
-                kitchenMode
+                active
                     ? theme.colorScheme.primaryContainer
                     : theme.colorScheme.surfaceContainer,
           ),
@@ -427,7 +421,7 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
                 Icon(
                   icon,
                   color:
-                      kitchenMode
+                      active
                           ? theme.colorScheme.primary
                           : theme.colorScheme.onSurfaceVariant,
                   size: 20,
@@ -438,7 +432,7 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
                   style: TextStyle(
                     fontSize: 8,
                     color:
-                        kitchenMode
+                        active
                             ? theme.colorScheme.primary
                             : theme.colorScheme.onSurfaceVariant,
                     overflow: TextOverflow.ellipsis,

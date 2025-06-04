@@ -30,14 +30,14 @@ class TableDialog extends ConsumerWidget {
     return Expanded(
       child: Column(
         children: [
-          const AppDivider(),
+          if (tableType != TableType.nav) const AppDivider(),
           Expanded(
             child: GridView.builder(
               physics: const BouncingScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               padding: EdgeInsets.only(top: 12),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 5,
                 crossAxisSpacing: 12.0,
                 mainAxisSpacing: 12.0,
@@ -53,9 +53,9 @@ class TableDialog extends ConsumerWidget {
               },
             ),
           ),
-          const AppDivider(),
-          const SizedBox(height: 12),
-          ActionsRow(tableType: tableType),
+          if (tableType != TableType.nav) const AppDivider(),
+          if (tableType != TableType.nav) const SizedBox(height: 12),
+          if (tableType != TableType.nav) ActionsRow(tableType: tableType),
         ],
       ),
     );

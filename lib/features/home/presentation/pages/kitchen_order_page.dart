@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
-import 'package:rebill_flutter/features/main-bill/presentations/pages/main_component_page.dart';
-import 'package:rebill_flutter/features/home/presentation/widgets/home_bill.dart';
-import 'package:rebill_flutter/features/home/presentation/widgets/home_products.dart';
+import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/finished_order.dart';
+import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/processed_order.dart';
+import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/submitted_order.dart';
 
-class HomeFeatures extends ConsumerStatefulWidget {
-  const HomeFeatures({super.key});
+class KitchenOrderPage extends ConsumerStatefulWidget {
+  const KitchenOrderPage({super.key});
 
   @override
-  ConsumerState<HomeFeatures> createState() => _HomeFeaturesState();
+  ConsumerState<KitchenOrderPage> createState() => _KitchenOrderPageState();
 }
 
-class _HomeFeaturesState extends ConsumerState<HomeFeatures> {
+class _KitchenOrderPageState extends ConsumerState<KitchenOrderPage> {
   @override
   Widget build(BuildContext context) {
     final isLandscape = ref.watch(orientationProvider);
     final theme = Theme.of(context);
 
-    const homeFeatures = [HomeProducts(), MainPage(), HomeBill()];
+    const kitchenOrderFeatures = [
+      SubmittedOrder(),
+      ProcessedOrder(),
+      FinishedOrder(),
+    ];
 
     if (isLandscape) {
       // Landscape layout with Row
@@ -50,7 +54,8 @@ class _HomeFeaturesState extends ConsumerState<HomeFeatures> {
           child: Row(
             spacing: 12,
             key: const ValueKey<int>(1),
-            children: homeFeatures.map((e) => Expanded(child: e)).toList(),
+            children:
+                kitchenOrderFeatures.map((e) => Expanded(child: e)).toList(),
           ),
         ),
       );
@@ -66,7 +71,7 @@ class _HomeFeaturesState extends ConsumerState<HomeFeatures> {
               child: TabBarView(
                 clipBehavior: Clip.none,
                 children:
-                    homeFeatures
+                    kitchenOrderFeatures
                         .map(
                           (feature) => Row(
                             children: [

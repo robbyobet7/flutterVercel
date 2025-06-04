@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
-import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 import 'package:rebill_flutter/core/widgets/list_header.dart';
 import 'package:rebill_flutter/features/reservation/models/reservation.dart';
@@ -44,83 +42,59 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
       Header(flex: 3, textAlign: TextAlign.center, text: 'Remark'),
       Header(flex: 1, textAlign: TextAlign.center, text: 'Action'),
     ];
-    return Expanded(
-      child: Column(
-        children: [
-          Container(
-            height: 40,
-            width: double.infinity,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: MediaQuery.of(context).size.width / 3,
-                  child: AppSearchBar(hintText: 'Search reservations...'),
+    return Column(
+      children: [
+        Container(
+          height: 40,
+          width: double.infinity,
+          child: Row(
+            spacing: 12,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: AppSearchBar(hintText: 'Search reservations...')),
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                  AppDialog.showCustom(
+                    context,
+                    content: AddReservationDialog(),
+                    title: 'Add New Reservation',
+                    dialogType: DialogType.medium,
+                  );
+                },
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundColor: theme.colorScheme.primary,
+                  child: Icon(Icons.add),
                 ),
-                InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                    AppDialog.showCustom(
-                      context,
-                      content: AddReservationDialog(),
-                      title: 'Add New Reservation',
-                      dialogType: DialogType.medium,
-                    );
-                  },
-                  child: CircleAvatar(
-                    radius: 20,
-                    backgroundColor: theme.colorScheme.primary,
-                    child: Icon(Icons.add),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20),
-          Expanded(
-            child: Container(
-              child: Column(
-                children: [
-                  ListHeader(
-                    headers: headers,
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
-
-                  // Reservation list view with error and loading states
-                  Expanded(
-                    child: _buildReservationList(
-                      reservations,
-                      isLoading,
-                      error,
-                      theme,
-                    ),
-                  ),
-                ],
               ),
-            ),
+            ],
           ),
-          const AppDivider(),
-          SizedBox(height: 20),
-          SizedBox(
-            height: 40,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+        ),
+        SizedBox(height: 20),
+        Expanded(
+          child: Container(
+            child: Column(
               children: [
-                AppButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  text: 'Cancel',
-                  backgroundColor: theme.colorScheme.errorContainer,
-                  textStyle: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
+                ListHeader(
+                  headers: headers,
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+
+                // Reservation list view with error and loading states
+                Expanded(
+                  child: _buildReservationList(
+                    reservations,
+                    isLoading,
+                    error,
+                    theme,
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
