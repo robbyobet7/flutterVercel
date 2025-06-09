@@ -247,7 +247,52 @@ class AppDialog extends StatelessWidget {
     );
   }
 
-  /// Shows a custom dialog with provided content.
+  // /// Shows a custom dialog with provided content.
+  // static Future<T?> showCustomNoAnimation<T>(
+  //   BuildContext context, {
+  //   String? title,
+  //   required Widget content,
+  //   String? primaryButtonText,
+  //   String? secondaryButtonText,
+  //   VoidCallback? onPrimaryButtonPressed,
+  //   VoidCallback? onSecondaryButtonPressed,
+  //   IconData? icon,
+  //   Color? iconColor,
+  //   VoidCallback? onClose,
+  //   required DialogType dialogType,
+  //   EdgeInsets? padding,
+  // }) {
+  //   return showDialog<T>(
+  //     context: context,
+  //     builder:
+  //         (context) => AppDialog(
+  //           title: title,
+  //           content: content,
+  //           primaryButtonText: primaryButtonText,
+  //           secondaryButtonText: secondaryButtonText,
+  //           onPrimaryButtonPressed: onPrimaryButtonPressed,
+  //           onSecondaryButtonPressed: onSecondaryButtonPressed,
+  //           icon: icon,
+  //           iconColor: iconColor,
+  //           isCustom: true,
+  //           onClose: onClose,
+  //           width:
+  //               dialogType == DialogType.small
+  //                   ? MediaQuery.of(context).size.width * 0.5
+  //                   : dialogType == DialogType.medium
+  //                   ? MediaQuery.of(context).size.width * 0.5
+  //                   : MediaQuery.of(context).size.width * 0.8,
+  //           height:
+  //               dialogType == DialogType.small
+  //                   ? MediaQuery.of(context).size.height * 0.5
+  //                   : dialogType == DialogType.medium
+  //                   ? MediaQuery.of(context).size.height * 0.8
+  //                   : MediaQuery.of(context).size.height * 0.8,
+  //           padding: padding,
+  //         ),
+  //   );
+  // }
+
   static Future<T?> showCustom<T>(
     BuildContext context, {
     String? title,
@@ -261,37 +306,57 @@ class AppDialog extends StatelessWidget {
     VoidCallback? onClose,
     required DialogType dialogType,
     EdgeInsets? padding,
+    Color barrierColor = Colors.black54,
+    Duration transitionDuration = const Duration(milliseconds: 400),
+    bool barrierDismissible = true,
   }) {
-    return showDialog<T>(
-      context: context,
-      builder:
-          (context) => AppDialog(
-            title: title,
-            content: content,
-            primaryButtonText: primaryButtonText,
-            secondaryButtonText: secondaryButtonText,
-            onPrimaryButtonPressed: onPrimaryButtonPressed,
-            onSecondaryButtonPressed: onSecondaryButtonPressed,
-            icon: icon,
-            iconColor: iconColor,
-            isCustom: true,
-            onClose: onClose,
-            width:
-                dialogType == DialogType.small
-                    ? MediaQuery.of(context).size.width * 0.5
-                    : dialogType == DialogType.medium
-                    ? MediaQuery.of(context).size.width * 0.5
-                    : MediaQuery.of(context).size.width * 0.8,
-            height:
-                dialogType == DialogType.small
-                    ? MediaQuery.of(context).size.height * 0.5
-                    : dialogType == DialogType.medium
-                    ? MediaQuery.of(context).size.height * 0.8
-                    : MediaQuery.of(context).size.height * 0.8,
-            padding: padding,
+    return showGeneralDialog<T>(
+      barrierColor: barrierColor,
+      transitionBuilder: (context, a1, a2, widget) {
+        final curvedValue = Curves.easeOutCubic.transform(a1.value) - 1.0;
+        return Transform(
+          transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+          child: Opacity(
+            opacity: a1.value,
+            child: AppDialog(
+              title: title,
+              content: content,
+              primaryButtonText: primaryButtonText,
+              secondaryButtonText: secondaryButtonText,
+              onPrimaryButtonPressed: onPrimaryButtonPressed,
+              onSecondaryButtonPressed: onSecondaryButtonPressed,
+              icon: icon,
+              iconColor: iconColor,
+              isCustom: true,
+              onClose: onClose,
+              width:
+                  dialogType == DialogType.small
+                      ? MediaQuery.of(context).size.width * 0.5
+                      : dialogType == DialogType.medium
+                      ? MediaQuery.of(context).size.width * 0.5
+                      : MediaQuery.of(context).size.width * 0.8,
+              height:
+                  dialogType == DialogType.small
+                      ? MediaQuery.of(context).size.height * 0.5
+                      : dialogType == DialogType.medium
+                      ? MediaQuery.of(context).size.height * 0.8
+                      : MediaQuery.of(context).size.height * 0.8,
+              padding: padding,
+            ),
           ),
+        );
+      },
+      transitionDuration: transitionDuration,
+      barrierDismissible: barrierDismissible,
+      barrierLabel: '',
+      context: context,
+      pageBuilder: (context, animation1, animation2) {
+        return const SizedBox.shrink();
+      },
     );
   }
 }
+
+/// Shows a dialog with custom transition animation.
 
 enum DialogType { small, medium, large }

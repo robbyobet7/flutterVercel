@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/features/checkout/models/checkout_discount.dart';
 import 'package:rebill_flutter/features/checkout/models/payment_method.dart';
+import 'package:rebill_flutter/features/checkout/presetantions/widges/available_discounts_dialog.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_action_row.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_button.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/payment_amount.dart';
@@ -44,9 +46,54 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
 
     // Initialize data once
     _discounts = [
-      CheckoutDiscount(name: 'Show Available Discount', onTap: () {}),
-      CheckoutDiscount(name: 'Reward', onTap: () {}),
-      CheckoutDiscount(name: 'Custom Reward', onTap: () {}),
+      CheckoutDiscount(
+        name: 'Show Available Discount',
+        onTap: () {
+          Navigator.pop(context);
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              AppDialog.showCustom(
+                context,
+                content: const AvailableDiscountsDialog(),
+                dialogType: DialogType.large,
+                title: 'Available Discounts',
+              );
+            }
+          });
+        },
+      ),
+      CheckoutDiscount(
+        name: 'Reward',
+        onTap: () {
+          Navigator.pop(context);
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              AppDialog.showCustom(
+                context,
+                content: const AvailableDiscountsDialog(),
+                dialogType: DialogType.large,
+                title: 'Reward',
+              );
+            }
+          });
+        },
+      ),
+      CheckoutDiscount(
+        name: 'Custom Reward',
+        onTap: () {
+          Navigator.pop(context);
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              AppDialog.showCustom(
+                context,
+                content: const AvailableDiscountsDialog(),
+                dialogType: DialogType.large,
+                title: 'Custom Reward',
+              );
+            }
+          });
+        },
+      ),
     ];
 
     _paymentMethods = [
@@ -139,6 +186,9 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
           const AppDivider(),
           Expanded(
             child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
               child: Column(
                 spacing: 16,
                 children: [

@@ -23,7 +23,9 @@ class CheckoutActionRow extends StatelessWidget {
                 spacing: 8,
                 children: [
                   AppButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
                     text: 'Cancel',
                     backgroundColor: theme.colorScheme.errorContainer,
                     textStyle: theme.textTheme.bodyMedium?.copyWith(
