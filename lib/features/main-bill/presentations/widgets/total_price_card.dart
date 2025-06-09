@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
+import 'package:rebill_flutter/core/widgets/app_dialog.dart';
+import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_dialog.dart';
 
 class TotalPriceCard extends ConsumerWidget {
   const TotalPriceCard({super.key});
@@ -17,6 +19,7 @@ class TotalPriceCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final cart = ref.watch(cartProvider);
     final isClosed = ref.watch(billProvider.notifier).billStatus == 'closed';
+    final isEmpty = cart.items.isEmpty;
     final total = cart.total;
     final totalRounded = roundUpToThousand(total);
     final numberFormat = NumberFormat.currency(
@@ -24,14 +27,26 @@ class TotalPriceCard extends ConsumerWidget {
       symbol: '',
       decimalDigits: 0,
     );
+
+    void onPressed() {
+      AppDialog.showCustom(
+        context,
+        content: CheckoutDialog(),
+        dialogType: DialogType.medium,
+        title: 'Checkout',
+      );
+    }
+
     return SizedBox(
       height: 50,
       child: AppButton(
-        onPressed: () {},
+        onPressed: onPressed,
         borderRadius: BorderRadius.circular(12),
         backgroundColor:
-            isClosed ? theme.colorScheme.surface : theme.colorScheme.primary,
-        disabled: isClosed,
+            isClosed || isEmpty
+                ? theme.colorScheme.surface
+                : theme.colorScheme.primary,
+        disabled: isClosed || isEmpty,
         disabledColor: theme.colorScheme.surface,
         text: '',
         padding: const EdgeInsets.all(12),
@@ -43,7 +58,7 @@ class TotalPriceCard extends ConsumerWidget {
                 Icon(
                   Icons.receipt_long,
                   color:
-                      isClosed
+                      isClosed || isEmpty
                           ? theme.colorScheme.onSurface
                           : theme.colorScheme.onPrimary,
                   size: 24,
@@ -54,7 +69,7 @@ class TotalPriceCard extends ConsumerWidget {
                   style: theme.textTheme.displaySmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color:
-                        isClosed
+                        isClosed || isEmpty
                             ? theme.colorScheme.onSurface
                             : theme.colorScheme.onPrimary,
                   ),
@@ -68,7 +83,7 @@ class TotalPriceCard extends ConsumerWidget {
                     text: 'IDR ',
                     style: theme.textTheme.displayLarge?.copyWith(
                       color:
-                          isClosed
+                          isClosed || isEmpty
                               ? theme.colorScheme.onSurface
                               : theme.colorScheme.onPrimary,
                       fontWeight: FontWeight.w400,
@@ -79,7 +94,7 @@ class TotalPriceCard extends ConsumerWidget {
                     style: theme.textTheme.displayLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color:
-                          isClosed
+                          isClosed || isEmpty
                               ? theme.colorScheme.onSurface
                               : theme.colorScheme.onPrimary,
                     ),
