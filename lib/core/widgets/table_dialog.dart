@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/models/table.dart';
 import 'package:rebill_flutter/core/providers/table_provider.dart';
 import 'package:rebill_flutter/core/widgets/actions_row.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
@@ -8,6 +9,8 @@ import 'package:rebill_flutter/core/widgets/bill_table_dialog.dart';
 import 'package:rebill_flutter/core/widgets/table_card.dart';
 
 enum TableType { nav, qr, bill }
+
+final selectedQRTable = StateProvider<TableModel?>((ref) => null);
 
 class TableDialog extends ConsumerWidget {
   const TableDialog({super.key, this.tableType = TableType.nav});
@@ -19,12 +22,16 @@ class TableDialog extends ConsumerWidget {
     final tables = ref.watch(tableProvider).tables;
 
     void navTableTap(int index) {
-      AppDialog.showCustom(
-        context,
-        dialogType: DialogType.large,
-        title: '${tables[index].tableName} - Bills',
-        content: BillTableDialog(table: tables[index]),
-      );
+      if (tableType == TableType.nav) {
+        AppDialog.showCustom(
+          context,
+          dialogType: DialogType.large,
+          title: '${tables[index].tableName} - Bills',
+          content: BillTableDialog(table: tables[index]),
+        );
+      } else if (tableType == TableType.qr) {
+        ref.read(selectedQRTable.notifier).state = tables[index];
+      }
     }
 
     return Expanded(

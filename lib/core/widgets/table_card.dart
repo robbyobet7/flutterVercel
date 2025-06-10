@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/providers/table_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
+import 'package:rebill_flutter/core/widgets/app_material.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
 
 class TableCard extends ConsumerWidget {
@@ -21,6 +22,13 @@ class TableCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final table = ref.watch(tableProvider).tables[index];
+    final selectedQRTableValue = ref.watch(selectedQRTable);
+
+    // Check if this table is selected for QR type
+    final isSelectedForQR =
+        tableType == TableType.qr &&
+        selectedQRTableValue != null &&
+        selectedQRTableValue.id == table.id;
 
     final numberFormat = NumberFormat.currency(
       locale: 'id',
@@ -39,25 +47,36 @@ class TableCard extends ConsumerWidget {
       }
     }
 
-    return GestureDetector(
+    return AppMaterial(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
+          color:
+              isSelectedForQR
+                  ? theme.colorScheme.primary
+                  : getStatusColor(table.reservationStatus)[1],
           borderRadius: BorderRadius.circular(12.0),
           border: Border.all(
             width: 2,
-            color: getStatusColor(table.reservationStatus)[0],
+            color:
+                isSelectedForQR
+                    ? theme.colorScheme.primary
+                    : getStatusColor(table.reservationStatus)[0],
           ),
         ),
         child: Column(
           children: [
             Expanded(
               flex: 1,
-              child: Container(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: getStatusColor(table.reservationStatus)[1],
+                  color:
+                      isSelectedForQR
+                          ? theme.colorScheme.primary
+                          : getStatusColor(table.reservationStatus)[1],
                   borderRadius:
                       tableType != TableType.nav
                           ? BorderRadius.circular(12.0)
@@ -70,7 +89,10 @@ class TableCard extends ConsumerWidget {
                   child: Text(
                     table.tableName,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: Colors.black,
+                      color:
+                          isSelectedForQR
+                              ? theme.colorScheme.onPrimary
+                              : Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

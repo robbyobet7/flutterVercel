@@ -5,6 +5,7 @@ import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
 import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main-bill/presentations/widgets/main_default_card.dart';
+import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
 class MainDefaultPage extends ConsumerWidget {
   const MainDefaultPage({super.key});
@@ -12,9 +13,19 @@ class MainDefaultPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final mainBillNotifier = ref.watch(mainBillProvider.notifier);
+    final billTypeNotifier = ref.watch(billTypeProvider.notifier);
 
     final curBillFeature = [
-      {'id': BillType.newBill, 'icon': Icons.receipt, 'title': 'New Bill'},
+      {
+        'id': BillType.newBill,
+        'icon': Icons.receipt,
+        'title': 'New Bill',
+        'event': () {
+          mainBillNotifier.setMainBill(MainBillComponent.currentBillComponent);
+          billTypeNotifier.setBillType(BillType.newBill);
+        },
+      },
       {
         'id': BillType.qrBill,
         'icon': Icons.qr_code,
@@ -32,6 +43,7 @@ class MainDefaultPage extends ConsumerWidget {
         'id': BillType.merchantBill,
         'icon': Icons.store,
         'title': 'Merchant Bill',
+        'event': () {},
       },
     ];
 
