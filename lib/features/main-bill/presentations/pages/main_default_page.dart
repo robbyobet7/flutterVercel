@@ -5,6 +5,7 @@ import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
 import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main-bill/presentations/widgets/main_default_card.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/widgets/merchant_dialog.dart';
 import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
 class MainDefaultPage extends ConsumerWidget {
@@ -43,7 +44,14 @@ class MainDefaultPage extends ConsumerWidget {
         'id': BillType.merchantBill,
         'icon': Icons.store,
         'title': 'Merchant Bill',
-        'event': () {},
+        'event': () {
+          AppDialog.showCustom(
+            context,
+            content: MerchantDialog(),
+            dialogType: DialogType.small,
+            title: 'Select Merchant',
+          );
+        },
       },
     ];
 
