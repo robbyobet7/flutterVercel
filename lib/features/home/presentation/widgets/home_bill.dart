@@ -42,13 +42,6 @@ class _HomeBillState extends ConsumerState<HomeBill> {
     super.dispose();
   }
 
-  // Helper method to get status color
-  Color _getStatusColor(String status, ThemeData theme) {
-    // Don't use caching at all - calculate color every time
-    // This ensures theme changes are reflected immediately
-    return _calculateStatusColor(status);
-  }
-
   // Original color calculation logic
   Color _calculateStatusColor(String status) {
     // Get theme inside the method each time it's called
@@ -56,7 +49,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
 
     switch (status.toLowerCase()) {
       case 'closed':
-        return theme.colorScheme.surfaceContainer;
+        return theme.colorScheme.errorContainer;
       case 'open':
         return theme.colorScheme.primary;
       default:
@@ -357,7 +350,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
     return List.generate(bills.length, (index) {
       final bill = bills[index];
       // Cache the status color to avoid recalculating it
-      final statusColor = _getStatusColor(bill.status, theme);
+      final statusColor = _calculateStatusColor(bill.status);
       final isFirstItem = index == 0;
       // Use finalTotal instead of total
       final billTotal = bill.finalTotal;
@@ -370,8 +363,10 @@ class _HomeBillState extends ConsumerState<HomeBill> {
       ).format(billTotal);
 
       // Determine text color based on background luminance
-      final isLightBackground = statusColor.computeLuminance() > 0.5;
-      final textColor = isLightBackground ? Colors.black : Colors.white;
+      final textColor =
+          statusColor == theme.colorScheme.primary
+              ? theme.colorScheme.onPrimary
+              : theme.colorScheme.error;
 
       return GestureDetector(
         onTap: () async {

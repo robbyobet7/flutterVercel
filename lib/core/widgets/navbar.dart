@@ -423,7 +423,7 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
                   color:
                       active
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurfaceVariant,
+                          : theme.colorScheme.onSurface,
                   size: 20,
                 ),
                 const SizedBox(height: 4),
@@ -434,7 +434,7 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
                     color:
                         active
                             ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant,
+                            : theme.colorScheme.onSurface,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
