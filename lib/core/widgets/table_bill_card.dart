@@ -71,9 +71,18 @@ class TableBillCard extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
-                  Expanded(child: Text('Created at')),
+                  Expanded(
+                    flex: 2,
+                    child: Text('Created At', overflow: TextOverflow.ellipsis),
+                  ),
                   Text(': '),
-                  Expanded(flex: 2, child: Text(bill.posBillDate.toBillDate())),
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      bill.posBillDate.toBillDate(),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -83,9 +92,18 @@ class TableBillCard extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
-                  Expanded(child: Text('Customer Name')),
+                  Expanded(
+                    flex: 2,
+                    child: Text('Customer', overflow: TextOverflow.ellipsis),
+                  ),
                   Text(': '),
-                  Expanded(flex: 2, child: Text(bill.customerName)),
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      bill.customerName,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
             ),
