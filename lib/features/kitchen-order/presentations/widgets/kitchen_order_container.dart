@@ -99,11 +99,17 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(_getTimeAgo(order.createdAt)),
+                  Text(
+                    _getTimeAgo(order.createdAt),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.black,
+                    ),
+                  ),
                   Text(
                     '${order.customer} | ${order.table}',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
                 ],

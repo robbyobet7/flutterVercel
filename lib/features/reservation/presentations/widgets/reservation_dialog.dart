@@ -248,6 +248,7 @@ class ReservationListItem extends ConsumerWidget {
     final isLandscape = ref.watch(orientationProvider);
 
     return Slidable(
+      enabled: !isLandscape,
       key: ValueKey(reservation.id),
       endActionPane: ActionPane(
         extentRatio: 0.4,

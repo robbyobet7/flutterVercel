@@ -67,6 +67,11 @@ class AppTheme {
       surface: const Color(0xFF1F1F2C),
       error: const Color(0xFFE53935),
       surfaceContainer: Colors.black.withOpacity(0.2),
+      errorContainer: const Color(0xFFFDEEED),
+      onPrimary: Colors.white,
+      primaryContainer: const Color(
+        0xFF2C3A5C,
+      ), // Darker version of light primaryContainer
     ),
     scaffoldBackgroundColor: const Color(0xFF121220),
     appBarTheme: const AppBarTheme(

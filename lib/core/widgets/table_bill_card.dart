@@ -45,7 +45,6 @@ class TableBillCard extends ConsumerWidget {
       child: Container(
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: theme.colorScheme.surfaceContainer,
