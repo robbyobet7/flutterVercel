@@ -378,10 +378,6 @@ class Bill extends ConsumerWidget {
                       color: theme.colorScheme.surfaceContainer.withOpacity(
                         0.3,
                       ),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(12),
-                        bottomRight: Radius.circular(12),
-                      ),
                     ),
                     padding: const EdgeInsets.all(12),
                     child: Column(
