@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 import '../models/customers.dart';
-import '../middleware/customer_middleware.dart';
+import '../repositories/customer_repository.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:convert';
 
 // Customer state
 class CustomerState {
@@ -37,34 +40,55 @@ class CustomerState {
 
 // Customer notifier
 class CustomerNotifier extends StateNotifier<CustomerState> {
-  final CustomerMiddleware _middleware;
+  final CustomerRepository _repository;
+  final _customerStreamController =
+      StreamController<List<CustomerModel>>.broadcast();
+  final _errorStreamController = StreamController<String>.broadcast();
 
-  CustomerNotifier(this._middleware) : super(CustomerState(customers: [])) {
+  Stream<List<CustomerModel>> get customersStream =>
+      _customerStreamController.stream;
+  Stream<String> get errorStream => _errorStreamController.stream;
+
+  CustomerNotifier(this._repository) : super(CustomerState(customers: [])) {
     _initialize();
-    _listenToCustomerChanges();
-    _listenToErrors();
+    _setupStreams();
   }
 
   // Initialize the provider
   Future<void> _initialize() async {
     state = state.copyWith(isLoading: true);
-    await _middleware.initialize();
+    try {
+      if (!_repository.isInitialized) {
+        await _loadCustomersFromJson();
+      }
+      refreshCustomers();
+    } catch (e) {
+      _errorStreamController.add('Failed to initialize customer data: $e');
+    }
   }
 
-  // Listen for customer changes
-  void _listenToCustomerChanges() {
-    _middleware.customersStream.listen((customers) {
+  // Load customers from JSON
+  Future<void> _loadCustomersFromJson() async {
+    try {
+      final jsonString = await rootBundle.loadString('assets/customers.json');
+      final customers = CustomerModel.parseCustomers(jsonString);
+      _repository.setCustomers(customers);
+    } catch (e) {
+      _errorStreamController.add('Failed to load customers from JSON: $e');
+    }
+  }
+
+  // Setup streams
+  void _setupStreams() {
+    customersStream.listen((customers) {
       state = state.copyWith(
         customers: state.searchQuery.isEmpty ? customers : state.customers,
         allCustomers: customers,
         isLoading: false,
       );
     });
-  }
 
-  // Listen for errors
-  void _listenToErrors() {
-    _middleware.errorStream.listen((error) {
+    errorStream.listen((error) {
       state = state.copyWith(errorMessage: error, isLoading: false);
     });
   }
@@ -72,28 +96,45 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   // Refresh customer list
   Future<void> refreshCustomers() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    await _middleware.refreshCustomers();
+    try {
+      final customers = _repository.getAllCustomers();
+      _customerStreamController.add(customers);
+    } catch (e) {
+      _errorStreamController.add('Failed to load customers: $e');
+    }
   }
 
   // Add a new customer
   Future<void> addCustomer(CustomerModel customer) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    await _middleware.addCustomer(customer);
-    // refreshCustomers will update both customers and allCustomers via _listenToCustomerChanges
+    try {
+      _repository.addCustomer(customer);
+      refreshCustomers();
+    } catch (e) {
+      _errorStreamController.add('Failed to add customer: $e');
+    }
   }
 
   // Update an existing customer
   Future<void> updateCustomer(CustomerModel customer) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    await _middleware.updateCustomer(customer);
-    // refreshCustomers will update both customers and allCustomers via _listenToCustomerChanges
+    try {
+      _repository.updateCustomer(customer);
+      refreshCustomers();
+    } catch (e) {
+      _errorStreamController.add('Failed to update customer: $e');
+    }
   }
 
   // Delete a customer
   Future<void> deleteCustomer(int id) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    await _middleware.deleteCustomer(id);
-    // refreshCustomers will update both customers and allCustomers via _listenToCustomerChanges
+    try {
+      _repository.deleteCustomer(id);
+      refreshCustomers();
+    } catch (e) {
+      _errorStreamController.add('Failed to delete customer: $e');
+    }
   }
 
   // Search customers
@@ -109,8 +150,13 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
       return;
     }
 
-    final results = await _middleware.searchCustomers(query);
-    state = state.copyWith(customers: results, isLoading: false);
+    try {
+      final results = _repository.searchCustomersByName(query);
+      state = state.copyWith(customers: results, isLoading: false);
+    } catch (e) {
+      _errorStreamController.add('Failed to search customers: $e');
+      state = state.copyWith(isLoading: false);
+    }
   }
 
   // Clear search
@@ -120,26 +166,45 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
 
   // Get customer by ID
   Future<CustomerModel?> getCustomerById(int id) async {
-    return await _middleware.getCustomer(id);
+    try {
+      return _repository.getCustomerById(id);
+    } catch (e) {
+      _errorStreamController.add('Failed to get customer with ID $id: $e');
+      return null;
+    }
   }
 
   // Get customers with loyalty points
   Future<void> getLoyaltyCustomers() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    final loyaltyCustomers = await _middleware.getCustomersWithPoints();
-
-    state = state.copyWith(
-      customers: loyaltyCustomers,
-      // Don't update allCustomers here, as this is a filtered view
-      isLoading: false,
-    );
+    try {
+      final loyaltyCustomers = _repository.getCustomersWithPoints();
+      state = state.copyWith(
+        customers: loyaltyCustomers,
+        // Don't update allCustomers here, as this is a filtered view
+        isLoading: false,
+      );
+    } catch (e) {
+      _errorStreamController.add('Failed to get loyalty customers: $e');
+      state = state.copyWith(isLoading: false);
+    }
   }
 
   // Save changes
   Future<void> saveChanges() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    await _middleware.saveCustomers();
-    state = state.copyWith(isLoading: false);
+    try {
+      // This would be implemented to save to JSON/DB in a real app
+      final jsonList = _repository.getCustomersForSerialization();
+      // ignore: unused_local_variable
+      final jsonString = json.encode(jsonList);
+
+      // In a real app: await file.writeAsString(jsonString);
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      _errorStreamController.add('Failed to save customers: $e');
+      state = state.copyWith(isLoading: false);
+    }
   }
 
   // Clear error message
@@ -149,23 +214,24 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
 
   @override
   void dispose() {
-    // Not disposing the middleware here as it's a singleton
+    _customerStreamController.close();
+    _errorStreamController.close();
     super.dispose();
   }
 }
 
 // Provider definitions
 
-// Singleton middleware provider
-final customerMiddlewareProvider = Provider<CustomerMiddleware>((ref) {
-  return CustomerMiddleware();
+// Singleton repository provider
+final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
+  return CustomerRepository.instance;
 });
 
 // Customer state provider
 final customerProvider = StateNotifierProvider<CustomerNotifier, CustomerState>(
   (ref) {
-    final middleware = ref.read(customerMiddlewareProvider);
-    return CustomerNotifier(middleware);
+    final repository = ref.read(customerRepositoryProvider);
+    return CustomerNotifier(repository);
   },
 );
 

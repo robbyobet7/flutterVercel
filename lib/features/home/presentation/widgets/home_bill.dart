@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:rebill_flutter/core/core_exports.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/merge_bill_provider.dart';
@@ -32,6 +33,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(billProvider.notifier).loadBills();
       ref.read(mergeBillProvider.notifier).loadBills();
+      ref.read(customerProvider.notifier).refreshCustomers();
     });
   }
 
