@@ -69,7 +69,7 @@ class AdvancedSetting extends StatelessWidget {
                     Column(
                       children: [
                         LabelText(text: 'Auto Cut'),
-                        Container(
+                        SizedBox(
                           height: 45,
                           width: 45,
                           child: Center(child: AppCheckbox()),

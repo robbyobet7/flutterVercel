@@ -191,14 +191,11 @@ class KitchenOrder {
         try {
           orders.add(KitchenOrder.fromJson(json));
         } catch (e) {
-          print('Error parsing kitchen order: $e');
-          print('Problematic kitchen order data: $json');
           // Continue with next order instead of rethrowing
         }
       }
       return orders;
     } catch (e) {
-      print('Error parsing kitchen orders JSON: $e');
       return [];
     }
   }

@@ -32,12 +32,7 @@ class KitchenOrderMiddleware {
 
       // Mark as initialized
       _isInitialized = true;
-
-      print(
-        'Kitchen orders loaded successfully: ${kitchenOrders.length} orders',
-      );
     } catch (e) {
-      print('Error loading kitchen orders: $e');
       // Initialize with empty list in case of error
       KitchenOrderRepository.instance.setKitchenOrders([]);
     }

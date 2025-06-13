@@ -22,7 +22,6 @@ class ReservationRepository {
 
       return result;
     } catch (e) {
-      print('Error loading reservations: $e');
       return [];
     }
   }

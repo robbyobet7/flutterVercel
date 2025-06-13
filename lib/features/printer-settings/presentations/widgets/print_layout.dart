@@ -12,7 +12,7 @@ class PrintLayout extends ConsumerWidget {
     final theme = Theme.of(context);
     const layout = ['Normal', 'Compact'];
     final printerLayout = ref.watch(printerLayoutProvider);
-    final isSelected = (String layout) => printerLayout == layout;
+    isSelected(String layout) => printerLayout == layout;
 
     return Column(
       children: [

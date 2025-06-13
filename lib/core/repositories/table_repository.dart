@@ -38,7 +38,6 @@ class TableRepository {
         orElse: () => throw Exception('Table not found with ID: $id'),
       );
     } catch (e) {
-      print('Error getting table: $e');
       return null;
     }
   }

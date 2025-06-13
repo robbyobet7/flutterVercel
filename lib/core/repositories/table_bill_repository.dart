@@ -38,7 +38,6 @@ class TableBillRepository {
         orElse: () => throw Exception('Bill not found with ID: $id'),
       );
     } catch (e) {
-      print('Error getting bill by ID: $e');
       rethrow;
     }
   }
@@ -51,7 +50,6 @@ class TableBillRepository {
     try {
       return _bills.where((bill) => bill.tableId == tableId).toList();
     } catch (e) {
-      print('Error getting bills by table ID: $e');
       return [];
     }
   }

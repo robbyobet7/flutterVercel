@@ -455,14 +455,11 @@ class BillModel {
         try {
           bills.add(BillModel.fromJson(json));
         } catch (e) {
-          print('Error parsing bill: $e');
-          print('Problematic bill data: $json');
           // Continue with next bill instead of rethrowing
         }
       }
       return bills;
     } catch (e) {
-      print('Error parsing bills JSON: $e');
       return [];
     }
   }

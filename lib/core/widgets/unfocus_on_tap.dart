@@ -8,7 +8,7 @@ class UnfocusOnTap extends StatelessWidget {
   /// Creates a container that unfocuses when tapped.
   ///
   /// The [child] parameter is required.
-  const UnfocusOnTap({Key? key, required this.child}) : super(key: key);
+  const UnfocusOnTap({super.key, required this.child});
 
   /// The widget below this widget in the tree.
   final Widget child;

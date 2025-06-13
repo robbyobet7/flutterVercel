@@ -56,7 +56,7 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
     ];
     return Column(
       children: [
-        Container(
+        SizedBox(
           height: 40,
           width: double.infinity,
           child: Row(
@@ -102,25 +102,23 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
             ),
           ),
         Expanded(
-          child: Container(
-            child: Column(
-              children: [
-                ListHeader(
-                  headers: headers,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
+          child: Column(
+            children: [
+              ListHeader(
+                headers: headers,
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
 
-                // Reservation list view with error and loading states
-                Expanded(
-                  child: _buildReservationList(
-                    reservations,
-                    isLoading,
-                    error,
-                    theme,
-                  ),
+              // Reservation list view with error and loading states
+              Expanded(
+                child: _buildReservationList(
+                  reservations,
+                  isLoading,
+                  error,
+                  theme,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
@@ -187,12 +185,10 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Reservation items for this date
-                  ...group
-                      .map(
-                        (reservation) =>
-                            ReservationListItem(reservation: reservation),
-                      )
-                      .toList(),
+                  ...group.map(
+                    (reservation) =>
+                        ReservationListItem(reservation: reservation),
+                  ),
                 ],
               ),
             ),

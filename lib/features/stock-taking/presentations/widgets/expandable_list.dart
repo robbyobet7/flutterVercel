@@ -194,7 +194,7 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
                                     CellColumn(
                                       flex: 1,
                                       text: '',
-                                      child: Container(
+                                      child: SizedBox(
                                         height: 45,
                                         child: Row(
                                           mainAxisAlignment:

@@ -17,7 +17,6 @@ extension StringDateExtension on String {
         final inputDate = DateFormat(alternateFormat).parse(this);
         return DateFormat(outputFormat).format(inputDate);
       } catch (e) {
-        print(e);
         return this; // Return original string if parsing fails
       }
     }

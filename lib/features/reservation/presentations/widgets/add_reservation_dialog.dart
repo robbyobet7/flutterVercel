@@ -93,7 +93,6 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
     final theme = Theme.of(context);
 
     final tables = ref.watch(tableProvider).tables;
-    print(tables);
 
     return Expanded(
       child: SingleChildScrollView(

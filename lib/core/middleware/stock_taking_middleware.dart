@@ -27,12 +27,7 @@ class StockTakingMiddleware {
       StockTakingRepository.instance.setStockTakings(stockTakings);
 
       _isInitialized = true;
-
-      print(
-        'Stock takings loaded successfully: ${stockTakings.length} stock takings',
-      );
     } catch (e) {
-      print('Error loading stock takings: $e');
       // Initialize with empty list in case of error
       StockTakingRepository.instance.setStockTakings([]);
     }

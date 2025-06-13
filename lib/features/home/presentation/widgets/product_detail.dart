@@ -256,7 +256,9 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
           );
 
       Navigator.pop(context);
-    } catch (e) {}
+    } catch (e) {
+      throw Exception(e);
+    }
   }
 
   Widget _buildProductImage() {

@@ -83,14 +83,11 @@ class StockTaking {
         try {
           stockTakings.add(StockTaking.fromJson(json));
         } catch (e) {
-          print('Error parsing stock taking: $e');
-          print('Problematic stock taking data: $json');
           // Continue with next item instead of rethrowing
         }
       }
       return stockTakings;
     } catch (e) {
-      print('Error parsing stock takings JSON: $e');
       return [];
     }
   }

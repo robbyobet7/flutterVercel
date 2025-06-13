@@ -163,7 +163,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
     return Column(
       children: [
         LabelText(text: title),
-        Container(
+        SizedBox(
           width: double.infinity,
           height: 45,
           child: Row(spacing: 8, children: buttons),
