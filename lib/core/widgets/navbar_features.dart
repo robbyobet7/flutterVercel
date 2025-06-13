@@ -72,27 +72,27 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
     ];
   }
 
-  // void _scrollLeft() {
-  //   if (_scrollController.hasClients) {
-  //     final position = _scrollController.position.pixels;
-  //     _scrollController.animateTo(
-  //       position - 80,
-  //       duration: const Duration(milliseconds: 300),
-  //       curve: Curves.easeInOut,
-  //     );
-  //   }
-  // }
+  void _scrollLeft() {
+    if (_scrollController.hasClients) {
+      final position = _scrollController.position.pixels;
+      _scrollController.animateTo(
+        position - 80,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
 
-  // void _scrollRight() {
-  //   if (_scrollController.hasClients) {
-  //     final position = _scrollController.position.pixels;
-  //     _scrollController.animateTo(
-  //       position + 80,
-  //       duration: const Duration(milliseconds: 300),
-  //       curve: Curves.easeInOut,
-  //     );
-  //   }
-  // }
+  void _scrollRight() {
+    if (_scrollController.hasClients) {
+      final position = _scrollController.position.pixels;
+      _scrollController.animateTo(
+        position + 80,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -116,16 +116,16 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // IconButton(
-                //   icon: Icon(Icons.arrow_back_ios, size: 10),
-                //   onPressed: _scrollLeft,
-                //   tooltip: 'Scroll left',
-                //   iconSize: 16,
-                //   constraints: const BoxConstraints(
-                //     minWidth: 32,
-                //     minHeight: 32,
-                //   ),
-                // ),
+                IconButton(
+                  icon: Icon(Icons.arrow_back_ios, size: 10),
+                  onPressed: _scrollLeft,
+                  tooltip: 'Scroll left',
+                  iconSize: 16,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
+                ),
                 Expanded(
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -184,16 +184,16 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
                     ),
                   ),
                 ),
-                // IconButton(
-                //   icon: Icon(Icons.arrow_forward_ios, size: 10),
-                //   onPressed: _scrollRight,
-                //   tooltip: 'Scroll right',
-                //   iconSize: 16,
-                //   constraints: const BoxConstraints(
-                //     minWidth: 32,
-                //     minHeight: 32,
-                //   ),
-                // ),
+                IconButton(
+                  icon: Icon(Icons.arrow_forward_ios, size: 10),
+                  onPressed: _scrollRight,
+                  tooltip: 'Scroll right',
+                  iconSize: 16,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
+                ),
               ],
             );
           } else {

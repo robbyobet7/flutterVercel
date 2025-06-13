@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/theme/theme_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
@@ -16,6 +17,8 @@ class Navbar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isLandscape = ref.watch(orientationProvider);
+
     void handlePrinterTap() {
       AppDialog.showCustom(
         context,
@@ -37,17 +40,18 @@ class Navbar extends ConsumerWidget {
         child: Center(
           child:
               ref.watch(hideNavbarProvider)
-                  ? Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-
-                    child: AppMaterial(
-                      onTap: () {
-                        ref.read(hideNavbarProvider.notifier).state =
-                            !ref.read(hideNavbarProvider.notifier).state;
-                      },
+                  ? AppMaterial(
+                    borderRadius: BorderRadius.circular(0),
+                    onTap: () {
+                      ref.read(hideNavbarProvider.notifier).state =
+                          !ref.read(hideNavbarProvider.notifier).state;
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      width: double.infinity,
                       child: Icon(Icons.unfold_more),
                     ),
                   )
@@ -81,19 +85,27 @@ class Navbar extends ConsumerWidget {
                         NavFeatures(),
                         Row(
                           children: [
-                            IconButton(
-                              onPressed: () {
-                                ref.read(hideNavbarProvider.notifier).state =
-                                    !ref
-                                        .read(hideNavbarProvider.notifier)
-                                        .state;
-                              },
-                              icon: Icon(Icons.unfold_less),
-                            ),
-                            IconButton(
-                              onPressed: () {},
-                              icon: Icon(Icons.fullscreen),
-                            ),
+                            if (isLandscape)
+                              IconButton(
+                                onPressed: () {
+                                  ref.read(hideNavbarProvider.notifier).state =
+                                      !ref
+                                          .read(hideNavbarProvider.notifier)
+                                          .state;
+                                },
+                                icon: Icon(
+                                  Icons.unfold_less,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            if (isLandscape)
+                              IconButton(
+                                onPressed: () {},
+                                icon: Icon(
+                                  Icons.fullscreen,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
                             PopupMenuButton<String>(
                               icon: const Icon(Icons.expand_more),
                               tooltip: 'Options',
@@ -119,6 +131,16 @@ class Navbar extends ConsumerWidget {
                                       );
                                       themeNotifier.toggleTheme();
                                     });
+                                    break;
+                                  case 'collapse':
+                                    ref
+                                        .read(hideNavbarProvider.notifier)
+                                        .state = !ref
+                                            .read(hideNavbarProvider.notifier)
+                                            .state;
+                                    break;
+                                  case 'fullscreen':
+                                    // Handle fullscreen action
                                     break;
                                   case 'logout':
                                     // Handle logout action
@@ -175,6 +197,50 @@ class Navbar extends ConsumerWidget {
                                         ],
                                       ),
                                     ),
+                                    if (!isLandscape)
+                                      PopupMenuItem<String>(
+                                        value: 'collapse',
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.unfold_more,
+                                              color:
+                                                  theme.colorScheme.onSurface,
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              'Collapse',
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    if (!isLandscape)
+                                      PopupMenuItem<String>(
+                                        value: 'fullscreen',
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.fullscreen,
+                                              color:
+                                                  theme.colorScheme.onSurface,
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              'Fullscreen',
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     PopupMenuItem<String>(
                                       height: .5, // Minimal height
                                       enabled: false,
