@@ -8,6 +8,7 @@ import 'package:rebill_flutter/core/providers/merge_bill_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
+import 'package:rebill_flutter/core/widgets/app_material.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/user_bills_dropdown.dart';
 import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
@@ -370,7 +371,8 @@ class _HomeBillState extends ConsumerState<HomeBill> {
               ? theme.colorScheme.onPrimary
               : theme.colorScheme.error;
 
-      return GestureDetector(
+      return AppMaterial(
+        borderRadius: BorderRadius.circular(0),
         onTap: () async {
           try {
             ref
@@ -402,7 +404,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
             color:
                 selectedBill?.billId == bill.billId
                     ? theme.colorScheme.primaryContainer
-                    : Colors.transparent,
+                    : theme.colorScheme.surface,
             border: Border(
               top:
                   isFirstItem
