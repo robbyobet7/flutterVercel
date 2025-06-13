@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/providers/device_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
@@ -44,7 +45,7 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final isWeb = ref.watch(isWebProvider);
     final headers = [
       Header(flex: 2, text: 'Item'),
       Header(flex: 1, text: 'Current Stock', textAlign: TextAlign.center),
@@ -122,13 +123,15 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                     // Each index represents one of our expandable lists
                     switch (index) {
                       case 0:
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: 12),
-                          child: ExpandableList(
-                            title: 'Products',
-                            stockTakings: products,
-                          ),
-                        );
+                        return isWeb
+                            ? SizedBox(height: 12)
+                            : Padding(
+                              padding: EdgeInsets.only(bottom: 12),
+                              child: ExpandableList(
+                                title: 'Products',
+                                stockTakings: products,
+                              ),
+                            );
                       case 1:
                         return Padding(
                           padding: EdgeInsets.only(bottom: 12),
@@ -166,7 +169,9 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                   children: [
                     AppButton(
                       text: 'Cancel',
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
                       backgroundColor: theme.colorScheme.errorContainer,
                       textStyle: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.error,

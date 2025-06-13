@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
+import 'package:rebill_flutter/core/providers/device_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 
 class Bill extends ConsumerWidget {
@@ -17,7 +18,7 @@ class Bill extends ConsumerWidget {
       symbol: '',
       decimalDigits: 0,
     );
-
+    final isWeb = ref.watch(isWebProvider);
     // Round up to nearest thousand (Indonesian common practice)
     int roundUpToThousand(double value) {
       return ((value / 1000).ceil()) * 1000;
@@ -517,6 +518,7 @@ class Bill extends ConsumerWidget {
 
                         if (isClosed)
                           Column(
+                            spacing: isWeb ? 8 : 0,
                             children: [
                               SizedBox(
                                 width: double.infinity,

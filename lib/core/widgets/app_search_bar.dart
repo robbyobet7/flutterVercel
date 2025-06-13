@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/providers/device_provider.dart';
 import '../../features/home/providers/search_provider.dart';
 
 class AppSearchBar extends ConsumerStatefulWidget {
@@ -54,6 +55,7 @@ class _AppSearchBarState extends ConsumerState<AppSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    final isWeb = ref.watch(isWebProvider);
     final theme = Theme.of(context);
     // Watch search provider to keep UI in sync
     final searchQuery = ref.watch(_searchProvider);
@@ -95,7 +97,10 @@ class _AppSearchBarState extends ConsumerState<AppSearchBar> {
                   ),
                   hintText: widget.hintText,
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 13),
+                  contentPadding:
+                      isWeb
+                          ? const EdgeInsets.symmetric(vertical: 17)
+                          : const EdgeInsets.symmetric(vertical: 13),
                 ),
                 onChanged: (value) {
                   ref.read(_searchProvider.notifier).updateSearchQuery(value);

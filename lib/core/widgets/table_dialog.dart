@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/table.dart';
+import 'package:rebill_flutter/core/providers/device_provider.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/providers/table_provider.dart';
 import 'package:rebill_flutter/core/widgets/actions_row.dart';
@@ -22,7 +23,7 @@ class TableDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tables = ref.watch(tableProvider).tables;
     final isLandscape = ref.watch(orientationProvider);
-
+    final isWeb = ref.watch(isWebProvider);
     void navTableTap(int index) {
       if (tableType == TableType.nav) {
         AppDialog.showCustom(
@@ -47,7 +48,12 @@ class TableDialog extends ConsumerWidget {
               ),
               padding: EdgeInsets.only(top: 12),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: isLandscape ? 5 : 3,
+                crossAxisCount:
+                    isWeb
+                        ? 6
+                        : isLandscape
+                        ? 5
+                        : 3,
                 crossAxisSpacing: 12.0,
                 mainAxisSpacing: 12.0,
               ),
