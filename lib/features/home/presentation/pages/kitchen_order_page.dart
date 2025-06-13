@@ -61,45 +61,43 @@ class _KitchenOrderPageState extends ConsumerState<KitchenOrderPage> {
       );
     } else {
       // Portrait layout with TabBar at bottom
-      return Flexible(
-        child: DefaultTabController(
-          length: 3,
-          child: Scaffold(
-            backgroundColor: theme.scaffoldBackgroundColor,
-            body: Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: TabBarView(
-                clipBehavior: Clip.none,
-                children:
-                    kitchenOrderFeatures
-                        .map(
-                          (feature) => Row(
-                            children: [
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  child: feature,
+      return DefaultTabController(
+        length: 3,
+        child: Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          body: Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: TabBarView(
+              clipBehavior: Clip.none,
+              children:
+                  kitchenOrderFeatures
+                      .map(
+                        (feature) => Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
                                 ),
+                                child: feature,
                               ),
-                            ],
-                          ),
-                        )
-                        .toList(),
-              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      .toList(),
             ),
-            bottomNavigationBar: TabBar(
-              tabs: const [
-                Tab(icon: Icon(Icons.inventory)),
-                Tab(icon: Icon(Icons.receipt)),
-                Tab(icon: Icon(Icons.account_balance_wallet)),
-              ],
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: theme.colorScheme.primary,
-              indicatorColor: theme.colorScheme.primary,
-              unselectedLabelColor: Colors.grey,
-            ),
+          ),
+          bottomNavigationBar: TabBar(
+            tabs: const [
+              Tab(icon: Icon(Icons.inventory)),
+              Tab(icon: Icon(Icons.receipt)),
+              Tab(icon: Icon(Icons.account_balance_wallet)),
+            ],
+            indicatorSize: TabBarIndicatorSize.tab,
+            labelColor: theme.colorScheme.primary,
+            indicatorColor: theme.colorScheme.primary,
+            unselectedLabelColor: Colors.grey,
           ),
         ),
       );
