@@ -152,6 +152,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           'Discount',
+                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -160,6 +161,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           'Amount',
+                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -169,6 +171,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                         child: Text(
                           'Today Remaining',
                           textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -178,6 +181,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                         child: Text(
                           'Minimum',
                           textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -187,6 +191,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                         child: Text(
                           'Capped to',
                           textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -261,6 +266,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                                   Expanded(
                                     child: Text(
                                       discount.name,
+                                      overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleSmall
                                           ?.copyWith(
                                             fontWeight: FontWeight.bold,
@@ -274,6 +280,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                                           : currencyFormatter.format(
                                             discount.amount,
                                           ),
+                                      overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleSmall
                                           ?.copyWith(
                                             fontWeight: FontWeight.w400,
@@ -284,6 +291,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                                     child: Text(
                                       discount.todayRemaining.toString(),
                                       textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleSmall
                                           ?.copyWith(
                                             fontWeight: FontWeight.w400,
@@ -296,6 +304,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                                         discount.minimum,
                                       ),
                                       textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleSmall
                                           ?.copyWith(
                                             fontWeight: FontWeight.w400,
@@ -308,6 +317,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                                         discount.cappedTo,
                                       ),
                                       textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleSmall
                                           ?.copyWith(
                                             fontWeight: FontWeight.w400,

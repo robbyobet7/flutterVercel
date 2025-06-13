@@ -17,6 +17,7 @@ class HeaderColumn extends StatelessWidget {
       flex: flex,
       child: Text(
         text,
+        overflow: TextOverflow.ellipsis,
         textAlign: textAlign ?? TextAlign.left,
         style: Theme.of(
           context,
@@ -48,6 +49,7 @@ class CellColumn extends StatelessWidget {
           Text(
             text,
             textAlign: textAlign ?? TextAlign.left,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400),

@@ -276,18 +276,8 @@ class AppDialog extends StatelessWidget {
   //           iconColor: iconColor,
   //           isCustom: true,
   //           onClose: onClose,
-  //           width:
-  //               dialogType == DialogType.small
-  //                   ? MediaQuery.of(context).size.width * 0.5
-  //                   : dialogType == DialogType.medium
-  //                   ? MediaQuery.of(context).size.width * 0.5
-  //                   : MediaQuery.of(context).size.width * 0.8,
-  //           height:
-  //               dialogType == DialogType.small
-  //                   ? MediaQuery.of(context).size.height * 0.5
-  //                   : dialogType == DialogType.medium
-  //                   ? MediaQuery.of(context).size.height * 0.8
-  //                   : MediaQuery.of(context).size.height * 0.8,
+  //           width: _getDialogWidth(context, dialogType),
+  //           height: _getDialogHeight(context, dialogType),
   //           padding: padding,
   //         ),
   //   );
@@ -329,18 +319,8 @@ class AppDialog extends StatelessWidget {
               iconColor: iconColor,
               isCustom: true,
               onClose: onClose,
-              width:
-                  dialogType == DialogType.small
-                      ? MediaQuery.of(context).size.width * 0.5
-                      : dialogType == DialogType.medium
-                      ? MediaQuery.of(context).size.width * 0.5
-                      : MediaQuery.of(context).size.width * 0.8,
-              height:
-                  dialogType == DialogType.small
-                      ? MediaQuery.of(context).size.height * 0.5
-                      : dialogType == DialogType.medium
-                      ? MediaQuery.of(context).size.height * 0.8
-                      : MediaQuery.of(context).size.height * 0.8,
+              width: _getDialogWidth(context, dialogType),
+              height: _getDialogHeight(context, dialogType),
               padding: padding,
             ),
           ),
@@ -354,6 +334,48 @@ class AppDialog extends StatelessWidget {
         return const SizedBox.shrink();
       },
     );
+  }
+
+  /// Helper methods to calculate dialog width based on orientation
+  static double _getDialogWidth(BuildContext context, DialogType dialogType) {
+    final mediaQuery = MediaQuery.of(context);
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+
+    if (isLandscape) {
+      return dialogType == DialogType.small
+          ? mediaQuery.size.width * 0.5
+          : dialogType == DialogType.medium
+          ? mediaQuery.size.width * 0.5
+          : mediaQuery.size.width * 0.8;
+    } else {
+      // Portrait mode - use more width
+      return dialogType == DialogType.small
+          ? mediaQuery.size.width * 0.85
+          : dialogType == DialogType.medium
+          ? mediaQuery.size.width * 0.9
+          : mediaQuery.size.width * 0.95;
+    }
+  }
+
+  /// Helper methods to calculate dialog height based on orientation
+  static double _getDialogHeight(BuildContext context, DialogType dialogType) {
+    final mediaQuery = MediaQuery.of(context);
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+
+    if (isLandscape) {
+      return dialogType == DialogType.small
+          ? mediaQuery.size.height * 0.5
+          : dialogType == DialogType.medium
+          ? mediaQuery.size.height * 0.8
+          : mediaQuery.size.height * 0.8;
+    } else {
+      // Portrait mode - use less height to avoid keyboard issues
+      return dialogType == DialogType.small
+          ? mediaQuery.size.height * 0.3
+          : dialogType == DialogType.medium
+          ? mediaQuery.size.height * 0.5
+          : mediaQuery.size.height * 0.6;
+    }
   }
 }
 

@@ -61,8 +61,7 @@ class KnownIndividualDialog extends ConsumerWidget {
                         child: Text(
                           'Name',
                           style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w400,
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -71,8 +70,7 @@ class KnownIndividualDialog extends ConsumerWidget {
                         child: Text(
                           'Email/Social',
                           style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w400,
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -81,8 +79,7 @@ class KnownIndividualDialog extends ConsumerWidget {
                         child: Text(
                           'Phone',
                           style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w400,
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -90,8 +87,7 @@ class KnownIndividualDialog extends ConsumerWidget {
                         child: Text(
                           'Affiliate',
                           style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w400,
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

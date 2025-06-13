@@ -130,7 +130,9 @@ class TableCard extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      const AppDivider(),
+                      AppDivider(
+                        color: getStatusColor(table.reservationStatus)[0],
+                      ),
                       Expanded(
                         child: Center(
                           child: Text.rich(
@@ -156,7 +158,9 @@ class TableCard extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      const AppDivider(),
+                      AppDivider(
+                        color: getStatusColor(table.reservationStatus)[0],
+                      ),
                       Expanded(
                         child: Center(
                           child: Text(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
+import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 import 'package:rebill_flutter/core/widgets/list_header.dart';
@@ -32,15 +34,25 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
     final reservations = reservationState.reservations;
     final isLoading = reservationState.isLoading;
     final error = reservationState.error;
+    final isLandscape = ref.watch(orientationProvider);
 
     final headers = [
-      Header(flex: 4, textAlign: TextAlign.left, text: 'Name'),
+      Header(
+        flex: isLandscape ? 4 : 3,
+        textAlign: TextAlign.left,
+        text: 'Name',
+      ),
       Header(flex: 2, textAlign: TextAlign.center, text: 'Time'),
       Header(flex: 2, textAlign: TextAlign.center, text: 'Duration'),
       Header(flex: 2, textAlign: TextAlign.center, text: 'Headcount'),
       Header(flex: 2, textAlign: TextAlign.center, text: 'Table'),
-      Header(flex: 3, textAlign: TextAlign.center, text: 'Remark'),
-      Header(flex: 1, textAlign: TextAlign.center, text: 'Action'),
+      Header(
+        flex: 2,
+        textAlign: isLandscape ? TextAlign.center : TextAlign.right,
+        text: 'Remark',
+      ),
+      if (isLandscape)
+        Header(flex: 1, textAlign: TextAlign.center, text: 'Action'),
     ];
     return Column(
       children: [
@@ -72,6 +84,23 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
           ),
         ),
         SizedBox(height: 20),
+        if (!isLandscape)
+          SizedBox(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Slide to see actions',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 20),
+              ],
+            ),
+          ),
         Expanded(
           child: Container(
             child: Column(
@@ -187,12 +216,12 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
   }
 }
 
-class ReservationListItem extends StatelessWidget {
+class ReservationListItem extends ConsumerWidget {
   final Reservation reservation;
 
   const ReservationListItem({super.key, required this.reservation});
 
-  String _formatTimeDisplay(String time) {
+  String _formatTimeDisplay(String time, {bool isLandscape = true}) {
     // Check if the time string contains a date with format like "20 May 2025 14:04"
     final RegExp dateTimePattern = RegExp(
       r'^\d{1,2}\s+[A-Za-z]+\s+\d{4}\s+\d{1,2}:\d{2}$',
@@ -202,6 +231,10 @@ class ReservationListItem extends StatelessWidget {
       try {
         // Parse the date using intl package for more robust parsing
         final parsedDate = DateFormat('d MMMM yyyy HH:mm').parse(time);
+        // Only show time if not in landscape mode
+        if (!isLandscape) {
+          return DateFormat('HH:mm').format(parsedDate);
+        }
         return DateFormat('dd/MM/yyyy HH:mm').format(parsedDate);
       } catch (e) {
         // If parsing fails, return the original string
@@ -214,105 +247,152 @@ class ReservationListItem extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isLandscape = ref.watch(orientationProvider);
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 24),
-      height: 60,
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.surfaceContainer,
-            width: .5,
+    return Slidable(
+      key: ValueKey(reservation.id),
+      endActionPane: ActionPane(
+        extentRatio: 0.4,
+        motion: DrawerMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (context) {},
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: Colors.white,
+            icon: Icons.receipt,
+          ),
+          SlidableAction(
+            onPressed: (context) {},
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+          ),
+        ],
+      ),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 24),
+        height: 60,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: theme.colorScheme.surfaceContainer,
+              width: .5,
+            ),
           ),
         ),
-      ),
-      child: SizedBox(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Name
-            Expanded(
-              flex: 4,
-              child: Container(
-                padding: EdgeInsets.only(right: 12),
-                child: Text(
-                  reservation.name,
-                  textAlign: TextAlign.left,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+        child: SizedBox(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Name
+              Expanded(
+                flex: isLandscape ? 4 : 3,
+                child: Container(
+                  padding: EdgeInsets.only(right: 12),
+                  child: Tooltip(
+                    message: reservation.name,
+                    child: Text(
+                      reservation.name,
+                      textAlign: TextAlign.left,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-            // Time
-            Expanded(
-              flex: 2,
-              child: Text(
-                _formatTimeDisplay(reservation.time),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            // Duration
-            Expanded(
-              flex: 2,
-              child: Text(
-                '${reservation.duration} min',
-                textAlign: TextAlign.center,
-              ),
-            ),
-            // Headcount
-            Expanded(
-              flex: 2,
-              child: Text(
-                '${reservation.headcount}',
-                textAlign: TextAlign.center,
-              ),
-            ),
-            // Table
-            Expanded(
-              flex: 2,
-              child: Text(
-                reservation.tableName,
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            // Remarks
-            Expanded(
-              flex: 3,
-              child: Text(
-                reservation.remarks,
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            // Action
-            Expanded(
-              flex: 1,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Flexible(
-                    child: Icon(
-                      Icons.receipt,
-                      size: 20,
-                      color: theme.colorScheme.primary,
-                    ),
+              // Time
+              Expanded(
+                flex: 2,
+                child: Tooltip(
+                  message: _formatTimeDisplay(
+                    reservation.time,
+                    isLandscape: true,
                   ),
-                  Flexible(
-                    child: Icon(
-                      Icons.delete_outline,
-                      size: 20,
-                      color: theme.colorScheme.error,
+                  child: Text(
+                    _formatTimeDisplay(
+                      reservation.time,
+                      isLandscape: isLandscape,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
+              // Duration
+              Expanded(
+                flex: 2,
+                child: Tooltip(
+                  message: '${reservation.duration} min',
+                  child: Text(
+                    '${reservation.duration} min',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              // Headcount
+              Expanded(
+                flex: 2,
+                child: Tooltip(
+                  message: '${reservation.headcount}',
+                  child: Text(
+                    '${reservation.headcount}',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              // Table
+              Expanded(
+                flex: 2,
+                child: Tooltip(
+                  message: reservation.tableName,
+                  child: Text(
+                    reservation.tableName,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              // Remarks
+              Expanded(
+                flex: 2,
+                child: Tooltip(
+                  message: reservation.remarks,
+                  child: Text(
+                    reservation.remarks,
+                    textAlign: isLandscape ? TextAlign.center : TextAlign.right,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              // Action
+              if (isLandscape)
+                Expanded(
+                  flex: 1,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Flexible(
+                        child: Icon(
+                          Icons.receipt,
+                          size: 20,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      Flexible(
+                        child: Icon(
+                          Icons.delete_outline,
+                          size: 20,
+                          color: theme.colorScheme.error,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

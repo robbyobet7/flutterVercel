@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
+import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 import 'package:rebill_flutter/core/models/cart_item.dart';
@@ -319,6 +320,7 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
     final mainBillComponent = ref.watch(mainBillProvider);
     final theme = Theme.of(context);
     final isClosed = ref.watch(billProvider.notifier).billStatus == 'closed';
+    final isLandscape = ref.watch(orientationProvider);
     return Expanded(
       child: Column(
         spacing: 12,
@@ -440,15 +442,16 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
                                         Icons.add_shopping_cart,
                                         color: theme.colorScheme.onPrimary,
                                       ),
-                                      Text(
-                                        'Add to Cart',
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                              color:
-                                                  theme.colorScheme.onPrimary,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                      ),
+                                      if (isLandscape)
+                                        Text(
+                                          'Add to Cart',
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                color:
+                                                    theme.colorScheme.onPrimary,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
                                     ],
                                   ),
                                 ),

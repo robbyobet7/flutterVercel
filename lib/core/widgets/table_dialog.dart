@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/table.dart';
+import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/providers/table_provider.dart';
 import 'package:rebill_flutter/core/widgets/actions_row.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
@@ -20,6 +21,7 @@ class TableDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tables = ref.watch(tableProvider).tables;
+    final isLandscape = ref.watch(orientationProvider);
 
     void navTableTap(int index) {
       if (tableType == TableType.nav) {
@@ -45,7 +47,7 @@ class TableDialog extends ConsumerWidget {
               ),
               padding: EdgeInsets.only(top: 12),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
+                crossAxisCount: isLandscape ? 5 : 3,
                 crossAxisSpacing: 12.0,
                 mainAxisSpacing: 12.0,
               ),

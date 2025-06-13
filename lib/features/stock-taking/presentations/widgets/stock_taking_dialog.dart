@@ -54,10 +54,10 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
 
     return Expanded(
       child: Column(
-        spacing: 16,
         children: [
           AppDivider(),
 
+          SizedBox(height: 16),
           //filtering row
           SizedBox(
             height: 45,
@@ -85,6 +85,8 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
               ],
             ),
           ),
+
+          SizedBox(height: 16),
 
           //list header
           ListHeader(headers: headers),
@@ -139,7 +141,6 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                         return Column(
                           children: [
                             ExpandableList(title: 'Preps', stockTakings: preps),
-                            AppDivider(),
                           ],
                         );
                       default:
@@ -150,6 +151,7 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
               },
             ),
           ),
+          SizedBox(height: 16),
 
           //bottom row
           SizedBox(
