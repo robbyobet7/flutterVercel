@@ -5,6 +5,8 @@ import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/device_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
+import 'package:rebill_flutter/core/widgets/app_dialog.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/widgets/card_info.dart';
 
 class Bill extends ConsumerWidget {
   const Bill({super.key});
@@ -564,7 +566,14 @@ class Bill extends ConsumerWidget {
                                 child: AppButton(
                                   backgroundColor:
                                       theme.colorScheme.primaryContainer,
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    AppDialog.showCustom(
+                                      context,
+                                      dialogType: DialogType.small,
+                                      title: 'Debit/Credit Card Info',
+                                      content: CardInfo(),
+                                    );
+                                  },
                                   text: 'Debit/Credit Card Info',
                                   textStyle: theme.textTheme.bodyMedium
                                       ?.copyWith(
