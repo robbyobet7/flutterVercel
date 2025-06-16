@@ -53,6 +53,16 @@ extension StringDateExtension on String {
   }
 }
 
+extension StringExtension on String {
+  String toCurrency() {
+    return NumberFormat.currency(
+      locale: 'id',
+      symbol: '',
+      decimalDigits: 0,
+    ).format(double.parse(this));
+  }
+}
+
 extension DoubleExtension on double {
   String toCurrency() {
     return NumberFormat.currency(
@@ -60,5 +70,28 @@ extension DoubleExtension on double {
       symbol: '',
       decimalDigits: 0,
     ).format(this);
+  }
+}
+
+extension IntExtension on int {
+  String toCurrency() {
+    return NumberFormat.currency(
+      locale: 'id',
+      symbol: '',
+      decimalDigits: 0,
+    ).format(this);
+  }
+}
+
+extension DynamicExtension on dynamic {
+  String toCurrency() {
+    if (this is num) {
+      return NumberFormat.currency(
+        locale: 'id',
+        symbol: '',
+        decimalDigits: 0,
+      ).format(this);
+    }
+    return '';
   }
 }

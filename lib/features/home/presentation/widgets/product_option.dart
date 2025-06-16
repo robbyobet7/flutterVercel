@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
 import 'package:rebill_flutter/core/providers/product_provider.dart';
@@ -33,6 +34,12 @@ class ProductOption extends ConsumerWidget {
     // Get product prices
     final productNotifier = ref.watch(productProvider.notifier);
     final finalPrice = productNotifier.getTotalPrice(product);
+
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'id',
+      symbol: '',
+      decimalDigits: 0,
+    );
 
     return Expanded(
       flex: 3,
@@ -235,7 +242,9 @@ class ProductOption extends ConsumerWidget {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          discountAmount.toCurrency(),
+                                          currencyFormatter.format(
+                                            discountAmount,
+                                          ),
                                           style: theme.textTheme.bodyMedium
                                               ?.copyWith(
                                                 fontWeight: FontWeight.bold,
