@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:rebill_flutter/core/providers/device_provider.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/theme/theme_provider.dart';
@@ -18,7 +19,7 @@ class Navbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isLandscape = ref.watch(orientationProvider);
-
+    final isWeb = ref.watch(isWebProvider);
     void handlePrinterTap() {
       AppDialog.showCustom(
         context,
@@ -98,7 +99,7 @@ class Navbar extends ConsumerWidget {
                                   color: theme.colorScheme.onSurface,
                                 ),
                               ),
-                            if (isLandscape)
+                            if (isWeb)
                               IconButton(
                                 onPressed: () {},
                                 icon: Icon(
@@ -139,9 +140,9 @@ class Navbar extends ConsumerWidget {
                                             .read(hideNavbarProvider.notifier)
                                             .state;
                                     break;
-                                  case 'fullscreen':
-                                    // Handle fullscreen action
-                                    break;
+                                  // case 'fullscreen':
+                                  //   // Handle fullscreen action
+                                  //   break;
                                   case 'logout':
                                     // Handle logout action
                                     break;
@@ -219,28 +220,28 @@ class Navbar extends ConsumerWidget {
                                           ],
                                         ),
                                       ),
-                                    if (!isLandscape)
-                                      PopupMenuItem<String>(
-                                        value: 'fullscreen',
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.fullscreen,
-                                              color:
-                                                  theme.colorScheme.onSurface,
-                                              size: 20,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Text(
-                                              'Fullscreen',
-                                              style: theme.textTheme.bodyMedium
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                                    // if (!isLandscape)
+                                    //   PopupMenuItem<String>(
+                                    //     value: 'fullscreen',
+                                    //     child: Row(
+                                    //       children: [
+                                    //         Icon(
+                                    //           Icons.fullscreen,
+                                    //           color:
+                                    //               theme.colorScheme.onSurface,
+                                    //           size: 20,
+                                    //         ),
+                                    //         const SizedBox(width: 12),
+                                    //         Text(
+                                    //           'Fullscreen',
+                                    //           style: theme.textTheme.bodyMedium
+                                    //               ?.copyWith(
+                                    //                 fontWeight: FontWeight.w500,
+                                    //               ),
+                                    //         ),
+                                    //       ],
+                                    //     ),
+                                    //   ),
                                     PopupMenuItem<String>(
                                       height: .5, // Minimal height
                                       enabled: false,
