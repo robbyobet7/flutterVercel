@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
+import 'package:rebill_flutter/core/widgets/label_text.dart';
 import 'package:rebill_flutter/features/checkout/models/checkout_discount.dart';
 import 'package:rebill_flutter/features/checkout/models/payment_method.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/available_discounts_dialog.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_action_row.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_button.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/payment_amount.dart';
-import 'package:rebill_flutter/features/reservation/presentations/widgets/add_reservation_dialog.dart';
 
 enum Method { cash, bank, other }
 

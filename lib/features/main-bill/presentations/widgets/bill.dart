@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/device_provider.dart';
+import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/features/main-bill/presentations/widgets/card_info.dart';
+import 'package:rebill_flutter/features/main-bill/presentations/widgets/refund_dialog.dart';
 
 class Bill extends ConsumerWidget {
   const Bill({super.key});
@@ -15,11 +16,6 @@ class Bill extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(cartProvider);
     final theme = Theme.of(context);
-    final currencyFormatter = NumberFormat.currency(
-      locale: 'id',
-      symbol: '',
-      decimalDigits: 0,
-    );
     final isWeb = ref.watch(isWebProvider);
     // Round up to nearest thousand (Indonesian common practice)
     int roundUpToThousand(double value) {
@@ -188,7 +184,7 @@ class Bill extends ConsumerWidget {
                                             children: [
                                               Expanded(
                                                 child: Text(
-                                                  '${item.discountName ?? "Discount"} (-${currencyFormatter.format(item.discount * item.quantity)})',
+                                                  '${item.discountName ?? "Discount"} (-${(item.discount * item.quantity).toCurrency()})',
                                                   style: theme
                                                       .textTheme
                                                       .bodySmall
@@ -223,7 +219,7 @@ class Bill extends ConsumerWidget {
                                                         child: Text(
                                                           isComplimentary
                                                               ? '${option.name} (FREE)'
-                                                              : '${option.name} (+${currencyFormatter.format(option.price)})',
+                                                              : '${option.name} (+${option.price.toCurrency()})',
                                                           style: theme
                                                               .textTheme
                                                               .bodySmall
@@ -355,7 +351,7 @@ class Bill extends ConsumerWidget {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  currencyFormatter.format(item.totalPrice),
+                                  item.totalPrice.toCurrency(),
                                   style: theme.textTheme.bodyMedium,
                                   textAlign: TextAlign.right,
                                 ),
@@ -397,7 +393,7 @@ class Bill extends ConsumerWidget {
                                 ),
                               ),
                               Text(
-                                "-${currencyFormatter.format(cart.totalProductDiscount)}",
+                                "-${cart.totalProductDiscount.toCurrency()}",
                                 style: theme.textTheme.bodyMedium,
                                 textAlign: TextAlign.right,
                               ),
@@ -414,7 +410,7 @@ class Bill extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              currencyFormatter.format(subtotal),
+                              subtotal.toCurrency(),
                               style: theme.textTheme.bodyMedium,
                               textAlign: TextAlign.right,
                             ),
@@ -431,7 +427,7 @@ class Bill extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              currencyFormatter.format(serviceFee),
+                              serviceFee.toCurrency(),
                               style: theme.textTheme.bodyMedium,
                               textAlign: TextAlign.right,
                             ),
@@ -449,7 +445,7 @@ class Bill extends ConsumerWidget {
                                 ),
                               ),
                               Text(
-                                currencyFormatter.format(gratuity),
+                                gratuity.toCurrency(),
                                 style: theme.textTheme.bodyMedium,
                                 textAlign: TextAlign.right,
                               ),
@@ -467,7 +463,7 @@ class Bill extends ConsumerWidget {
                                 ),
                               ),
                               Text(
-                                currencyFormatter.format(tax),
+                                tax.toCurrency(),
                                 style: theme.textTheme.bodyMedium,
                                 textAlign: TextAlign.right,
                               ),
@@ -485,7 +481,7 @@ class Bill extends ConsumerWidget {
                                 ),
                               ),
                               Text(
-                                currencyFormatter.format(roundingAmount),
+                                roundingAmount.toCurrency(),
                                 style: theme.textTheme.bodyMedium,
                                 textAlign: TextAlign.right,
                               ),
@@ -506,7 +502,7 @@ class Bill extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              currencyFormatter.format(total),
+                              total.toCurrency(),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: theme.colorScheme.primary,
@@ -586,7 +582,18 @@ class Bill extends ConsumerWidget {
                                 child: AppButton(
                                   backgroundColor:
                                       theme.colorScheme.errorContainer,
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    AppDialog.showCustom(
+                                      context,
+                                      dialogType: DialogType.medium,
+                                      title:
+                                          'Refund / Retour Bill - ${bill.billNumber ?? '0'}',
+                                      content: RefundDialog(
+                                        items: cart.items,
+                                        totalPrice: total,
+                                      ),
+                                    );
+                                  },
                                   text: 'Refund / Retour',
                                   textStyle: theme.textTheme.bodyMedium
                                       ?.copyWith(

@@ -52,3 +52,13 @@ extension StringDateExtension on String {
     }
   }
 }
+
+extension DoubleExtension on double {
+  String toCurrency() {
+    return NumberFormat.currency(
+      locale: 'id',
+      symbol: '',
+      decimalDigits: 0,
+    ).format(this);
+  }
+}

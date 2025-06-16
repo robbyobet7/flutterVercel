@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_material.dart';
@@ -118,12 +118,6 @@ class AvailableDiscountsDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final NumberFormat currencyFormatter = NumberFormat.currency(
-      locale: 'id',
-      symbol: '',
-      decimalDigits: 0,
-    );
-
     final theme = Theme.of(context);
     final discounts = ref.watch(discountsProvider);
     final selectedDiscounts = ref.watch(selectedDiscountsProvider);
@@ -277,9 +271,8 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                                     child: Text(
                                       discount.type == 'percentage'
                                           ? '${discount.amount.toInt()}%'
-                                          : currencyFormatter.format(
-                                            discount.amount,
-                                          ),
+                                          : discount.amount.toCurrency(),
+
                                       overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleSmall
                                           ?.copyWith(
@@ -300,9 +293,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      currencyFormatter.format(
-                                        discount.minimum,
-                                      ),
+                                      discount.minimum.toCurrency(),
                                       textAlign: TextAlign.center,
                                       overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleSmall
@@ -313,9 +304,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      currencyFormatter.format(
-                                        discount.cappedTo,
-                                      ),
+                                      discount.cappedTo.toCurrency(),
                                       textAlign: TextAlign.center,
                                       overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleSmall

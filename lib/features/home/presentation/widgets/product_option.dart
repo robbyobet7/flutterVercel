@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/models/product.dart';
 import 'package:rebill_flutter/core/providers/product_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
+import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/option_preview.dart';
 
 class ProductOption extends ConsumerWidget {
@@ -21,11 +21,6 @@ class ProductOption extends ConsumerWidget {
     }
 
     final theme = Theme.of(context);
-    final currencyFormatter = NumberFormat.currency(
-      locale: 'id',
-      symbol: 'Rp',
-      decimalDigits: 0,
-    );
 
     // Check if there are multiple discounts available
     final hasMultipleDiscounts =
@@ -240,9 +235,7 @@ class ProductOption extends ConsumerWidget {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          currencyFormatter.format(
-                                            discountAmount,
-                                          ),
+                                          discountAmount.toCurrency(),
                                           style: theme.textTheme.bodyMedium
                                               ?.copyWith(
                                                 fontWeight: FontWeight.bold,
@@ -275,7 +268,7 @@ class ProductOption extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    currencyFormatter.format(finalPrice),
+                    finalPrice.toCurrency(),
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: theme.colorScheme.primary,

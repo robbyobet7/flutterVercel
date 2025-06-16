@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/widgets/app_material.dart';
+import 'package:rebill_flutter/core/widgets/label_text.dart';
 import 'package:rebill_flutter/features/printer-settings/providers/printer_provider.dart';
-import 'package:rebill_flutter/features/reservation/presentations/widgets/add_reservation_dialog.dart';
 
 class PrintLayout extends ConsumerWidget {
   const PrintLayout({super.key});

@@ -7,6 +7,7 @@ import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 import 'package:rebill_flutter/core/widgets/decrement_button.dart';
 import 'package:rebill_flutter/core/widgets/increment_button.dart';
+import 'package:rebill_flutter/core/widgets/label_text.dart';
 import 'package:rebill_flutter/features/reservation/presentations/widgets/reservation_dialog.dart';
 
 class AddReservationDialog extends StatelessWidget {
@@ -208,29 +209,6 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class LabelText extends StatelessWidget {
-  const LabelText({super.key, required this.text});
-
-  final String text;
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Text(
-            text,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
-            ),
-          ),
-        ],
       ),
     );
   }

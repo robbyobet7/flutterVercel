@@ -4,8 +4,8 @@ import 'package:rebill_flutter/core/widgets/app_popup_menu.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 import 'package:rebill_flutter/core/widgets/decrement_button.dart';
 import 'package:rebill_flutter/core/widgets/increment_button.dart';
+import 'package:rebill_flutter/core/widgets/label_text.dart';
 import 'package:rebill_flutter/features/printer-settings/presentations/widgets/printer_popup_menu.dart';
-import 'package:rebill_flutter/features/reservation/presentations/widgets/add_reservation_dialog.dart';
 
 class AdvancedSetting extends StatelessWidget {
   const AdvancedSetting({super.key});

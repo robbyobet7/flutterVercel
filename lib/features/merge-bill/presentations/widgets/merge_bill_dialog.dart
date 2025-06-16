@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/core_exports.dart';
 import 'package:rebill_flutter/core/providers/merge_bill_provider.dart';
 import 'package:rebill_flutter/core/utils/extensions.dart';
@@ -16,12 +15,6 @@ class MergeBillDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final NumberFormat currencyFormatter = NumberFormat.currency(
-      locale: 'id',
-      symbol: '',
-      decimalDigits: 0,
-    );
-
     final theme = Theme.of(context);
     final mergeBills = ref.watch(mergeBillProvider);
     final tempSelectedBills = ref.watch(tempSelectedBillsProvider);
@@ -214,7 +207,7 @@ class MergeBillDialog extends ConsumerWidget {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      currencyFormatter.format(bill.total),
+                                      bill.total.toCurrency(),
                                       textAlign: TextAlign.center,
                                       style: theme.textTheme.titleSmall
                                           ?.copyWith(

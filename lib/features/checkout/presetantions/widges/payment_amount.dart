@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
+import 'package:rebill_flutter/core/widgets/label_text.dart';
 import 'package:rebill_flutter/features/checkout/models/payment_method.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_button.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_dialog.dart';
-import 'package:rebill_flutter/features/reservation/presentations/widgets/add_reservation_dialog.dart';
 
 class PaymentAmount extends StatefulWidget {
   const PaymentAmount({
