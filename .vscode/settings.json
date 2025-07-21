@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "/Users/senja/Documents/GitHub/rebill-pos/linux"
+    "cmake.sourceDirectory": "/Users/senja/Documents/GitHub/rebill-pos/linux",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
