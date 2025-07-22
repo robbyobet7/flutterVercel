@@ -1,217 +1,287 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/providers/orientation_provider.dart';
+import 'package:rebill_flutter/core/widgets/app_button.dart';
 
-class LoginPage extends StatelessWidget {
+final obscureProvider = StateProvider<bool>((ref) => true);
+
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/bgLogin2.jpg'),
-            alignment: Alignment(-7.2, 0),
-            colorFilter: ColorFilter.mode(
-              Colors.blue.withOpacity(0.75),
+  ConsumerState<LoginPage> createState() => _LoginPageState();
+}
 
-              BlendMode.srcATop,
-            ),
+class _LoginPageState extends ConsumerState<LoginPage> {
+  @override
+  Widget build(BuildContext context) {
+    final isLandscape = ref.watch(orientationProvider);
+
+    return Scaffold(
+      body:
+          isLandscape
+              ? _buildLandscapeLayout(context)
+              : _buildPortraitLayout(context),
+    );
+  }
+
+  /// WIDGET BUILDER UNTUK LAYOUT POTRET (DIREVISI AGAR FORM MENUTUPI BAWAH)
+  Widget _buildPortraitLayout(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: SizedBox(
+          // Memberi batasan tinggi agar Stack tahu ukurannya
+          height: MediaQuery.of(context).size.height,
+          child: Stack(
+            children: [
+              // 1. Container untuk gambar biru di bagian atas
+              Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    alignment: const Alignment(0.0, -1.3),
+                    image: const AssetImage('assets/images/bgLogin2.jpg'),
+                    colorFilter: ColorFilter.mode(
+                      Colors.blue.withOpacity(0.75),
+                      BlendMode.srcATop,
+                    ),
+                  ),
+                ),
+              ),
+              // 2. Kolom untuk menempatkan form di tengah
+              Column(
+                children: [
+                  // Spacer untuk mendorong kartu ke bawah
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+                  // Expanded akan membuat Container di bawahnya mengisi sisa ruang
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: _buildLoginForm(
+                        theme,
+                      ), // Menggunakan form yang sudah diekstrak
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        height: double.infinity,
-        width: double.infinity,
-        child: Center(
+      ),
+    );
+  }
+
+  //LANDSCAPE WIDGET BUILDER
+  Widget _buildLandscapeLayout(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Container(
+          height: MediaQuery.of(context).size.height,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: const AssetImage('assets/images/bgLogin2.jpg'),
+              alignment: Alignment(-4, 0),
+              colorFilter: ColorFilter.mode(
+                Colors.blue.withOpacity(0.75),
+                BlendMode.srcATop,
+              ),
+            ),
+          ),
           child: Row(
             children: [
-              Container(width: 280, height: double.infinity),
+              Expanded(flex: 2, child: Container()),
+              //Right Form
               Expanded(
+                flex: 5,
                 child: Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(35),
                       bottomLeft: Radius.circular(35),
                     ),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Logo and Title
-                      const Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'Re',
-                              style: TextStyle(
-                                fontSize: 50,
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 104, 98, 98),
-                              ),
-                            ),
-                            TextSpan(
-                              text: 'Bill',
-                              style: TextStyle(
-                                fontSize: 50,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Text(
-                        'Login to your account',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Login form container
-                      Container(
-                        width: 350,
-                        // height dihapus agar menyesuaikan isi
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.shade300,
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 20,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Email
-                              TextField(
-                                decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 10,
-                                  ),
-                                  prefixIcon: const Icon(Icons.person),
-                                  prefixIconColor: Colors.blueAccent,
-                                  hintText: 'Email Address or Username',
-                                  hintStyle: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 12,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.grey[200],
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-
-                              // Password
-                              TextField(
-                                obscureText: true,
-                                decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 10,
-                                  ),
-                                  prefixIcon: const Icon(Icons.lock),
-                                  prefixIconColor: Colors.blueAccent,
-                                  hintText: 'Password',
-                                  hintStyle: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 12,
-                                  ),
-                                  suffixIcon: const Icon(Icons.visibility),
-                                  suffixIconColor: Colors.blueGrey,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.grey[100],
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-
-                              // Buttons
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blueAccent,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 8,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      // TODO: Login Dashboard
-                                    },
-                                    child: const Text(
-                                      "Login Dashboard",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    "or",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blueAccent,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 20,
-                                        vertical: 12,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      // TODO: Login POS
-                                    },
-                                    child: const Text(
-                                      "Login POS",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: Center(child: _buildLoginForm(theme)),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// WIDGET LOGIN FORM
+  Widget _buildLoginForm(ThemeData theme) {
+    final isLandscape = ref.watch(orientationProvider);
+    final isObscure = ref.watch(obscureProvider);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Logo and Title
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Icons.star, color: Colors.blueAccent, size: 50),
+              const SizedBox(width: 8),
+              const Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Re',
+                      style: TextStyle(
+                        fontSize: 45,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 104, 98, 98),
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'Bill',
+                      style: TextStyle(fontSize: 45, color: Colors.black),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Login to your account',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+          ),
+          const SizedBox(height: 30),
+
+          // White Box in Container
+          Container(
+            width:
+                isLandscape
+                    ? MediaQuery.of(context).size.width * 0.4
+                    : MediaQuery.of(context).size.width * 0.8,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 10,
+                  offset: const Offset(0, 5), // Bayangan di bawah
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(20),
+
+            // Form Fields Username and Password
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.all(16),
+                    prefixIcon: const Icon(Icons.person, color: Colors.blue),
+                    hintText: 'Email Address or Username',
+                    hintStyle: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                  ),
+                ),
+                const SizedBox(height: 15),
+
+                TextField(
+                  obscureText: isObscure,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.all(16),
+                    prefixIcon: const Icon(Icons.lock, color: Colors.blue),
+                    hintText: 'Password',
+                    hintStyle: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                    ),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        ref.read(obscureProvider.notifier).state =
+                            !isObscure; // Toggle password visibility
+                      },
+                      icon: Icon(
+                        isObscure ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.blueGrey,
+                      ),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                  ),
+                ),
+                const SizedBox(height: 25),
+
+                // Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        onPressed: () {},
+                        text: 'Login Dashboard',
+                        disabled: false,
+                        backgroundColor: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Text(
+                        "or",
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: AppButton(
+                        onPressed: () {},
+                        text: 'Login POS',
+                        disabled: false,
+                        backgroundColor: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
