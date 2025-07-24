@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import '../models/customers.dart';
-import '../repositories/customer_repository.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
+import '../middleware/customer_middleware.dart';
 
 // Customer state
 class CustomerState {
@@ -40,7 +40,7 @@ class CustomerState {
 
 // Customer notifier
 class CustomerNotifier extends StateNotifier<CustomerState> {
-  final CustomerRepository _repository;
+  final CustomerMiddleware _middleware;
   final _customerStreamController =
       StreamController<List<CustomerModel>>.broadcast();
   final _errorStreamController = StreamController<String>.broadcast();
@@ -49,7 +49,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
       _customerStreamController.stream;
   Stream<String> get errorStream => _errorStreamController.stream;
 
-  CustomerNotifier(this._repository) : super(CustomerState(customers: [])) {
+  CustomerNotifier(this._middleware) : super(CustomerState(customers: [])) {
     _initialize();
     _setupStreams();
   }
@@ -58,7 +58,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   Future<void> _initialize() async {
     state = state.copyWith(isLoading: true);
     try {
-      if (!_repository.isInitialized) {
+      if (!_middleware.isInitialized) {
         await _loadCustomersFromJson();
       }
       refreshCustomers();
@@ -72,7 +72,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
     try {
       final jsonString = await rootBundle.loadString('assets/customers.json');
       final customers = CustomerModel.parseCustomers(jsonString);
-      _repository.setCustomers(customers);
+      _middleware.setCustomers(customers);
     } catch (e) {
       _errorStreamController.add('Failed to load customers from JSON: $e');
     }
@@ -97,7 +97,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   Future<void> refreshCustomers() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final customers = _repository.getAllCustomers();
+      final customers = _middleware.getAllCustomers();
       _customerStreamController.add(customers);
     } catch (e) {
       _errorStreamController.add('Failed to load customers: $e');
@@ -108,7 +108,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   Future<void> addCustomer(CustomerModel customer) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      _repository.addCustomer(customer);
+      _middleware.addCustomer(customer);
       refreshCustomers();
     } catch (e) {
       _errorStreamController.add('Failed to add customer: $e');
@@ -119,7 +119,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   Future<void> updateCustomer(CustomerModel customer) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      _repository.updateCustomer(customer);
+      _middleware.updateCustomer(customer);
       refreshCustomers();
     } catch (e) {
       _errorStreamController.add('Failed to update customer: $e');
@@ -130,7 +130,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   Future<void> deleteCustomer(int id) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      _repository.deleteCustomer(id);
+      _middleware.deleteCustomer(id);
       refreshCustomers();
     } catch (e) {
       _errorStreamController.add('Failed to delete customer: $e');
@@ -151,7 +151,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
     }
 
     try {
-      final results = _repository.searchCustomersByName(query);
+      final results = _middleware.searchCustomersByName(query);
       state = state.copyWith(customers: results, isLoading: false);
     } catch (e) {
       _errorStreamController.add('Failed to search customers: $e');
@@ -167,7 +167,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   // Get customer by ID
   Future<CustomerModel?> getCustomerById(int id) async {
     try {
-      return _repository.getCustomerById(id);
+      return _middleware.getCustomerById(id);
     } catch (e) {
       _errorStreamController.add('Failed to get customer with ID $id: $e');
       return null;
@@ -178,7 +178,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   Future<void> getLoyaltyCustomers() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final loyaltyCustomers = _repository.getCustomersWithPoints();
+      final loyaltyCustomers = _middleware.getCustomersWithPoints();
       state = state.copyWith(
         customers: loyaltyCustomers,
         // Don't update allCustomers here, as this is a filtered view
@@ -195,7 +195,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       // This would be implemented to save to JSON/DB in a real app
-      final jsonList = _repository.getCustomersForSerialization();
+      final jsonList = _middleware.getCustomersForSerialization();
       // ignore: unused_local_variable
       final jsonString = json.encode(jsonList);
 
@@ -223,15 +223,15 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
 // Provider definitions
 
 // Singleton repository provider
-final customerRepositoryProvider = Provider<CustomerRepository>((ref) {
-  return CustomerRepository.instance;
+final customerMiddlewareProvider = Provider<CustomerMiddleware>((ref) {
+  return CustomerMiddleware();
 });
 
 // Customer state provider
 final customerProvider = StateNotifierProvider<CustomerNotifier, CustomerState>(
   (ref) {
-    final repository = ref.read(customerRepositoryProvider);
-    return CustomerNotifier(repository);
+    final middleware = ref.read(customerMiddlewareProvider);
+    return CustomerNotifier(middleware);
   },
 );
 

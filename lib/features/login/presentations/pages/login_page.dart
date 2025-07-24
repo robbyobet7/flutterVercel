@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:rebill_flutter/core/constants/app_constants.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
+
+final usernameProvider = StateProvider<String>((ref) => '');
+final passwordProvider = StateProvider<String>((ref) => '');
 
 final obscureProvider = StateProvider<bool>((ref) => true);
 
@@ -13,6 +18,14 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
+  final _usernameController = TextEditingController();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLandscape = ref.watch(orientationProvider);
@@ -25,18 +38,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  /// WIDGET BUILDER UNTUK LAYOUT POTRET (DIREVISI AGAR FORM MENUTUPI BAWAH)
+  /// PORTRAIT WIDGET BUILDER
   Widget _buildPortraitLayout(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: SizedBox(
-          // Memberi batasan tinggi agar Stack tahu ukurannya
           height: MediaQuery.of(context).size.height,
           child: Stack(
             children: [
-              // 1. Container untuk gambar biru di bagian atas
               Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
@@ -49,12 +60,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
               ),
-              // 2. Kolom untuk menempatkan form di tengah
+
               Column(
                 children: [
-                  // Spacer untuk mendorong kartu ke bawah
                   SizedBox(height: MediaQuery.of(context).size.height * 0.25),
-                  // Expanded akan membuat Container di bawahnya mengisi sisa ruang
                   Expanded(
                     child: Container(
                       width: double.infinity,
@@ -72,9 +81,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                         ],
                       ),
-                      child: _buildLoginForm(
-                        theme,
-                      ), // Menggunakan form yang sudah diekstrak
+                      child: _buildLoginForm(theme, _usernameController),
                     ),
                   ),
                 ],
@@ -117,7 +124,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       bottomLeft: Radius.circular(35),
                     ),
                   ),
-                  child: Center(child: _buildLoginForm(theme)),
+                  child: Center(
+                    child: _buildLoginForm(theme, _usernameController),
+                  ),
                 ),
               ),
             ],
@@ -128,7 +137,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   /// WIDGET LOGIN FORM
-  Widget _buildLoginForm(ThemeData theme) {
+  Widget _buildLoginForm(
+    ThemeData theme,
+    TextEditingController usernameController,
+  ) {
     final isLandscape = ref.watch(orientationProvider);
     final isObscure = ref.watch(obscureProvider);
     return Padding(
@@ -199,6 +211,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
+                  controller: usernameController,
+                  style: const TextStyle(color: Colors.black, fontSize: 14),
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.all(16),
                     prefixIcon: const Icon(Icons.person, color: Colors.blue),
@@ -218,6 +232,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 const SizedBox(height: 15),
 
                 TextField(
+                  style: const TextStyle(color: Colors.black, fontSize: 14),
                   obscureText: isObscure,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.all(16),
@@ -270,7 +285,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     Expanded(
                       child: AppButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          ref.read(usernameProvider.notifier).state =
+                              usernameController.text;
+                          context.go(AppConstants.homeRoute);
+                        },
                         text: 'Login POS',
                         disabled: false,
                         backgroundColor: theme.colorScheme.primary,

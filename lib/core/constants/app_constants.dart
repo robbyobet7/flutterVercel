@@ -6,7 +6,7 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // API
-  static const String baseUrl = 'https://api.example.com';
+  static const String baseUrl = 'http://localhost:3000/pos/v1/auth/owner/login';
 
   // Storage Keys
   static const String authTokenKey = 'auth_token';
