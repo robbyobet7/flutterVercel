@@ -4,6 +4,9 @@ final isLoggedInProvider = StateProvider<bool>((ref) {
   return false;
 });
 
-final usernameProvider = StateProvider<String>((ref) {
+final identityProvider = StateProvider<String>((ref) {
+  return '';
+});
+final passwordProvider = StateProvider<String>((ref) {
   return '';
 });

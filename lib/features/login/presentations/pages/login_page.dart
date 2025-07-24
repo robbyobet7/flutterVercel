@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
+import 'package:rebill_flutter/core/providers/auth_provider.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 
-final usernameProvider = StateProvider<String>((ref) => '');
+final identityProvider = StateProvider<String>((ref) => '');
 final passwordProvider = StateProvider<String>((ref) => '');
 
 final obscureProvider = StateProvider<bool>((ref) => true);
@@ -19,10 +20,14 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
     _usernameController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -210,6 +215,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (_errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 15),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red, fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 TextField(
                   controller: usernameController,
                   style: const TextStyle(color: Colors.black, fontSize: 14),
@@ -232,6 +246,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 const SizedBox(height: 15),
 
                 TextField(
+                  controller: _passwordController,
                   style: const TextStyle(color: Colors.black, fontSize: 14),
                   obscureText: isObscure,
                   decoration: InputDecoration(
@@ -285,10 +300,42 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     Expanded(
                       child: AppButton(
-                        onPressed: () {
-                          ref.read(usernameProvider.notifier).state =
-                              usernameController.text;
-                          context.go(AppConstants.homeRoute);
+                        onPressed: () async {
+                          if (usernameController.text.isEmpty ||
+                              _passwordController.text.isEmpty) {
+                            setState(() {
+                              _errorMessage =
+                                  "Username dan password tidak boleh kosong";
+                            });
+                            return;
+                          }
+
+                          setState(() {
+                            _isLoading = true;
+                            _errorMessage = null;
+                          });
+                          try {
+                            await ref
+                                .read(authProvider.notifier)
+                                .login(
+                                  usernameController.text,
+                                  _passwordController.text,
+                                );
+                            if (mounted) {
+                              context.go(AppConstants.homeRoute);
+                            }
+                          } catch (e) {
+                            setState(() {
+                              _errorMessage = "Login gagal: ${e.toString()}";
+                            });
+                            print(e);
+                          } finally {
+                            if (mounted) {
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
+                          }
                         },
                         text: 'Login POS',
                         disabled: false,

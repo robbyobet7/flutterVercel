@@ -5,8 +5,18 @@ class AppConstants {
   static const String appName = 'Rebill POS';
   static const String appVersion = '1.0.0';
 
-  // API
-  static const String baseUrl = 'http://localhost:3000/pos/v1/auth/owner/login';
+  // Base URL
+  static const String baseUrl =
+      'https://airline-ministry-mice-horses.trycloudflare.com/';
+
+  // Service URL
+  static const String service = 'pos/';
+  static const String apiVersion = 'v1/';
+  static const String authOwnerPath = 'auth/owner';
+
+  // Login URL
+  static const String loginUrl =
+      '$baseUrl$service$apiVersion$authOwnerPath/login';
 
   // Storage Keys
   static const String authTokenKey = 'auth_token';
