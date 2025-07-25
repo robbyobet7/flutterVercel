@@ -164,6 +164,8 @@ class Product {
   double get defaultPrice {
     return productsPrice ?? 0;
   }
+
+  static parseProducts(String jsonString) {}
 }
 
 // Add a class for the multiple discounts

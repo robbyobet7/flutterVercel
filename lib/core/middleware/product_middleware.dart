@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/product.dart';
 
-class ProductRepository {
+class ProductMiddleware {
   // Singleton pattern
-  static final ProductRepository _instance = ProductRepository._internal();
-  factory ProductRepository() => _instance;
-  ProductRepository._internal();
+  static final ProductMiddleware _instance = ProductMiddleware._internal();
+  factory ProductMiddleware() => _instance;
+  ProductMiddleware._internal();
 
   // Cache for products
   List<Product>? _products;
@@ -24,45 +24,52 @@ class ProductRepository {
   // Check if initialized
   bool get isInitialized => _isInitialized;
 
-  // Initialize repository with data
+  // Initialize the middleware
   Future<void> initialize() async {
-    if (_isInitialized) return;
-    await loadProducts();
+    try {
+      if (!_isInitialized) {
+        await _loadProductsFromJson();
+      }
+      refreshProducts();
+    } catch (e) {
+      _productErrorController.add('Failed to initialize product data: $e');
+    }
   }
 
   // Load products from JSON file
-  Future<List<Product>> loadProducts() async {
-    if (_products != null) {
-      return _products!;
-    }
-
+  Future<void> _loadProductsFromJson() async {
     try {
       // Load the JSON file
       final String jsonString = await rootBundle.loadString(
         'assets/product.json',
       );
       final Map<String, dynamic> jsonData = json.decode(jsonString);
-
-      // Check if data contains a list of products
-      if (jsonData.containsKey('products') && jsonData['products'] is List) {
-        _products =
-            (jsonData['products'] as List)
-                .map((item) => Product.fromJson(item))
-                .toList();
-      } else {
-        // If JSON structure is just an array of products
-        _products =
-            (jsonData as List).map((item) => Product.fromJson(item)).toList();
-      }
-
-      _isInitialized = true;
-
-      // Broadcast the loaded products
-      _productStreamController.add(_products!);
-      return _products!;
+      final products = Product.parseProducts(jsonString);
+      setProducts(products);
     } catch (e) {
-      _productErrorController.add('Failed to load products: $e');
-      return [];
+      _productErrorController.add('Failed to load products from JSON: $e');
+    }
+  }
+
+  // Set products data
+  void setProducts(List<Product> products) {
+    _products = products;
+    _isInitialized = true;
+  }
+
+  // Get a product by ID
+  Future<Product?> getProductById(int id) async {
+    if (!_isInitialized) {
+      await initialize();
+    } else {
+      return _products?.firstWhere((product) => product.id == id);
+    }
+
+    try {
+      return _products?.firstWhere((product) => product.id == id);
+    } catch (e) {
+      _productErrorController.add('Product not found with ID: $id');
+      return null;
     }
   }
 
@@ -72,20 +79,6 @@ class ProductRepository {
       await initialize();
     }
     return _products ?? [];
-  }
-
-  // Get a product by ID
-  Future<Product?> getProductById(int id) async {
-    if (!_isInitialized) {
-      await initialize();
-    }
-
-    try {
-      return _products?.firstWhere((product) => product.id == id);
-    } catch (e) {
-      _productErrorController.add('Product not found with ID: $id');
-      return null;
-    }
   }
 
   // Get products by type
@@ -107,9 +100,9 @@ class ProductRepository {
   }
 
   // Search products by name
-  Future<List<Product>> searchProductsByName(String query) async {
+  List<Product> searchProductsByName(String query) {
     if (!_isInitialized) {
-      await initialize();
+      throw Exception('Product repository not initialized');
     }
 
     if (query.isEmpty) return _products ?? [];

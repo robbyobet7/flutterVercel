@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
-import '../repositories/product_repository.dart';
+import '../middleware/product_middleware.dart';
 
-// Provider for the ProductRepository
-final productRepositoryProvider = Provider<ProductRepository>((ref) {
-  return ProductRepository();
+// Provider for the ProductMiddleware
+final ProductMiddlewareProvider = Provider<ProductMiddleware>((ref) {
+  return ProductMiddleware();
 });
 
 // Provider for the currently selected category
@@ -15,7 +15,7 @@ final searchQueryProvider = StateProvider<String>((ref) => '');
 
 // Provider for all available products - using built-in loading state management
 final availableProductsProvider = FutureProvider<List<Product>>((ref) async {
-  final repository = ref.watch(productRepositoryProvider);
+  final repository = ref.watch(ProductMiddlewareProvider);
   final products = await repository.getProductsInStock();
   return products.where((product) => product.status == 1).toList();
 });
@@ -71,7 +71,7 @@ final filteredProductsProvider = Provider<AsyncValue<List<Product>>>((ref) {
 final refreshProductsProvider = Provider<void Function()>((ref) {
   return () {
     // Clear the cache in the repository
-    ref.read(productRepositoryProvider).refreshProducts();
+    ref.read(ProductMiddlewareProvider).refreshProducts();
 
     // Invalidate the products provider to trigger a refresh
     ref.invalidate(availableProductsProvider);
@@ -80,7 +80,7 @@ final refreshProductsProvider = Provider<void Function()>((ref) {
 
 // Provider for all available categories - fetches unique category types from products
 final availableCategoriesProvider = FutureProvider<List<String>>((ref) async {
-  final repository = ref.watch(productRepositoryProvider);
+  final repository = ref.watch(ProductMiddlewareProvider);
   final products = await repository.getProductsInStock();
   final availableProducts =
       products.where((product) => product.status == 1).toList();

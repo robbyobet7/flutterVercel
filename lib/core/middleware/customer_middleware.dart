@@ -51,8 +51,6 @@ class CustomerMiddleware {
     }
   }
 
-  // Load and broadcast all customers
-
   // Set customers data
   void setCustomers(List<CustomerModel> customers) {
     _customers = customers;

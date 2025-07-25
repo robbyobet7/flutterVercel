@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import '../models/product.dart';
 import 'package:intl/intl.dart';
-import '../repositories/product_repository.dart';
+import '../middleware/product_middleware.dart';
 
 // Class to represent a selected option or extra
 class ProductOptionItem {
@@ -57,7 +57,7 @@ class ProductState {
 
 // Product notifier class
 class ProductNotifier extends StateNotifier<ProductState> {
-  final ProductRepository _repository = ProductRepository();
+  final ProductMiddleware _repository = ProductMiddleware();
 
   ProductNotifier() : super(ProductState());
 
