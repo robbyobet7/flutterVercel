@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/kitchen_order.dart';
-import 'package:rebill_flutter/core/repositories/kitchen_order_repository.dart';
 import 'package:rebill_flutter/core/middleware/kitchen_order_middleware.dart';
 
 // ==================== Kitchen Order State ====================
@@ -35,7 +34,7 @@ class KitchenOrderNotifier extends StateNotifier<KitchenOrderState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final orders = KitchenOrderRepository.instance.getAllKitchenOrders();
+      final orders = KitchenOrderMiddleware.instance.getAllKitchenOrders();
       state = state.copyWith(orders: orders, isLoading: false);
     } catch (e) {
       state = state.copyWith(
@@ -90,7 +89,7 @@ final kitchenOrderNotifierProvider =
 // Provider to get all kitchen orders
 final kitchenOrdersProvider = Provider<List<KitchenOrder>>((ref) {
   try {
-    return KitchenOrderRepository.instance.getAllKitchenOrders();
+    return KitchenOrderMiddleware.instance.getAllKitchenOrders();
   } catch (e) {
     return [];
   }
@@ -143,7 +142,7 @@ final kitchenOrderByIdProvider = Provider.family<KitchenOrder?, int>((
   orderId,
 ) {
   try {
-    return KitchenOrderRepository.instance.getKitchenOrderById(orderId);
+    return KitchenOrderMiddleware.instance.getKitchenOrderById(orderId);
   } catch (e) {
     return null;
   }

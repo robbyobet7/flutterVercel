@@ -2,10 +2,38 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/table.dart';
-import '../repositories/table_repository.dart';
 
 class TableMiddleware {
-  final TableRepository _repository;
+  List<TableModel> _tables = [];
+  bool _isInitialized = false;
+
+  void setTables(List<TableModel> tables) {
+    _tables = tables;
+    _isInitialized = true;
+  }
+
+  // Get all tables
+  List<TableModel> getAllTables() {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
+    return _tables;
+  }
+
+  // Get table by ID
+  TableModel? getTableById(int id) {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
+    try {
+      return _tables.firstWhere(
+        (table) => table.id == id,
+        orElse: () => throw Exception('Table not found with ID: $id'),
+      );
+    } catch (e) {
+      return null;
+    }
+  }
 
   // Stream controllers for table events
   final _tableStreamController = StreamController<List<TableModel>>.broadcast();
@@ -24,12 +52,12 @@ class TableMiddleware {
   }
 
   // Private constructor
-  TableMiddleware._internal() : _repository = TableRepository.instance;
+  TableMiddleware._internal();
 
   // Initialize the middleware
   Future<void> initialize() async {
     try {
-      if (!_repository.isInitialized) {
+      if (!_isInitialized) {
         await _loadTablesFromJson();
       }
       refreshTables();
@@ -43,7 +71,7 @@ class TableMiddleware {
     try {
       final jsonString = await rootBundle.loadString('assets/tables.json');
       final tables = TableModel.parseTables(jsonString);
-      _repository.setTables(tables);
+      setTables(tables);
     } catch (e) {
       _tableErrorController.add('Failed to load tables from JSON: $e');
     }
@@ -52,7 +80,7 @@ class TableMiddleware {
   // Load and broadcast all tables
   Future<void> refreshTables() async {
     try {
-      final tables = _repository.getAllTables();
+      final tables = getAllTables();
       _tableStreamController.add(tables);
     } catch (e) {
       _tableErrorController.add('Failed to load tables: $e');
@@ -62,18 +90,26 @@ class TableMiddleware {
   // Get a single table by ID
   Future<TableModel?> getTable(int id) async {
     try {
-      return _repository.getTableById(id);
+      return getTableById(id);
     } catch (e) {
       _tableErrorController.add('Failed to get table with ID $id: $e');
       return null;
     }
   }
 
+  // Get tables for serialization
+  List<Map<String, dynamic>> getTablesForSerialization() {
+    if (!_isInitialized) {
+      throw Exception('Table repository not initialized');
+    }
+    return _tables.map((t) => t.toJson()).toList();
+  }
+
   // Save all table data
   Future<void> saveTables() async {
     try {
       // This would be implemented to save to JSON/DB in a real app
-      final jsonList = _repository.getTablesForSerialization();
+      final jsonList = getTablesForSerialization();
       // ignore: unused_local_variable
       final jsonString = json.encode(jsonList);
 

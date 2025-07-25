@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/bill.dart';
-import '../repositories/bill_repository.dart';
+import '../middleware/bill_middleware.dart';
 
 class MergeBillMiddleware {
-  final BillRepository _repository;
+  final BillMiddleware _billMiddleware;
 
   // Stream controllers for bill events
   final _billStreamController = StreamController<List<BillModel>>.broadcast();
@@ -23,13 +23,13 @@ class MergeBillMiddleware {
   }
 
   // Private constructor
-  MergeBillMiddleware._internal() : _repository = BillRepository.instance;
+  MergeBillMiddleware._internal() : _billMiddleware = BillMiddleware();
 
   // Initialize the middleware
   Future<void> initialize() async {
     try {
-      if (!_repository.isInitialized) {
-        await _loadBillsFromJson();
+      if (!_billMiddleware.isInitialized) {
+        await _billMiddleware.initialize();
       }
       refreshBills();
     } catch (e) {
@@ -40,9 +40,7 @@ class MergeBillMiddleware {
   // Load bills from JSON
   Future<void> _loadBillsFromJson() async {
     try {
-      final jsonString = await rootBundle.loadString('assets/bills.json');
-      final bills = BillModel.parseBills(jsonString);
-      _repository.setBills(bills);
+      await _billMiddleware.initialize();
     } catch (e) {
       _billErrorController.add('Failed to load bills from JSON: $e');
     }
@@ -51,7 +49,7 @@ class MergeBillMiddleware {
   // Load and broadcast all bills
   Future<void> refreshBills() async {
     try {
-      final bills = _repository.getAllBills();
+      final bills = _billMiddleware.getAllBills();
       _billStreamController.add(bills);
     } catch (e) {
       _billErrorController.add('Failed to load bills: $e');
@@ -61,7 +59,7 @@ class MergeBillMiddleware {
   // Get a single bill by ID
   Future<BillModel?> getBill(int id) async {
     try {
-      return _repository.getBillById(id);
+      return _billMiddleware.getBillById(id);
     } catch (e) {
       _billErrorController.add('Failed to get bill with ID $id: $e');
       return null;
@@ -71,7 +69,7 @@ class MergeBillMiddleware {
   // Get bills by customer ID
   Future<List<BillModel>> getBillsByCustomerId(int customerId) async {
     try {
-      return _repository.getBillsByCustomerId(customerId);
+      return _billMiddleware.getBillsByCustomerId(customerId);
     } catch (e) {
       _billErrorController.add(
         'Failed to get bills for customer $customerId: $e',
@@ -83,7 +81,7 @@ class MergeBillMiddleware {
   // Get bills by status
   Future<List<BillModel>> getBillsByStatus(String status) async {
     try {
-      return _repository.getBillsByStatus(status);
+      return _billMiddleware.getBillsByStatus(status);
     } catch (e) {
       _billErrorController.add('Failed to get bills with status $status: $e');
       return [];

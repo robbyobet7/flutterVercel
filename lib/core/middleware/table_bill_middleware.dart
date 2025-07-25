@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/bill.dart';
-import '../repositories/table_bill_repository.dart';
 
 class TableBillMiddleware {
-  final TableBillRepository _repository;
+  List<BillModel> _bills = [];
+  bool _isInitialized = false;
 
   // Stream controllers for bill events
   final _billStreamController = StreamController<List<BillModel>>.broadcast();
@@ -23,12 +23,26 @@ class TableBillMiddleware {
   }
 
   // Private constructor
-  TableBillMiddleware._internal() : _repository = TableBillRepository.instance;
+  TableBillMiddleware._internal();
+
+  // Set bills data (called from middleware)
+  void setBills(List<BillModel> bills) {
+    _bills = bills;
+    _isInitialized = true;
+  }
+
+  // Get all bills
+  List<BillModel> getAllBills() {
+    if (!_isInitialized) {
+      throw Exception('TableBill repository not initialized');
+    }
+    return _bills;
+  }
 
   // Initialize the middleware
   Future<void> initialize() async {
     try {
-      if (!_repository.isInitialized) {
+      if (!_isInitialized) {
         await _loadBillsFromJson();
       }
       refreshBills();
@@ -42,7 +56,7 @@ class TableBillMiddleware {
     try {
       final jsonString = await rootBundle.loadString('assets/tableBills.json');
       final bills = BillModel.parseBills(jsonString);
-      _repository.setBills(bills);
+      setBills(bills);
     } catch (e) {
       _billErrorController.add('Failed to load table bills from JSON: $e');
     }
@@ -51,7 +65,7 @@ class TableBillMiddleware {
   // Load and broadcast all bills
   Future<void> refreshBills() async {
     try {
-      final bills = _repository.getAllBills();
+      final bills = getAllBills();
       _billStreamController.add(bills);
     } catch (e) {
       _billErrorController.add('Failed to load table bills: $e');
@@ -61,7 +75,7 @@ class TableBillMiddleware {
   // Get a bill by ID
   Future<BillModel?> getBillById(int id) async {
     try {
-      return _repository.getBillById(id);
+      return getBillById(id);
     } catch (e) {
       _billErrorController.add('Failed to get table bill with ID $id: $e');
       return null;
@@ -71,12 +85,14 @@ class TableBillMiddleware {
   // Get bills by table ID
   Future<List<BillModel>> getBillsByTableId(int tableId) async {
     try {
-      return _repository.getBillsByTableId(tableId);
+      return getBillsByTableId(tableId);
     } catch (e) {
       _billErrorController.add('Failed to get bills for table ID $tableId: $e');
       return [];
     }
   }
+
+  // Get bills for serialization
 
   // Dispose resources
   void dispose() {

@@ -8,7 +8,7 @@ import '../constants/app_constants.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: AppConstants.LoginPage,
+    initialLocation: AppConstants.homeRoute,
     routes: [
       GoRoute(
         path: AppConstants.homeRoute,

@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/middleware/stock_taking_middleware.dart';
-import 'package:rebill_flutter/core/repositories/stock_taking_repository.dart';
 import 'package:rebill_flutter/features/stock-taking/models/stock_taking.dart';
 
 // ==================== Stock Taking State ====================
@@ -39,7 +38,7 @@ class StockTakingNotifier extends StateNotifier<StockTakingState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final stockTakings = StockTakingRepository.instance.getAllStockTakings();
+      final stockTakings = StockTakingMiddleware.instance.getAllStockTakings();
       state = state.copyWith(stockTakings: stockTakings, isLoading: false);
     } catch (e) {
       state = state.copyWith(
@@ -85,7 +84,7 @@ final prepsProvider = Provider<List<StockTaking>>((ref) {
 
 final stockTakingsProvider = Provider<List<StockTaking>>((ref) {
   try {
-    return StockTakingRepository.instance.getAllStockTakings();
+    return StockTakingMiddleware.instance.getAllStockTakings();
   } catch (e) {
     return [];
   }

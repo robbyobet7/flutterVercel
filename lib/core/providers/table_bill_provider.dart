@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/bill.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/middleware/table_bill_middleware.dart';
-import 'package:rebill_flutter/core/repositories/table_bill_repository.dart';
 import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
@@ -171,8 +170,8 @@ class TableBillNotifier extends StateNotifier<TableBillState> {
 }
 
 // Provider for the repository
-final tableBillRepositoryProvider = Provider<TableBillRepository>((ref) {
-  return TableBillRepository.instance;
+final TableBillMiddlewareProvider = Provider<TableBillMiddleware>((ref) {
+  return TableBillMiddleware();
 });
 
 // Provider for the middleware

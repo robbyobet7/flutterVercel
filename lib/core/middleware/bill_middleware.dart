@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/bill.dart';
-import '../repositories/bill_repository.dart';
 
 class BillMiddleware {
-  final BillRepository _repository;
+  List<BillModel> _bills = [];
+  bool _isInitialized = false;
 
   // Stream controllers for bill events
   final _billStreamController = StreamController<List<BillModel>>.broadcast();
@@ -23,12 +23,12 @@ class BillMiddleware {
   }
 
   // Private constructor
-  BillMiddleware._internal() : _repository = BillRepository.instance;
+  BillMiddleware._internal();
 
   // Initialize the middleware
   Future<void> initialize() async {
     try {
-      if (!_repository.isInitialized) {
+      if (!_isInitialized) {
         await _loadBillsFromJson();
       }
       refreshBills();
@@ -42,7 +42,7 @@ class BillMiddleware {
     try {
       final jsonString = await rootBundle.loadString('assets/bills.json');
       final bills = BillModel.parseBills(jsonString);
-      _repository.setBills(bills);
+      setBills(bills);
     } catch (e) {
       _billErrorController.add('Failed to load bills from JSON: $e');
     }
@@ -51,43 +51,63 @@ class BillMiddleware {
   // Load and broadcast all bills
   Future<void> refreshBills() async {
     try {
-      final bills = _repository.getAllBills();
+      final bills = getAllBills();
       _billStreamController.add(bills);
     } catch (e) {
       _billErrorController.add('Failed to load bills: $e');
     }
   }
 
-  // Get a single bill by ID
-  Future<BillModel?> getBill(int id) async {
-    try {
-      return _repository.getBillById(id);
-    } catch (e) {
-      _billErrorController.add('Failed to get bill with ID $id: $e');
-      return null;
+  // Set bills data
+  void setBills(List<BillModel> bills) {
+    _bills = bills;
+    _isInitialized = true;
+  }
+
+  // Check if initialized
+  bool get isInitialized => _isInitialized;
+
+  // Get all bills
+  List<BillModel> getAllBills() {
+    if (!_isInitialized) {
+      throw Exception('Bill middleware not initialized');
     }
+    return _bills;
+  }
+
+  // Get a single bill by ID
+  BillModel? getBillById(int id) {
+    if (!_isInitialized) {
+      throw Exception('Bill middleware not initialized');
+    }
+    return _bills.firstWhere(
+      (bill) => bill.billId == id,
+      orElse: () => throw Exception('Bill not found with ID: $id'),
+    );
   }
 
   // Get bills by customer ID
-  Future<List<BillModel>> getBillsByCustomerId(int customerId) async {
-    try {
-      return _repository.getBillsByCustomerId(customerId);
-    } catch (e) {
-      _billErrorController.add(
-        'Failed to get bills for customer $customerId: $e',
-      );
-      return [];
+  List<BillModel> getBillsByCustomerId(int customerId) {
+    if (!_isInitialized) {
+      throw Exception('Bill middleware not initialized');
     }
+    return _bills.where((bill) => bill.customerId == customerId).toList();
   }
 
   // Get bills by status
-  Future<List<BillModel>> getBillsByStatus(String status) async {
-    try {
-      return _repository.getBillsByStatus(status);
-    } catch (e) {
-      _billErrorController.add('Failed to get bills with status $status: $e');
-      return [];
+  List<BillModel> getBillsByStatus(String status) {
+    if (!_isInitialized) {
+      throw Exception('Bill middleware not initialized');
     }
+    return _bills.where((bill) => bill.states == status).toList();
+  }
+
+  // Get bills for serialization
+  List<Map<String, dynamic>> getBillsForSerialization() {
+    if (!_isInitialized) {
+      throw Exception('Bill middleware not initialized');
+    }
+    return _bills.map((b) => b.toJson()).toList();
   }
 
   // Dispose resources
