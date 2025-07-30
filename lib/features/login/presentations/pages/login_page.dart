@@ -1,353 +1,153 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:rebill_flutter/core/constants/app_constants.dart';
-import 'package:rebill_flutter/core/providers/auth_provider.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
+import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
+import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 
-final identityProvider = StateProvider<String>((ref) => '');
-final passwordProvider = StateProvider<String>((ref) => '');
-
-final obscureProvider = StateProvider<bool>((ref) => true);
-
-class LoginPage extends ConsumerStatefulWidget {
+class LoginPage extends ConsumerWidget {
   const LoginPage({super.key});
 
   @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
-}
-
-class _LoginPageState extends ConsumerState<LoginPage> {
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  String? _errorMessage;
-
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = ref.watch(orientationProvider);
 
-    return Scaffold(
-      body:
-          isLandscape
-              ? _buildLandscapeLayout(context)
-              : _buildPortraitLayout(context),
-    );
-  }
+    double boxWidth = isLandscape ? screenWidth * 0.3 : double.infinity;
+    double boxHeight = isLandscape ? double.infinity : screenWidth * 0.5;
 
-  /// PORTRAIT WIDGET BUILDER
-  Widget _buildPortraitLayout(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height,
-          child: Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    alignment: const Alignment(0.0, -1.3),
-                    image: const AssetImage('assets/images/bgLogin2.jpg'),
-                    colorFilter: ColorFilter.mode(
-                      Colors.blue.withOpacity(0.75),
-                      BlendMode.srcATop,
-                    ),
-                  ),
-                ),
-              ),
-
-              Column(
-                children: [
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.25),
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: _buildLoginForm(theme, _usernameController),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  //LANDSCAPE WIDGET BUILDER
-  Widget _buildLandscapeLayout(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
-          height: MediaQuery.of(context).size.height,
+          width: screenWidth,
+          height: screenHeight,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: const AssetImage('assets/images/bgLogin2.jpg'),
-              alignment: Alignment(-4, 0),
-              colorFilter: ColorFilter.mode(
-                Colors.blue.withOpacity(0.75),
-                BlendMode.srcATop,
-              ),
+              image: AssetImage('assets/images/login_background.webp'),
+              fit: BoxFit.cover,
             ),
           ),
-          child: Row(
-            children: [
-              Expanded(flex: 2, child: Container()),
-              //Right Form
-              Expanded(
-                flex: 5,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(35),
-                      bottomLeft: Radius.circular(35),
-                    ),
-                  ),
-                  child: Center(
-                    child: _buildLoginForm(theme, _usernameController),
-                  ),
-                ),
-              ),
-            ],
+          child: Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.5),
+            ),
+            child: Flex(
+              direction: isLandscape ? Axis.horizontal : Axis.vertical,
+              children: [
+                SizedBox(width: boxWidth, height: boxHeight),
+                const LoginComponent(),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
 
-  /// WIDGET LOGIN FORM
-  Widget _buildLoginForm(
-    ThemeData theme,
-    TextEditingController usernameController,
-  ) {
+class LoginComponent extends ConsumerWidget {
+  const LoginComponent({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final isLandscape = ref.watch(orientationProvider);
-    final isObscure = ref.watch(obscureProvider);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Logo and Title
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(Icons.star, color: Colors.blueAccent, size: 50),
-              const SizedBox(width: 8),
-              const Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'Re',
-                      style: TextStyle(
-                        fontSize: 45,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 104, 98, 98),
-                      ),
-                    ),
-                    TextSpan(
-                      text: 'Bill',
-                      style: TextStyle(fontSize: 45, color: Colors.black),
-                    ),
-                  ],
-                ),
+
+    double? boxWidth = isLandscape ? null : double.infinity;
+    double? boxHeight = isLandscape ? double.infinity : null;
+
+    return Expanded(
+      child: Container(
+        width: boxWidth,
+        height: boxHeight,
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(50),
+            topRight: isLandscape ? Radius.circular(0) : Radius.circular(50),
+            bottomLeft: isLandscape ? Radius.circular(50) : Radius.circular(0),
+          ),
+        ),
+        child: Column(
+          spacing: 24,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SvgPicture.asset('assets/icons/rebill_logo.svg', height: 70),
+            Text('Login to your account', style: theme.textTheme.displayLarge),
+            Container(
+              decoration: BoxDecoration(
+                boxShadow: AppTheme.kBoxShadow,
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Login to your account',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black54,
-            ),
-          ),
-          const SizedBox(height: 30),
-
-          // White Box in Container
-          Container(
-            width:
-                isLandscape
-                    ? MediaQuery.of(context).size.width * 0.4
-                    : MediaQuery.of(context).size.width * 0.8,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 10,
-                  offset: const Offset(0, 5), // Bayangan di bawah
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(20),
-
-            // Form Fields Username and Password
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 15),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontSize: 14),
-                      textAlign: TextAlign.center,
+              constraints: BoxConstraints(maxWidth: 370),
+              padding: EdgeInsets.all(16),
+              child: Column(
+                spacing: 12,
+                children: [
+                  AppTextField(
+                    controller: TextEditingController(),
+                    showLabel: false,
+                    prefix: Icon(
+                      Icons.person,
+                      color: theme.colorScheme.primary,
                     ),
-                  ),
-                TextField(
-                  controller: usernameController,
-                  style: const TextStyle(color: Colors.black, fontSize: 14),
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.all(16),
-                    prefixIcon: const Icon(Icons.person, color: Colors.blue),
                     hintText: 'Email Address or Username',
-                    hintStyle: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 14,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
                   ),
-                ),
-                const SizedBox(height: 15),
-
-                TextField(
-                  controller: _passwordController,
-                  style: const TextStyle(color: Colors.black, fontSize: 14),
-                  obscureText: isObscure,
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.all(16),
-                    prefixIcon: const Icon(Icons.lock, color: Colors.blue),
+                  AppTextField(
+                    controller: TextEditingController(),
+                    showLabel: false,
+                    prefix: Icon(Icons.lock, color: theme.colorScheme.primary),
+                    suffix: Icon(
+                      Icons.visibility,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
                     hintText: 'Password',
-                    hintStyle: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 14,
-                    ),
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        ref.read(obscureProvider.notifier).state =
-                            !isObscure; // Toggle password visibility
-                      },
-                      icon: Icon(
-                        isObscure ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.blueGrey,
-                      ),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
                   ),
-                ),
-                const SizedBox(height: 25),
-
-                // Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: AppButton(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: 8,
+                    children: [
+                      AppButton(
                         onPressed: () {},
                         text: 'Login Dashboard',
-                        disabled: false,
                         backgroundColor: theme.colorScheme.primary,
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Text(
-                        "or",
-                        style: TextStyle(
-                          color: Colors.grey,
+                        textStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: AppButton(
-                        onPressed: () async {
-                          if (usernameController.text.isEmpty ||
-                              _passwordController.text.isEmpty) {
-                            setState(() {
-                              _errorMessage =
-                                  "Username dan password tidak boleh kosong";
-                            });
-                            return;
-                          }
-
-                          setState(() {
-                            _isLoading = true;
-                            _errorMessage = null;
-                          });
-                          try {
-                            await ref
-                                .read(authProvider.notifier)
-                                .login(
-                                  usernameController.text,
-                                  _passwordController.text,
-                                );
-                            if (mounted) {
-                              context.go(AppConstants.homeRoute);
-                            }
-                          } catch (e) {
-                            setState(() {
-                              _errorMessage = "Login gagal: ${e.toString()}";
-                            });
-                            print(e);
-                          } finally {
-                            if (mounted) {
-                              setState(() {
-                                _isLoading = false;
-                              });
-                            }
-                          }
-                        },
-                        text: 'Login POS',
-                        disabled: false,
-                        backgroundColor: theme.colorScheme.primary,
+                      Text(
+                        'or',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      AppButton(
+                        onPressed: () {},
+                        text: 'Login POS',
+                        backgroundColor: theme.colorScheme.primary,
+                        textStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
