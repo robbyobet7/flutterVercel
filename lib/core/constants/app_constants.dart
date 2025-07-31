@@ -7,7 +7,7 @@ class AppConstants {
 
   // Base URL
   static const String baseUrl =
-      'https://transparency-attached-emirates-ideas.trycloudflare.com/';
+      'https://document-permalink-german-enrollment.trycloudflare.com/';
 
   // Service URL
   static const String service = 'pos/';
