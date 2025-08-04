@@ -10,8 +10,6 @@ import 'package:rebill_flutter/features/login/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
 
-final obscureProvider = StateProvider<bool>((ref) => true);
-
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
@@ -36,6 +34,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = ref.watch(orientationProvider);
+    final isLoading = ref.watch(authProvider).isLoading;
+
     double boxWidth = isLandscape ? screenWidth * 0.3 : double.infinity;
     double boxHeight = isLandscape ? double.infinity : screenWidth * 0.5;
 
@@ -71,7 +71,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ),
           ),
-          if (ref.watch(authProvider).isLoading)
+          if (isLoading)
             Container(
               width: screenWidth,
               height: screenHeight,
@@ -89,7 +89,6 @@ class LoginComponent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
     final theme = Theme.of(context);
     final isLandscape = ref.watch(orientationProvider);
     final isObscure = ref.watch(obscureProvider);
@@ -97,6 +96,28 @@ class LoginComponent extends ConsumerWidget {
     final passwordController = ref.watch(passwordControllerProvider);
     double? boxWidth = isLandscape ? null : double.infinity;
     double? boxHeight = isLandscape ? double.infinity : null;
+
+    Future<void> loadHeavyData() async {
+      await Future.delayed(const Duration(milliseconds: 2000));
+    }
+
+    Future<void> login() async {
+      try {
+        await ref
+            .read(authProvider.notifier)
+            .login(identityController.text, passwordController.text);
+
+        ref.read(authProvider.notifier).setIsLoading(true);
+        await loadHeavyData();
+
+        await Future.delayed(Duration.zero);
+        if (!context.mounted) return;
+        context.go(AppConstants.homeRoute);
+      } catch (e) {
+        if (!context.mounted) return;
+        AppSnackbar.showError(context, message: e.toString());
+      }
+    }
 
     return Expanded(
       child: Container(
@@ -169,35 +190,7 @@ class LoginComponent extends ConsumerWidget {
                     spacing: 8,
                     children: [
                       AppButton(
-                        onPressed:
-                            authState.isLoading
-                                ? null
-                                : () async {
-                                  try {
-                                    final success = await ref
-                                        .read(authProvider.notifier)
-                                        .login(
-                                          identityController.text,
-                                          passwordController.text,
-                                        );
-                                    if (!context.mounted) return;
-                                    if (success) {
-                                      context.go(AppConstants.homeRoute);
-                                    } else {
-                                      AppSnackbar.showError(
-                                        context,
-                                        message:
-                                            'Login gagal. Periksa username dan password Anda.',
-                                      );
-                                    }
-                                  } catch (e) {
-                                    if (!context.mounted) return;
-                                    AppSnackbar.showError(
-                                      context,
-                                      message: 'Error: ${e.toString()}',
-                                    );
-                                  }
-                                },
+                        onPressed: login,
                         text: 'Login Dashboard',
                         backgroundColor: theme.colorScheme.primary,
                         textStyle: theme.textTheme.bodyMedium?.copyWith(
@@ -215,35 +208,7 @@ class LoginComponent extends ConsumerWidget {
                         ),
                       ),
                       AppButton(
-                        onPressed:
-                            authState.isLoading
-                                ? null
-                                : () async {
-                                  try {
-                                    final success = await ref
-                                        .read(authProvider.notifier)
-                                        .login(
-                                          identityController.text,
-                                          passwordController.text,
-                                        );
-                                    if (!context.mounted) return;
-                                    if (success) {
-                                      context.go(AppConstants.homeRoute);
-                                    } else {
-                                      AppSnackbar.showError(
-                                        context,
-                                        message:
-                                            'Login gagal. Periksa username dan password Anda.',
-                                      );
-                                    }
-                                  } catch (e) {
-                                    if (!context.mounted) return;
-                                    AppSnackbar.showError(
-                                      context,
-                                      message: 'Error: ${e.toString()}',
-                                    );
-                                  }
-                                },
+                        onPressed: login,
                         text: 'Login POS',
                         backgroundColor: theme.colorScheme.primary,
                         textStyle: theme.textTheme.bodyMedium?.copyWith(

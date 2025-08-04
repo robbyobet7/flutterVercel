@@ -18,7 +18,7 @@ class AuthMiddleware {
   }
 
   // Login
-  Future<String?> login(String identity, String password) async {
+  Future<void> login(String identity, String password) async {
     try {
       final response = await dio.post(
         AppConstants.loginUrl,
@@ -46,18 +46,16 @@ class AuthMiddleware {
               token.isNotEmpty &&
               refreshToken.isNotEmpty) {
             await saveToken(token, refreshToken);
-            return token;
           }
         }
       }
-      return null; // Return null if response is not as expected
     } catch (e) {
-      return null;
+      throw Exception(e);
     }
   }
 
   // Refresh Token
-  Future<bool> refreshToken() async {
+  Future<void> refreshToken() async {
     try {
       final secureStorage = FlutterSecureStorage();
       final refreshToken = await secureStorage.read(
@@ -66,7 +64,7 @@ class AuthMiddleware {
 
       // Check if we have a refresh token
       if (refreshToken == null || refreshToken.isEmpty) {
-        return false;
+        throw Exception('Refresh token is null or empty');
       }
 
       // Try with primary format - refresh_token in body
@@ -79,7 +77,7 @@ class AuthMiddleware {
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        return _processRefreshResponse(response, refreshToken);
+        _processRefreshResponse(response, refreshToken);
       }
 
       // If primary format fails, try alternative format - refreshToken in body
@@ -92,7 +90,7 @@ class AuthMiddleware {
       );
 
       if (altResponse.statusCode == 200 && altResponse.data != null) {
-        return _processRefreshResponse(altResponse, refreshToken);
+        _processRefreshResponse(altResponse, refreshToken);
       }
 
       // Try with token in Authorization header as last resort
@@ -105,19 +103,19 @@ class AuthMiddleware {
       );
 
       if (headerResponse.statusCode == 200 && headerResponse.data != null) {
-        return _processRefreshResponse(headerResponse, refreshToken);
+        _processRefreshResponse(headerResponse, refreshToken);
       }
 
-      return false;
+      throw Exception('Failed to refresh token');
     } catch (e) {
-      return false;
+      throw Exception(e);
     }
   }
 
-  bool _processRefreshResponse(Response response, String oldRefreshToken) {
+  void _processRefreshResponse(Response response, String oldRefreshToken) {
     try {
       final data = response.data['data'];
-      if (data == null) return false;
+      if (data == null) throw Exception('Data is null');
 
       // Get new tokens
       final token = data['token'];
@@ -127,11 +125,10 @@ class AuthMiddleware {
       // Validate token
       if (token != null && token is String && token.isNotEmpty) {
         saveToken(token, newRefreshToken);
-        return true;
       }
-      return false;
+      throw Exception('Failed to process refresh response');
     } catch (e) {
-      return false;
+      throw Exception(e);
     }
   }
 }
