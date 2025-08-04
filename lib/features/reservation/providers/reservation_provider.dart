@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/repositories/reservation_repository.dart';
+import 'package:rebill_flutter/core/middleware/reservation_middleware.dart';
 import '../models/reservation.dart';
 
 // State class for the reservation
@@ -28,21 +28,22 @@ class ReservationState {
 }
 
 // Repository provider
-final reservationRepositoryProvider = Provider<ReservationRepository>((ref) {
-  return ReservationRepository();
+final ReservationMiddlewareProvider = Provider<ReservationMiddleware>((ref) {
+  return ReservationMiddleware();
 });
 
 // Reservation state notifier
 class ReservationNotifier extends StateNotifier<ReservationState> {
-  final ReservationRepository _repository;
+  final ReservationMiddleware reservationMiddleware;
 
-  ReservationNotifier(this._repository) : super(const ReservationState());
+  ReservationNotifier(this.reservationMiddleware)
+    : super(const ReservationState());
 
   Future<void> fetchReservations() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final reservations = await _repository.getReservations();
+      final reservations = await reservationMiddleware.getAllReservations();
       state = state.copyWith(reservations: reservations, isLoading: false);
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
@@ -53,6 +54,6 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
 // Provider for the reservation state
 final reservationProvider =
     StateNotifierProvider<ReservationNotifier, ReservationState>((ref) {
-      final repository = ref.watch(reservationRepositoryProvider);
+      final repository = ref.watch(ReservationMiddlewareProvider);
       return ReservationNotifier(repository);
     });

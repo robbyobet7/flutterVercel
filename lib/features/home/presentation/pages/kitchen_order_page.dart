@@ -4,6 +4,7 @@ import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/finished_order.dart';
 import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/processed_order.dart';
 import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/submitted_order.dart';
+import 'package:rebill_flutter/features/login/providers/auth_provider.dart';
 
 class KitchenOrderPage extends ConsumerStatefulWidget {
   const KitchenOrderPage({super.key});
@@ -13,6 +14,19 @@ class KitchenOrderPage extends ConsumerStatefulWidget {
 }
 
 class _KitchenOrderPageState extends ConsumerState<KitchenOrderPage> {
+  String token = '';
+
+  Future<void> _getToken() async {
+    token = await ref.read(authProvider.notifier).getValidToken() ?? 'No Token';
+    print('Token: $token');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getToken();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLandscape = ref.watch(orientationProvider);

@@ -8,6 +8,7 @@ import 'core/utils/router.dart';
 import 'core/providers/orientation_provider.dart';
 import 'core/utils/app_lifecycle_manager.dart';
 import 'core/widgets/unfocus_on_tap.dart';
+import 'features/login/providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,11 +28,38 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  MyAppState createState() => MyAppState();
+}
+
+class MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthAndRefreshToken();
+  }
+
+  Future<void> _checkAuthAndRefreshToken() async {
+    try {
+      // Check if user is already logged in
+      final isLoggedIn = await ref.read(authProvider.notifier).isLoggedIn();
+
+      if (isLoggedIn) {
+        // User is logged in, initiate refresh
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          await ref.read(authProvider.notifier).refreshToken();
+        });
+      }
+    } catch (e) {
+      // Error handling handled in AuthProvider
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeProvider);
 

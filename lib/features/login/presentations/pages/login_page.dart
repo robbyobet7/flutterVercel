@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
+import 'package:rebill_flutter/core/widgets/app_snackbar.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 import 'package:rebill_flutter/features/login/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -39,31 +40,45 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     double boxHeight = isLandscape ? double.infinity : screenWidth * 0.5;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          width: screenWidth,
-          height: screenHeight,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/bgLogin.webp'),
-              alignment: isLandscape ? Alignment(-7, 0) : Alignment(0.0, -1.2),
+      body: Stack(
+        fit: StackFit.expand,
+        alignment: Alignment.centerRight,
+        children: [
+          SingleChildScrollView(
+            child: Container(
+              width: screenWidth,
+              height: screenHeight,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/login_background.webp'),
+                  alignment:
+                      isLandscape ? Alignment(-7, 0) : Alignment(0.0, -1.2),
+                ),
+              ),
+              child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                ),
+                child: Flex(
+                  direction: isLandscape ? Axis.horizontal : Axis.vertical,
+                  children: [
+                    SizedBox(width: boxWidth, height: boxHeight),
+                    const LoginComponent(),
+                  ],
+                ),
+              ),
             ),
           ),
-          child: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.8),
+          if (ref.watch(authProvider).isLoading)
+            Container(
+              width: screenWidth,
+              height: screenHeight,
+              color: Colors.black.withValues(alpha: 0.5),
+              child: Center(child: CircularProgressIndicator()),
             ),
-            child: Flex(
-              direction: isLandscape ? Axis.horizontal : Axis.vertical,
-              children: [
-                SizedBox(width: boxWidth, height: boxHeight),
-                const LoginComponent(),
-              ],
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -80,7 +95,6 @@ class LoginComponent extends ConsumerWidget {
     final isObscure = ref.watch(obscureProvider);
     final identityController = ref.watch(identityControllerProvider);
     final passwordController = ref.watch(passwordControllerProvider);
-    // final isLoading = authState.isLoading;
     double? boxWidth = isLandscape ? null : double.infinity;
     double? boxHeight = isLandscape ? double.infinity : null;
 
@@ -159,15 +173,29 @@ class LoginComponent extends ConsumerWidget {
                             authState.isLoading
                                 ? null
                                 : () async {
-                                  final success = await ref
-                                      .read(authProvider.notifier)
-                                      .login(
-                                        identityController.text,
-                                        passwordController.text,
+                                  try {
+                                    final success = await ref
+                                        .read(authProvider.notifier)
+                                        .login(
+                                          identityController.text,
+                                          passwordController.text,
+                                        );
+                                    if (!context.mounted) return;
+                                    if (success) {
+                                      context.go(AppConstants.homeRoute);
+                                    } else {
+                                      AppSnackbar.showError(
+                                        context,
+                                        message:
+                                            'Login gagal. Periksa username dan password Anda.',
                                       );
-                                  if (!context.mounted) return;
-                                  if (success) {
-                                    context.go(AppConstants.homeRoute);
+                                    }
+                                  } catch (e) {
+                                    if (!context.mounted) return;
+                                    AppSnackbar.showError(
+                                      context,
+                                      message: 'Error: ${e.toString()}',
+                                    );
                                   }
                                 },
                         text: 'Login Dashboard',
@@ -187,9 +215,35 @@ class LoginComponent extends ConsumerWidget {
                         ),
                       ),
                       AppButton(
-                        onPressed: () {
-                          context.go(AppConstants.homeRoute);
-                        },
+                        onPressed:
+                            authState.isLoading
+                                ? null
+                                : () async {
+                                  try {
+                                    final success = await ref
+                                        .read(authProvider.notifier)
+                                        .login(
+                                          identityController.text,
+                                          passwordController.text,
+                                        );
+                                    if (!context.mounted) return;
+                                    if (success) {
+                                      context.go(AppConstants.homeRoute);
+                                    } else {
+                                      AppSnackbar.showError(
+                                        context,
+                                        message:
+                                            'Login gagal. Periksa username dan password Anda.',
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (!context.mounted) return;
+                                    AppSnackbar.showError(
+                                      context,
+                                      message: 'Error: ${e.toString()}',
+                                    );
+                                  }
+                                },
                         text: 'Login POS',
                         backgroundColor: theme.colorScheme.primary,
                         textStyle: theme.textTheme.bodyMedium?.copyWith(

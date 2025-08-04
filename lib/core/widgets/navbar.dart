@@ -10,11 +10,43 @@ import 'package:rebill_flutter/core/widgets/app_material.dart';
 import 'package:rebill_flutter/core/widgets/navbar_features.dart';
 import 'package:rebill_flutter/core/widgets/profile_avatar.dart';
 import 'package:rebill_flutter/features/printer-settings/presentations/widgets/printer_dialog.dart';
+import 'package:rebill_flutter/features/login/providers/auth_provider.dart';
+import 'package:rebill_flutter/core/widgets/app_snackbar.dart';
+import 'package:go_router/go_router.dart';
+import 'package:rebill_flutter/core/constants/app_constants.dart';
 
 final hideNavbarProvider = StateProvider<bool>((ref) => false);
 
 class Navbar extends ConsumerWidget {
   const Navbar({super.key});
+
+  //Logout
+  void handleLogout(BuildContext context, WidgetRef ref) async {
+    final shouldLogout = await AppDialog.showConfirmation(
+      context,
+      title: 'Logout',
+      message: 'Are you sure you want to logout?',
+      confirmText: 'Logout',
+      cancelText: 'Cancel',
+    );
+
+    if (shouldLogout == true && context.mounted) {
+      try {
+        await ref.read(authProvider.notifier).logout();
+        if (context.mounted) {
+          context.go(AppConstants.loginPage);
+          AppSnackbar.showSuccess(context, message: 'Successfully logged out');
+        }
+      } catch (e) {
+        if (context.mounted) {
+          AppSnackbar.showError(
+            context,
+            message: 'Failed to logout: ${e.toString()}',
+          );
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -145,6 +177,7 @@ class Navbar extends ConsumerWidget {
                                   //   break;
                                   case 'logout':
                                     // Handle logout action
+                                    handleLogout(context, ref);
                                     break;
                                 }
                               },

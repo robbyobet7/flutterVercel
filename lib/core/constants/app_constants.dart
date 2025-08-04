@@ -7,7 +7,7 @@ class AppConstants {
 
   // Base URL
   static const String baseUrl =
-      'https://document-permalink-german-enrollment.trycloudflare.com/';
+      'https://cradle-suffered-loan-arise.trycloudflare.com/';
 
   // Service URL
   static const String service = 'pos/';
@@ -18,9 +18,14 @@ class AppConstants {
   static const String loginUrl =
       '$baseUrl$service$apiVersion$authOwnerPath/login';
 
+  // Refresh Token URL
+  static const String refreshTokenUrl =
+      '$baseUrl$service$apiVersion$authOwnerPath/refresh-token';
+
   // Storage Keys
   static const String authTokenKey = 'auth_token';
   static const String userDataKey = 'user_data';
+  static const String refreshTokenKey = 'refresh_token';
 
   // Routes
   static const String homeRoute = '/';

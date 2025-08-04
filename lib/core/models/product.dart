@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Product {
   final int? id;
   final int? productsId;
@@ -165,7 +167,11 @@ class Product {
     return productsPrice ?? 0;
   }
 
-  static parseProducts(String jsonString) {}
+  static List<Product> parseProducts(String jsonString) {
+    final Map<String, dynamic> jsonData = json.decode(jsonString);
+    final List<dynamic> products = jsonData['products'];
+    return products.map((product) => Product.fromJson(product)).toList();
+  }
 }
 
 // Add a class for the multiple discounts
