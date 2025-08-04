@@ -137,8 +137,8 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
                           end: Alignment.centerRight,
                           colors: [
                             theme.colorScheme.surface,
-                            theme.colorScheme.surface.withOpacity(0.0),
-                            theme.colorScheme.surface.withOpacity(0.0),
+                            theme.colorScheme.surface.withValues(alpha: 0.0),
+                            theme.colorScheme.surface.withValues(alpha: 0.0),
                             theme.colorScheme.surface,
                           ],
                           stops: const [0.0, 0.1, 0.9, 1.0],
@@ -149,11 +149,15 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
                         decoration: BoxDecoration(
                           border: Border(
                             left: BorderSide(
-                              color: theme.colorScheme.outline.withOpacity(0.1),
+                              color: theme.colorScheme.outline.withValues(
+                                alpha: 0.1,
+                              ),
                               width: 1,
                             ),
                             right: BorderSide(
-                              color: theme.colorScheme.outline.withOpacity(0.1),
+                              color: theme.colorScheme.outline.withValues(
+                                alpha: 0.1,
+                              ),
                               width: 1,
                             ),
                           ),

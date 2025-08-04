@@ -220,7 +220,7 @@ class BillNotifier extends StateNotifier<BillState> {
     KnownIndividualNotifier knownIndividualNotifier,
     CustomerTypeNotifier customerTypeNotifier,
   ) async {
-    final bill = await _billMiddleware.getBillById(billId);
+    final bill = _billMiddleware.getBillById(billId);
     if (bill != null) {
       selectBill(bill);
       bill.loadIntoCart(cartNotifier);

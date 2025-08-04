@@ -21,7 +21,7 @@ class Navbar extends ConsumerWidget {
   const Navbar({super.key});
 
   //Logout
-  void handleLogout(BuildContext context, WidgetRef ref) async {
+  Future<void> handleLogout(BuildContext context, WidgetRef ref) async {
     final shouldLogout = await AppDialog.showConfirmation(
       context,
       title: 'Logout',
@@ -33,6 +33,7 @@ class Navbar extends ConsumerWidget {
     if (shouldLogout == true && context.mounted) {
       try {
         await ref.read(authProvider.notifier).logout();
+        await Future.delayed(Duration.zero);
         if (context.mounted) {
           context.go(AppConstants.loginPage);
           AppSnackbar.showSuccess(context, message: 'Successfully logged out');
