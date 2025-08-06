@@ -7,16 +7,22 @@ class AppConstants {
 
   // Base URL
   static const String baseUrl =
-      'https://cradle-suffered-loan-arise.trycloudflare.com/';
+      'https://ringtones-gained-amd-throw.trycloudflare.com/';
 
   // Service URL
   static const String service = 'pos/';
   static const String apiVersion = 'v1/';
   static const String authOwnerPath = 'auth/owner';
+  static const String authStaffPath = 'auth/staff';
+  static const String products = 'products';
 
   // Login URL
   static const String loginUrl =
       '$baseUrl$service$apiVersion$authOwnerPath/login';
+
+  // Product URL
+  static const String productUrl =
+      '$baseUrl$service$apiVersion$products/get-all';
 
   // Refresh Token URL
   static const String refreshTokenUrl =
@@ -27,7 +33,16 @@ class AppConstants {
   static const String userDataKey = 'user_data';
   static const String refreshTokenKey = 'refresh_token';
 
+  // Staff Token Keys
+  static const String authTokenStaffKey = 'auth_token_staff';
+  static const String refreshTokenStaffKey = 'refresh_token_staff';
+
+  // Staff Login URL
+  static const String staffLoginUrl =
+      '$baseUrl$service$apiVersion$authStaffPath/login';
+
   // Routes
   static const String homeRoute = '/';
   static const String loginPage = '/login';
+  static const String loginStaffPage = '/loginStaff';
 }

@@ -14,6 +14,7 @@ class AppTextField extends StatelessWidget {
   final FocusNode? focusNode;
   final int? maxLines;
   final int? minLines;
+  final int? maxLength;
   final TextInputAction? textInputAction;
   final VoidCallback? onTap;
   final EdgeInsetsGeometry? contentPadding;
@@ -23,6 +24,7 @@ class AppTextField extends StatelessWidget {
   final bool? required;
   final TextAlign? textAlign;
   final TextStyle? textStyle;
+  final bool? useCustomBorder;
   const AppTextField({
     super.key,
     required this.controller,
@@ -47,6 +49,8 @@ class AppTextField extends StatelessWidget {
     this.textAlign,
     this.constraints,
     this.textStyle,
+    this.maxLength,
+    this.useCustomBorder = false,
   });
 
   @override
@@ -86,7 +90,7 @@ class AppTextField extends StatelessWidget {
                         ),
                     ],
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: 16),
                 ],
               )
               : const SizedBox.shrink(),
@@ -101,6 +105,7 @@ class AppTextField extends StatelessWidget {
             focusNode: focusNode,
             maxLines: maxLines,
             minLines: minLines,
+            maxLength: maxLength,
             textInputAction: textInputAction,
             onTap: onTap,
             style: theme.textTheme.bodyMedium?.copyWith(color: Colors.black),

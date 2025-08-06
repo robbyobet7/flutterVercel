@@ -103,18 +103,22 @@ class LoginComponent extends ConsumerWidget {
 
     Future<void> login() async {
       try {
+        // Close Keyboard
+        FocusScope.of(context).unfocus();
+
         await ref
             .read(authProvider.notifier)
             .login(identityController.text, passwordController.text);
 
-        ref.read(authProvider.notifier).setIsLoading(true);
+        // ref.read(authProvider.notifier).setIsLoading(true);
         await loadHeavyData();
 
         await Future.delayed(Duration.zero);
         if (!context.mounted) return;
-        context.go(AppConstants.homeRoute);
+        context.go(AppConstants.loginStaffPage);
       } catch (e) {
         if (!context.mounted) return;
+
         AppSnackbar.showError(context, message: e.toString());
       }
     }

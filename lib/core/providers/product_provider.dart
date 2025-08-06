@@ -786,27 +786,59 @@ class ProductNotifier extends StateNotifier<ProductState> {
     return state.activeDiscounts[productId];
   }
 
-  // Repository methods
+  // Metode untuk memuat produk dari API
+  Future<void> loadProductsFromAPI() async {
+    try {
+      final products = await _repository.loadProductsFromAPI();
+      setProducts(products);
+    } catch (e) {
+      // Tampilkan pesan error
+      print('Gagal load product');
+    }
+  }
 
   // Load all available products
   Future<void> loadAvailableProducts() async {
-    final products = await _repository.getProductsInStock();
-    final availableProducts =
-        products.where((product) => product.status == 1).toList();
-    setProducts(availableProducts);
+    try {
+      final products = await _repository.loadProductsFromAPI();
+      final availableProducts =
+          products.where((product) => product.status == 1).toList();
+      setProducts(availableProducts);
+    } catch (e) {
+      // Tampilkan pesan error
+      print('Gagal load product');
+    }
   }
 
   // Load popular products
   Future<void> loadPopularProducts({int limit = 10}) async {
-    final products = await _repository.getAllProducts();
-    products.sort((a, b) => (b.sold ?? 0).compareTo(a.sold ?? 0));
-    setProducts(products.take(limit).toList());
+    try {
+      final products = await _repository.loadProductsFromAPI();
+      products.sort((a, b) => (b.sold ?? 0).compareTo(a.sold ?? 0));
+      setProducts(products.take(limit).toList());
+    } catch (e) {
+      // Tampilkan pesan error
+      print('Gagal load product');
+    }
   }
 
   // Load products by category
   Future<void> loadProductsByCategory(String category) async {
-    final products = await _repository.getProductsByType(category);
-    setProducts(products);
+    try {
+      final products = await _repository.loadProductsFromAPI();
+      final filteredProducts =
+          products
+              .where(
+                (product) =>
+                    product.productsType == category ||
+                    product.type == category,
+              )
+              .toList();
+      setProducts(filteredProducts);
+    } catch (e) {
+      // Tampilkan pesan error
+      print('Gagal load product');
+    }
   }
 
   // Search and filter products

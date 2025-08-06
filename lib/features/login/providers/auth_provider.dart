@@ -17,7 +17,7 @@ class AuthProvider extends StateNotifier<AuthState> {
   }
 
   // Start Refresh Token Timer
-  void _startRefreshTokenTimer() {
+  void startRefreshTokenTimer() {
     _stopRefreshTokenTimer();
     // First, set a short timer (10 seconds) to verify the token works initially
     Future.delayed(const Duration(seconds: 10), () async {
@@ -48,9 +48,57 @@ class AuthProvider extends StateNotifier<AuthState> {
   Future<void> login(String identity, String password) async {
     try {
       await authMiddleware.login(identity, password);
-      _startRefreshTokenTimer();
+      startRefreshTokenTimer();
     } catch (e) {
       rethrow;
+    }
+  }
+
+  // Login with navigation to staff page
+  Future<void> loginWithNavigation(String identity, String password) async {
+    try {
+      await authMiddleware.login(identity, password);
+      startRefreshTokenTimer();
+
+      // Simulate heavy data loading
+      await Future.delayed(const Duration(milliseconds: 2000));
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Validate PIN format
+  bool isValidPinFormat(String pin) {
+    return RegExp(r'^[0-9]{6}$').hasMatch(pin);
+  }
+
+  // Validate PIN for auto-login
+  bool shouldAutoLogin(String pin) {
+    return pin.length == 6 && isValidPinFormat(pin);
+  }
+
+  // Login Staff
+  Future<void> loginStaff(
+    String outletId,
+    String staffId,
+    String password,
+  ) async {
+    try {
+      // Initialize secure storage
+      final storage = FlutterSecureStorage();
+
+      // Panggil metode login staff di middleware
+      await authMiddleware.loginStaff(outletId, staffId, password);
+
+      // Set state atau lakukan operasi lain setelah login berhasil
+      state = state.copyWith(
+        token: await storage.read(key: AppConstants.authTokenStaffKey),
+        identity: staffId, // Atau informasi lain yang sesuai
+      );
+      // Mulai timer refresh token
+      startRefreshTokenTimer();
+    } catch (e) {
+      throw Exception(e);
     }
   }
 
@@ -79,13 +127,11 @@ class AuthProvider extends StateNotifier<AuthState> {
       if (currentToken == null || refreshTokenValue == null) {
         debugPrint('Token missing during refresh attempt, logging out');
         await logout();
-        throw Exception('Token missing during refresh attempt, logging out');
+        throw Exception('Token Expired');
       }
 
       // Try to refresh the token
       await authMiddleware.refreshToken();
-
-      debugPrint('Token refreshed successfully');
     } catch (e) {
       debugPrint('Error in refresh token: $e');
       await logout();
@@ -101,7 +147,7 @@ class AuthProvider extends StateNotifier<AuthState> {
 
       if (token != null && token.isNotEmpty) {
         // If we have a valid token, ensure the refresh timer is running
-        _startRefreshTokenTimer();
+        startRefreshTokenTimer();
         return token;
       } else {
         throw Exception('No valid token found in storage');
@@ -145,13 +191,13 @@ final authProvider = StateNotifierProvider<AuthProvider, AuthState>((ref) {
 
 // Auth Controller
 final identityControllerProvider = Provider<TextEditingController>((ref) {
-  final controller = TextEditingController(text: '');
+  final controller = TextEditingController(text: 'premium123321');
   ref.onDispose(() => controller.dispose());
   return controller;
 });
 
 final passwordControllerProvider = Provider<TextEditingController>((ref) {
-  final controller = TextEditingController(text: '');
+  final controller = TextEditingController(text: 'bond666');
   ref.onDispose(() => controller.dispose());
   return controller;
 });

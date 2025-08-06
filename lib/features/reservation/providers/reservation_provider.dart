@@ -43,6 +43,9 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
+      // Initialize the middleware first
+      await reservationMiddleware.initialize();
+
       final reservations = await reservationMiddleware.getAllReservations();
       state = state.copyWith(reservations: reservations, isLoading: false);
     } catch (e) {

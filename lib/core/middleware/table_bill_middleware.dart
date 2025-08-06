@@ -75,7 +75,7 @@ class TableBillMiddleware {
   // Get a bill by ID
   Future<BillModel?> getBillById(int id) async {
     try {
-      return getBillById(id);
+      return _bills.firstWhere((bill) => bill.billId == id);
     } catch (e) {
       _billErrorController.add('Failed to get table bill with ID $id: $e');
       return null;
@@ -85,7 +85,7 @@ class TableBillMiddleware {
   // Get bills by table ID
   Future<List<BillModel>> getBillsByTableId(int tableId) async {
     try {
-      return getBillsByTableId(tableId);
+      return _bills.where((bill) => bill.tableId == tableId).toList();
     } catch (e) {
       _billErrorController.add('Failed to get bills for table ID $tableId: $e');
       return [];

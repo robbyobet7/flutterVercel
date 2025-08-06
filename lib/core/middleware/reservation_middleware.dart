@@ -43,6 +43,12 @@ class ReservationMiddleware {
     }
   }
 
+  // Initialize reservation middleware
+  Future<void> initializeReservationMiddleware() async {
+    final reservationMiddleware = ReservationMiddleware();
+    await reservationMiddleware.initialize();
+  }
+
   // Load reservations from JSON
   Future<void> _loadReservationsFromJson() async {
     try {

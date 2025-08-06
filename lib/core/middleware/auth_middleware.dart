@@ -77,7 +77,7 @@ class AuthMiddleware {
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        _processRefreshResponse(response, refreshToken);
+        processRefreshResponse(response, refreshToken);
       }
 
       // If primary format fails, try alternative format - refreshToken in body
@@ -90,7 +90,7 @@ class AuthMiddleware {
       );
 
       if (altResponse.statusCode == 200 && altResponse.data != null) {
-        _processRefreshResponse(altResponse, refreshToken);
+        processRefreshResponse(altResponse, refreshToken);
       }
 
       // Try with token in Authorization header as last resort
@@ -103,7 +103,7 @@ class AuthMiddleware {
       );
 
       if (headerResponse.statusCode == 200 && headerResponse.data != null) {
-        _processRefreshResponse(headerResponse, refreshToken);
+        processRefreshResponse(headerResponse, refreshToken);
       }
 
       throw Exception('Failed to refresh token');
@@ -112,7 +112,69 @@ class AuthMiddleware {
     }
   }
 
-  void _processRefreshResponse(Response response, String oldRefreshToken) {
+  // Login Staff
+  Future<Map<String, dynamic>> loginStaff(
+    String outletId,
+    String staffId,
+    String password,
+  ) async {
+    try {
+      final dio = Dio();
+      final storage = FlutterSecureStorage();
+
+      // Take token from secure storage for header authorization
+      final token = await storage.read(key: AppConstants.authTokenKey);
+
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+
+      // Header configuration with token
+      dio.options.headers['Authorization'] = token;
+
+      // Prepare login data - pastikan konversi tipe data
+      final loginData = {
+        'outlet_id': int.tryParse(outletId) ?? 0,
+        'staff_id': int.tryParse(staffId) ?? 0,
+        'password': password,
+      };
+
+      // Make login request
+      final response = await dio.post(
+        AppConstants.staffLoginUrl,
+        data: loginData,
+        options: Options(
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      // Check response
+      if (response.statusCode == 200) {
+        // Extract tokens from response
+        final Map<String, dynamic> responseData = response.data['data'];
+        final String token = responseData['token'];
+        final String refreshToken = responseData['refreshToken'];
+
+        // Save tokens to secure storage
+        await storage.write(key: AppConstants.authTokenStaffKey, value: token);
+        await storage.write(
+          key: AppConstants.refreshTokenStaffKey,
+          value: refreshToken,
+        );
+
+        // Return full response data for additional processing if needed
+        return responseData;
+      } else {
+        // Handle error response
+        final errorMessage = response.data['message'] ?? 'Staff login failed';
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  void processRefreshResponse(Response response, String oldRefreshToken) {
     try {
       final data = response.data['data'];
       if (data == null) throw Exception('Data is null');

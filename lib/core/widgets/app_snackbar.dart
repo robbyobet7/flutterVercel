@@ -132,7 +132,12 @@ class AppSnackbar {
       backgroundColor: Colors.transparent,
       elevation: 0,
       behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.all(16),
+      margin: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 16,
+        bottom: MediaQuery.of(context).size.height - 100, // Lebih ke atas
+      ),
       dismissDirection:
           isDismissible ? DismissDirection.horizontal : DismissDirection.none,
       content: AppSnackbarContent(

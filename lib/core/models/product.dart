@@ -63,13 +63,13 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'],
+      id: json['products_id'], // Gunakan products_id sebagai id
       productsId: json['products_id'],
       productsPrice: json['products_price']?.toDouble(),
       purchPrice: json['purchPrice']?.toDouble(),
       productsStock: json['products_stock'],
       tax: json['tax']?.toDouble(),
-      outletId: json['outlet_id'],
+      outletId: json['owner_id'], // Gunakan owner_id sebagai outletId
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
       status: json['status'],
@@ -88,18 +88,23 @@ class Product {
       discountId: json['discount_id'],
       discountPin: json['discount_pin'],
       multipleDiscounts:
-          json['multipleDiscounts'] != null
+          json['discounts'] != null
               ? List<ProductDiscount>.from(
-                (json['multipleDiscounts'] as List).map(
+                (json['discounts'] as List).map(
                   (discount) => ProductDiscount.fromJson(
                     discount as Map<String, dynamic>,
                   ),
                 ),
               )
               : null,
-      option: json['option'],
-      type: json['type'] ?? 'product',
-      productImage: json['product_image'],
+      option:
+          json['option'] != null
+              ? jsonEncode(json['option'])
+              : null, // Encode option sebagai string JSON
+      type: json['products_type'] ?? 'product',
+      productImage:
+          json['product_image'] ??
+          json['product_image_s3'], // Gunakan product_image atau product_image_s3
     );
   }
 
@@ -226,7 +231,7 @@ class ProductDiscount {
 
   factory ProductDiscount.fromJson(Map<String, dynamic> json) {
     return ProductDiscount(
-      id: json['id'],
+      id: json['discount_id'], // Gunakan discount_id sebagai id
       discountName: json['discount_name'],
       discountType: json['discount_type'],
       amount: json['amount'],
