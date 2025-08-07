@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
@@ -96,6 +97,20 @@ class LoginComponent extends ConsumerWidget {
     final passwordController = ref.watch(passwordControllerProvider);
     double? boxWidth = isLandscape ? null : double.infinity;
     double? boxHeight = isLandscape ? double.infinity : null;
+    final secureStorage = FlutterSecureStorage();
+
+    Future<void> initialPage() async {
+      final currentToken = await secureStorage.read(
+        key: AppConstants.authTokenKey,
+      );
+
+      if (currentToken != null) {
+        if (!context.mounted) return;
+        context.go(AppConstants.loginStaffPage);
+      }
+    }
+
+    initialPage();
 
     Future<void> loadHeavyData() async {
       await Future.delayed(const Duration(milliseconds: 2000));

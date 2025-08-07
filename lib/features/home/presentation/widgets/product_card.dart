@@ -39,7 +39,7 @@ class ProductCard extends ConsumerWidget {
           context,
           content: ProductDetail(product: product),
           dialogType:
-              (product.multipleDiscounts!.isEmpty && product.option == null)
+              (product.productsDiscount == null && product.option == null)
                   ? DialogType.small
                   : DialogType.large,
           padding: const EdgeInsets.all(12),

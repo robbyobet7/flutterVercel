@@ -66,7 +66,6 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
               Expanded(child: AppSearchBar(hintText: 'Search reservations...')),
               InkWell(
                 onTap: () {
-                  Navigator.pop(context);
                   AppDialog.showCustom(
                     context,
                     content: AddReservationDialog(),

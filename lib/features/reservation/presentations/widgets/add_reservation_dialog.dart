@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/table_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
-import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 import 'package:rebill_flutter/core/widgets/decrement_button.dart';
 import 'package:rebill_flutter/core/widgets/increment_button.dart';
 import 'package:rebill_flutter/core/widgets/label_text.dart';
-import 'package:rebill_flutter/features/reservation/presentations/widgets/reservation_dialog.dart';
 
 class AddReservationDialog extends StatelessWidget {
   const AddReservationDialog({super.key});
@@ -31,16 +29,7 @@ class AddReservationDialog extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   AppButton(
-                    onPressed:
-                        () => {
-                          Navigator.pop(context),
-                          AppDialog.showCustom(
-                            context,
-                            dialogType: DialogType.large,
-                            title: 'Reservations',
-                            content: const ReservationDialog(),
-                          ),
-                        },
+                    onPressed: () => Navigator.pop(context),
                     text: 'Back to Reservations',
                     backgroundColor: theme.colorScheme.errorContainer,
                     textStyle: theme.textTheme.bodySmall?.copyWith(

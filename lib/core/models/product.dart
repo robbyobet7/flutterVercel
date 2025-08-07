@@ -103,8 +103,8 @@ class Product {
               : null, // Encode option sebagai string JSON
       type: json['products_type'] ?? 'product',
       productImage:
-          json['product_image'] ??
-          json['product_image_s3'], // Gunakan product_image atau product_image_s3
+          json['product_image_s3'] ??
+          json['product_image'], // Gunakan product_image atau product_image_s3
     );
   }
 

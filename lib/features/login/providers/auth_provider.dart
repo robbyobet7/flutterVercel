@@ -12,13 +12,13 @@ class AuthProvider extends StateNotifier<AuthState> {
 
   @override
   void dispose() {
-    _stopRefreshTokenTimer();
+    stopRefreshTokenTimer();
     super.dispose();
   }
 
   // Start Refresh Token Timer
   void startRefreshTokenTimer() {
-    _stopRefreshTokenTimer();
+    stopRefreshTokenTimer();
     // First, set a short timer (10 seconds) to verify the token works initially
     Future.delayed(const Duration(seconds: 10), () async {
       // Check if token is still valid
@@ -39,7 +39,7 @@ class AuthProvider extends StateNotifier<AuthState> {
   }
 
   // Stop Refresh Token Timer
-  void _stopRefreshTokenTimer() {
+  void stopRefreshTokenTimer() {
     _refreshTokenTimer?.cancel();
     _refreshTokenTimer = null;
   }
@@ -103,11 +103,35 @@ class AuthProvider extends StateNotifier<AuthState> {
   }
 
   // Logout
-  Future<void> logout() async {
-    _stopRefreshTokenTimer();
+  Future<void> logoutOwner() async {
+    stopRefreshTokenTimer();
     final secureStorage = FlutterSecureStorage();
+
     await secureStorage.delete(key: AppConstants.authTokenKey);
     await secureStorage.delete(key: AppConstants.refreshTokenKey);
+
+    // Clear only staff tokens since we're going back to staff login
+    // Keep owner token for staff login authorization
+    await secureStorage.delete(key: AppConstants.authTokenStaffKey);
+    await secureStorage.delete(key: AppConstants.refreshTokenStaffKey);
+    await secureStorage.delete(key: AppConstants.userDataKey);
+
+    // Reset state
+    state = AuthState();
+  }
+
+  // Logout
+  Future<void> logoutStaff() async {
+    stopRefreshTokenTimer();
+    final secureStorage = FlutterSecureStorage();
+
+    // Clear only staff tokens since we're going back to staff login
+    // Keep owner token for staff login authorization
+    await secureStorage.delete(key: AppConstants.authTokenStaffKey);
+    await secureStorage.delete(key: AppConstants.refreshTokenStaffKey);
+    await secureStorage.delete(key: AppConstants.userDataKey);
+
+    // Reset state
     state = AuthState();
   }
 
@@ -123,18 +147,18 @@ class AuthProvider extends StateNotifier<AuthState> {
         key: AppConstants.refreshTokenKey,
       );
 
-      // If either token is missing, we should logout
+      // Don't logout automatically as user might be on login page
       if (currentToken == null || refreshTokenValue == null) {
-        debugPrint('Token missing during refresh attempt, logging out');
-        await logout();
-        throw Exception('Token Expired');
+        debugPrint('Token missing during refresh attempt, skipping refresh');
+        return;
       }
 
       // Try to refresh the token
       await authMiddleware.refreshToken();
     } catch (e) {
       debugPrint('Error in refresh token: $e');
-      await logout();
+      debugPrint('gagal');
+      await logoutStaff();
       rethrow;
     }
   }

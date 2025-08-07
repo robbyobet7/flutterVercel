@@ -7,6 +7,7 @@ import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/theme/theme_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_material.dart';
+import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/navbar_features.dart';
 import 'package:rebill_flutter/core/widgets/profile_avatar.dart';
 import 'package:rebill_flutter/features/printer-settings/presentations/widgets/printer_dialog.dart';
@@ -22,20 +23,64 @@ class Navbar extends ConsumerWidget {
 
   //Logout
   Future<void> handleLogout(BuildContext context, WidgetRef ref) async {
-    final shouldLogout = await AppDialog.showConfirmation(
+    final theme = Theme.of(context);
+    final shouldLogout = await AppDialog.showCustom(
       context,
       title: 'Logout',
-      message: 'Are you sure you want to logout?',
-      confirmText: 'Logout',
-      cancelText: 'Cancel',
+      dialogType: DialogType.small,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.warning_rounded,
+            color: theme.colorScheme.error,
+            size: 100,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Are you sure you want to logout?',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: AppButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  text: 'Cancel',
+                  backgroundColor: theme.colorScheme.surfaceContainer,
+                  textStyle: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: AppButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  text: 'OK',
+                  backgroundColor: theme.colorScheme.error,
+                  textStyle: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onError,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
 
     if (shouldLogout == true && context.mounted) {
       try {
-        await ref.read(authProvider.notifier).logout();
+        await ref.read(authProvider.notifier).logoutStaff();
         await Future.delayed(Duration.zero);
         if (context.mounted) {
-          context.go(AppConstants.loginPage);
+          context.go(AppConstants.loginStaffPage);
           AppSnackbar.showSuccess(context, message: 'Successfully logged out');
         }
       } catch (e) {

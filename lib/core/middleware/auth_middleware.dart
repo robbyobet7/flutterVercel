@@ -58,6 +58,9 @@ class AuthMiddleware {
   Future<void> refreshToken() async {
     try {
       final secureStorage = FlutterSecureStorage();
+      final authTokenKey = await secureStorage.read(
+        key: AppConstants.authTokenKey,
+      );
       final refreshToken = await secureStorage.read(
         key: AppConstants.refreshTokenKey,
       );
@@ -70,40 +73,15 @@ class AuthMiddleware {
       // Try with primary format - refresh_token in body
       final response = await dio.post(
         AppConstants.refreshTokenUrl,
-        data: {'refresh_token': refreshToken},
+        data: {'refreshToken': ''},
         options: Options(
+          headers: {'Authorization': authTokenKey},
           validateStatus: (status) => status != null && status < 500,
         ),
       );
 
       if (response.statusCode == 200 && response.data != null) {
         processRefreshResponse(response, refreshToken);
-      }
-
-      // If primary format fails, try alternative format - refreshToken in body
-      final altResponse = await dio.post(
-        AppConstants.refreshTokenUrl,
-        data: {'refreshToken': refreshToken},
-        options: Options(
-          validateStatus: (status) => status != null && status < 500,
-        ),
-      );
-
-      if (altResponse.statusCode == 200 && altResponse.data != null) {
-        processRefreshResponse(altResponse, refreshToken);
-      }
-
-      // Try with token in Authorization header as last resort
-      final headerResponse = await dio.post(
-        AppConstants.refreshTokenUrl,
-        options: Options(
-          headers: {'Authorization': 'Bearer $refreshToken'},
-          validateStatus: (status) => status != null && status < 500,
-        ),
-      );
-
-      if (headerResponse.statusCode == 200 && headerResponse.data != null) {
-        processRefreshResponse(headerResponse, refreshToken);
       }
 
       throw Exception('Failed to refresh token');
