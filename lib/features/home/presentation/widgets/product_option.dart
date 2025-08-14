@@ -12,6 +12,63 @@ class ProductOption extends ConsumerWidget {
 
   final Product product;
 
+  double _computeDiscountDisplayAmount(
+    Product product,
+    ProductDiscount discount,
+  ) {
+    // 1) Prefer product-level calculated discount if present
+    if (discount.productsDiscount != null) {
+      return discount.productsDiscount!;
+    }
+
+    // 2) Prefer precomputed total if present
+    final dynamic total = discount.total;
+    if (total != null) {
+      if (total is num) return total.toDouble();
+      if (total is String) return double.tryParse(total) ?? 0;
+    }
+
+    // 3) Fallback: compute from amount and discount type
+    final double basePrice = product.productsPrice ?? 0;
+    final String type =
+        (discount.discountType ?? discount.discountType2 ?? '').toLowerCase();
+
+    double amountValue = 0;
+    final dynamic amount = discount.amount;
+    if (amount is num) {
+      amountValue = amount.toDouble();
+    } else if (amount is String) {
+      amountValue = double.tryParse(amount) ?? 0;
+    }
+
+    if (amountValue == 0) return 0;
+
+    // Normalize common type aliases
+    final bool isPercentage =
+        type == 'percentage' ||
+        type == 'percent' ||
+        type == 'percentage_discount';
+    final bool isFixed = type == 'fixed' || type == 'cash' || type == 'amount';
+
+    if (isPercentage) {
+      return (amountValue / 100) * basePrice;
+    }
+    if (isFixed) {
+      return amountValue;
+    }
+
+    // Some backends use 'product' type with polymorphic amount (<=100 => %)
+    if (type == 'product' || type.isEmpty) {
+      if (amountValue <= 100) {
+        return (amountValue / 100) * basePrice;
+      }
+      return amountValue; // treat as fixed
+    }
+
+    // Unknown type
+    return 0;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Select this product when the widget builds
@@ -162,7 +219,11 @@ class ProductOption extends ConsumerWidget {
                             final discount = product.multipleDiscounts![index];
                             final discountName =
                                 discount.discountName ?? 'Discount';
-                            final discountAmount = discount.total ?? 0;
+                            final discountAmount =
+                                _computeDiscountDisplayAmount(
+                                  product,
+                                  discount,
+                                );
                             final needsPin = discount.discountPin == true;
 
                             // Check if this discount is active

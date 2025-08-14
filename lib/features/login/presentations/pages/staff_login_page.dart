@@ -4,12 +4,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_snackbar.dart';
-import 'package:rebill_flutter/core/widgets/app_text_field.dart';
-import 'package:rebill_flutter/features/login/providers/auth_provider.dart';
-import 'package:rebill_flutter/features/login/providers/staff_account_provider.dart';
+import 'package:rebill_flutter/features/login/providers/staff_auth_provider.dart';
+// accounts fetching merged into staff_auth_provider
 import 'package:rebill_flutter/features/login/models/staff_account.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
+import 'package:pinput/pinput.dart';
+import 'package:flutter/services.dart';
 
 class LoginStaffPage extends ConsumerStatefulWidget {
   const LoginStaffPage({super.key});
@@ -24,7 +25,8 @@ class _LoginStaffPageState extends ConsumerState<LoginStaffPage> {
     super.initState();
     // Fetch staff accounts when page initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(staffAccountProvider.notifier).fetchStaffAccounts();
+      ref.read(staffAuthProvider.notifier).fetchStaffAccounts();
+      debugPrint('');
     });
   }
 
@@ -34,8 +36,8 @@ class _LoginStaffPageState extends ConsumerState<LoginStaffPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = ref.watch(orientationProvider);
-    final isLoading = ref.watch(authProvider).isLoading;
-    final staffAccountState = ref.watch(staffAccountProvider);
+    final isLoading = ref.watch(staffAuthProvider).isLoading;
+    final staffState = ref.watch(staffAuthProvider);
 
     double boxWidth = isLandscape ? screenWidth * 0.3 : double.infinity;
     double boxHeight = isLandscape ? double.infinity : screenWidth * 0.5;
@@ -66,13 +68,13 @@ class _LoginStaffPageState extends ConsumerState<LoginStaffPage> {
                   direction: isLandscape ? Axis.horizontal : Axis.vertical,
                   children: [
                     SizedBox(width: boxWidth, height: boxHeight),
-                    LoginStaffComponent(outlets: staffAccountState.outlets),
+                    LoginStaffComponent(outlets: staffState.outlets),
                   ],
                 ),
               ),
             ),
           ),
-          if (isLoading || staffAccountState.isLoading)
+          if (isLoading || staffState.accountsLoading)
             Container(
               width: screenWidth,
               height: screenHeight,
@@ -103,38 +105,21 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
   @override
   void initState() {
     super.initState();
-    // Listen to PIN changes for auto-login
-    pinController.addListener(onPinChanged);
+    // Ensure no field is focused when entering this page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusManager.instance.primaryFocus?.unfocus();
+      }
+    });
   }
 
   @override
   void dispose() {
-    pinController.removeListener(onPinChanged);
     pinController.dispose();
     super.dispose();
   }
 
-  void onPinChanged() {
-    final pin = pinController.text;
-
-    // Check if PIN is exactly 6 digits
-    if (pin.length == 6) {
-      // Validate PIN format (only numbers)
-      if (RegExp(r'^[0-9]{6}$').hasMatch(pin)) {
-        // Auto-login after a short delay to show the last digit
-        Future.delayed(const Duration(milliseconds: 0), () {
-          if (mounted) {
-            _validateAndLogin();
-          }
-        });
-      } else {
-        // Clear PIN if it contains non-numeric characters
-        pinController.clear();
-      }
-    }
-  }
-
-  Future<void> _validateAndLogin() async {
+  Future<void> validateAndLogin() async {
     try {
       // Validasi input
       if (selectedOutlet == null) {
@@ -163,23 +148,25 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
 
       // Proses login staff
       await ref
-          .read(authProvider.notifier)
+          .read(staffAuthProvider.notifier)
           .loginStaff(
             selectedOutlet!.id.toString(),
             selectedStaff!.id.toString(),
             pinController.text,
           );
 
+      if (!mounted) return;
+
       // Close Keyboard
       FocusScope.of(context).unfocus();
 
-      ref.read(authProvider.notifier).setIsLoading(true);
+      ref.read(staffAuthProvider.notifier).setIsLoading(true);
       await Future.delayed(const Duration(milliseconds: 3000));
 
-      if (!context.mounted) return;
-      context.go(AppConstants.homeRoute);
+      if (!mounted) return;
+      context.go(AppConstants.ownerLoginSplashRoute);
     } catch (e) {
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       // Tutup keyboard dan clear PIN on error
       FocusScope.of(context).unfocus();
@@ -221,20 +208,22 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
 
       // Staff Login Process
       await ref
-          .read(authProvider.notifier)
+          .read(staffAuthProvider.notifier)
           .loginStaff(
             selectedOutlet!.id.toString(),
             selectedStaff!.id.toString(),
             pinController.text,
           );
 
-      ref.read(authProvider.notifier).setIsLoading(true);
+      if (!mounted) return;
+
+      ref.read(staffAuthProvider.notifier).setIsLoading(true);
       await Future.delayed(const Duration(milliseconds: 1000));
 
-      if (!context.mounted) return;
+      if (!mounted) return;
       context.go(AppConstants.homeRoute);
     } catch (e) {
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       // Tutup keyboard dan tampilkan error
       FocusScope.of(context).unfocus();
@@ -431,8 +420,8 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                selectedStaff?.name ?? 'Pilih Staff',
-                                style: theme.textTheme.bodyMedium?.copyWith(
+                                selectedStaff?.name ?? 'Select Staff',
+                                style: theme.textTheme.bodySmall?.copyWith(
                                   color:
                                       selectedStaff != null
                                           ? Colors.black87
@@ -460,37 +449,69 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                     ),
                   ),
 
-                  // Input PIN
-                  AppTextField(
-                    obscureText: true,
+                  // Input PIN menggunakan Pinput
+                  Pinput(
+                    length: 6,
                     controller: pinController,
-                    showLabel: false,
+                    obscureText: true,
+                    obscuringCharacter: '●',
+                    autofocus: false,
                     keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    prefix: Icon(Icons.pin, color: theme.colorScheme.primary),
-                    hintText: 'Masukkan PIN (6 digit)',
-                    constraints: const BoxConstraints(maxHeight: 60),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    onChanged: (value) {
-                      // Additional validation to ensure only numbers
-                      if (value.isNotEmpty &&
-                          !RegExp(r'^[0-9]*$').hasMatch(value)) {
-                        // Remove non-numeric characters
-                        final numericOnly = value.replaceAll(
-                          RegExp(r'[^0-9]'),
-                          '',
-                        );
-                        pinController.value = TextEditingValue(
-                          text: numericOnly,
-                          selection: TextSelection.collapsed(
-                            offset: numericOnly.length,
-                          ),
-                        );
-                      }
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onCompleted: (pin) {
+                      validateAndLogin();
                     },
+                    defaultPinTheme: PinTheme(
+                      width: 40,
+                      height: 44,
+                      textStyle:
+                          theme.textTheme.headlineSmall?.copyWith(
+                            color: theme.colorScheme.surfaceContainer,
+                          ) ??
+                          const TextStyle(color: Colors.grey),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(
+                          color: theme.colorScheme.primary.withOpacity(0.4),
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    focusedPinTheme: PinTheme(
+                      width: 40,
+                      height: 44,
+                      textStyle:
+                          theme.textTheme.headlineSmall?.copyWith(
+                            color: theme.colorScheme.surfaceContainer,
+                          ) ??
+                          const TextStyle(color: Colors.grey),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.onPrimary,
+                        border: Border.all(
+                          color: theme.colorScheme.primary,
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    submittedPinTheme: PinTheme(
+                      width: 40,
+                      height: 44,
+                      textStyle:
+                          theme.textTheme.headlineSmall?.copyWith(
+                            color: theme.colorScheme.surface,
+                          ) ??
+                          const TextStyle(color: Colors.grey),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.onPrimary,
+                        border: Border.all(
+                          color: theme.colorScheme.primary,
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                   ),
                 ],
               ),

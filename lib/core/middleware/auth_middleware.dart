@@ -7,12 +7,25 @@ class AuthMiddleware {
 
   AuthMiddleware();
 
-  // Save Token
-  Future<void> saveToken(String token, String refreshToken) async {
+  // Save Owner Tokens
+  Future<void> saveOwnerTokens(String token, String refreshToken) async {
     final secureStorage = FlutterSecureStorage();
     await secureStorage.write(key: AppConstants.authTokenKey, value: token);
     await secureStorage.write(
-      key: AppConstants.refreshTokenKey,
+      key: AppConstants.refreshTokenOwnerKey,
+      value: refreshToken,
+    );
+  }
+
+  // Save Staff Tokens
+  Future<void> saveStaffTokens(String token, String refreshToken) async {
+    final secureStorage = FlutterSecureStorage();
+    await secureStorage.write(
+      key: AppConstants.authTokenStaffKey,
+      value: token,
+    );
+    await secureStorage.write(
+      key: AppConstants.refreshTokenStaffKey,
       value: refreshToken,
     );
   }
@@ -45,48 +58,12 @@ class AuthMiddleware {
               refreshToken is String &&
               token.isNotEmpty &&
               refreshToken.isNotEmpty) {
-            await saveToken(token, refreshToken);
+            await saveOwnerTokens(token, refreshToken);
           }
         }
       }
     } catch (e) {
-      throw Exception(e);
-    }
-  }
-
-  // Refresh Token
-  Future<void> refreshToken() async {
-    try {
-      final secureStorage = FlutterSecureStorage();
-      final authTokenKey = await secureStorage.read(
-        key: AppConstants.authTokenKey,
-      );
-      final refreshToken = await secureStorage.read(
-        key: AppConstants.refreshTokenKey,
-      );
-
-      // Check if we have a refresh token
-      if (refreshToken == null || refreshToken.isEmpty) {
-        throw Exception('Refresh token is null or empty');
-      }
-
-      // Try with primary format - refresh_token in body
-      final response = await dio.post(
-        AppConstants.refreshTokenUrl,
-        data: {'refreshToken': ''},
-        options: Options(
-          headers: {'Authorization': authTokenKey},
-          validateStatus: (status) => status != null && status < 500,
-        ),
-      );
-
-      if (response.statusCode == 200 && response.data != null) {
-        processRefreshResponse(response, refreshToken);
-      }
-
-      throw Exception('Failed to refresh token');
-    } catch (e) {
-      throw Exception(e);
+      throw 'Login failed, please check your identity or password';
     }
   }
 
@@ -99,18 +76,13 @@ class AuthMiddleware {
     try {
       final dio = Dio();
       final storage = FlutterSecureStorage();
-
-      // Take token from secure storage for header authorization
-      final token = await storage.read(key: AppConstants.authTokenKey);
-
-      if (token == null) {
-        throw Exception('Authentication token not found');
+      final tokenOwner = await storage.read(key: AppConstants.authTokenKey);
+      if (tokenOwner == null) {
+        throw Exception('Owner authentication token not found');
       }
+      dio.options.headers['Authorization'] = tokenOwner;
 
-      // Header configuration with token
-      dio.options.headers['Authorization'] = token;
-
-      // Prepare login data - pastikan konversi tipe data
+      // Prepare login data
       final loginData = {
         'outlet_id': int.tryParse(outletId) ?? 0,
         'staff_id': int.tryParse(staffId) ?? 0,
@@ -128,7 +100,6 @@ class AuthMiddleware {
 
       // Check response
       if (response.statusCode == 200) {
-        // Extract tokens from response
         final Map<String, dynamic> responseData = response.data['data'];
         final String token = responseData['token'];
         final String refreshToken = responseData['refreshToken'];
@@ -139,11 +110,8 @@ class AuthMiddleware {
           key: AppConstants.refreshTokenStaffKey,
           value: refreshToken,
         );
-
-        // Return full response data for additional processing if needed
         return responseData;
       } else {
-        // Handle error response
         final errorMessage = response.data['message'] ?? 'Staff login failed';
         throw Exception(errorMessage);
       }
@@ -152,23 +120,117 @@ class AuthMiddleware {
     }
   }
 
-  void processRefreshResponse(Response response, String oldRefreshToken) {
+  // Refresh Token Owner
+  Future<void> refreshTokenOwner() async {
     try {
-      final data = response.data['data'];
-      if (data == null) throw Exception('Data is null');
+      final secureStorage = FlutterSecureStorage();
+      final refreshToken = await secureStorage.read(
+        key: AppConstants.refreshTokenOwnerKey,
+      );
 
-      // Get new tokens
-      final token = data['token'];
-      // Check if refresh_token is in the response, otherwise reuse old one
-      final newRefreshToken = data['refresh_token'] ?? oldRefreshToken;
-
-      // Validate token
-      if (token != null && token is String && token.isNotEmpty) {
-        saveToken(token, newRefreshToken);
+      // Check if we have a refresh token
+      if (refreshToken == null || refreshToken.isEmpty) {
+        throw Exception('Refresh token owner not found in local storage');
       }
-      throw Exception('Failed to process refresh response');
+
+      final currentToken = await secureStorage.read(
+        key: AppConstants.authTokenKey,
+      );
+
+      // Try with primary format - refresh_token in body
+      final response = await dio.post(
+        AppConstants.refreshTokenOwnerUrl,
+        data: {'refreshToken': refreshToken},
+        options: Options(
+          headers: {'Authorization': currentToken},
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        await processOwnerRefreshResponse(response, refreshToken);
+        return;
+      }
+
+      throw Exception(
+        'Failed to refresh owner token: ${response.statusCode}, Body: ${response.data}',
+      );
     } catch (e) {
-      throw Exception(e);
+      rethrow;
+    }
+  }
+
+  // Refresh Token Staff
+  Future<void> refreshTokenStaff() async {
+    try {
+      final secureStorage = FlutterSecureStorage();
+      final refreshToken = await secureStorage.read(
+        key: AppConstants.refreshTokenStaffKey,
+      );
+
+      // Check if we have a refresh token
+      if (refreshToken == null || refreshToken.isEmpty) {
+        throw Exception('Refresh token staff not found, cannot refresh');
+      }
+
+      final currenToken = await secureStorage.read(
+        key: AppConstants.authTokenStaffKey,
+      );
+
+      // Try with primary format - refresh_token in body
+      final response = await dio.post(
+        AppConstants.refreshTokenStaffUrl,
+        data: {'refreshToken': refreshToken},
+        options: Options(
+          headers: {'Authorization': currenToken},
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        await processStaffRefreshResponse(response, refreshToken);
+        return;
+      }
+
+      throw Exception('Failed to refresh staff token');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> processOwnerRefreshResponse(
+    Response response,
+    String oldRefreshToken,
+  ) async {
+    final data = response.data['data'];
+    if (data == null) throw Exception('Data is null in refresh response');
+
+    final token = data['token'];
+    final newRefreshToken =
+        data['refresh_token'] ?? data['refreshToken'] ?? oldRefreshToken;
+
+    if (token != null && token is String && token.isNotEmpty) {
+      await saveOwnerTokens(token, newRefreshToken);
+    } else {
+      throw Exception('New token is null in refresh response');
+    }
+  }
+
+  Future<void> processStaffRefreshResponse(
+    Response response,
+    String oldRefreshToken,
+  ) async {
+    final data = response.data['data'];
+    if (data == null) throw Exception('Data is null in refresh response');
+
+    final token = data['token'];
+    final newRefreshToken =
+        data['refresh_token'] ?? data['refreshToken'] ?? oldRefreshToken;
+
+    if (token != null && token is String && token.isNotEmpty) {
+      await saveStaffTokens(token, newRefreshToken);
+    } else {
+      throw Exception('New token is null in refresh response');
     }
   }
 }

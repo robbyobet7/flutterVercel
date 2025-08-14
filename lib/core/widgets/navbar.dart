@@ -11,7 +11,7 @@ import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/navbar_features.dart';
 import 'package:rebill_flutter/core/widgets/profile_avatar.dart';
 import 'package:rebill_flutter/features/printer-settings/presentations/widgets/printer_dialog.dart';
-import 'package:rebill_flutter/features/login/providers/auth_provider.dart';
+import 'package:rebill_flutter/features/login/providers/staff_auth_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_snackbar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
@@ -77,7 +77,7 @@ class Navbar extends ConsumerWidget {
 
     if (shouldLogout == true && context.mounted) {
       try {
-        await ref.read(authProvider.notifier).logoutStaff();
+        await ref.read(staffAuthProvider.notifier).logoutStaff();
         await Future.delayed(Duration.zero);
         if (context.mounted) {
           context.go(AppConstants.loginStaffPage);

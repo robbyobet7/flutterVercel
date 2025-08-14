@@ -126,6 +126,10 @@ class AppSnackbar {
   }) {
     final colorData = _getColorData(type);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final mediaQuery = MediaQuery.of(context);
+    final isPortrait = mediaQuery.orientation == Orientation.portrait;
+    // Side margin: 5% (90% width) on portrait, 10% (80% width) on landscape
+    final sideMarginFactor = isPortrait ? 0.05 : 0.10;
 
     return SnackBar(
       duration: duration,
@@ -133,10 +137,9 @@ class AppSnackbar {
       elevation: 0,
       behavior: SnackBarBehavior.floating,
       margin: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).size.height - 100, // Lebih ke atas
+        left: mediaQuery.size.width * sideMarginFactor,
+        right: mediaQuery.size.width * sideMarginFactor,
+        bottom: mediaQuery.size.height * 0.85,
       ),
       dismissDirection:
           isDismissible ? DismissDirection.horizontal : DismissDirection.none,
@@ -212,7 +215,7 @@ class AppSnackbarContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 150),
+      margin: EdgeInsets.zero,
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: colorData.backgroundColor,
