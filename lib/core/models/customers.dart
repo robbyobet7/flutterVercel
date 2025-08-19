@@ -2,18 +2,18 @@ import 'dart:convert';
 
 class CustomerModel {
   final int? customerId;
+  final int? ownerId;
   final String? customerIdNumber;
   final String customerName;
   final String? emailSocial;
   final String? phone;
-  final int? ownerId;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
   final int point;
   final String? address;
   final String? city;
   final String? postCode;
   final String? affiliate;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final int? key;
 
   CustomerModel({

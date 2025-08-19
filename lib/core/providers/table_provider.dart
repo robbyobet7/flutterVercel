@@ -76,7 +76,7 @@ class TableNotifier extends StateNotifier<TableState> {
 
   // Get table by ID
   Future<TableModel?> getTableById(int id) async {
-    return await _middleware.getTable(id);
+    return await _middleware.getTableById(id);
   }
 
   // Save changes
@@ -119,7 +119,7 @@ final tablesWithOpenBillsProvider = Provider<List<TableModel>>((ref) {
 
 final activeTablesProvider = Provider<List<TableModel>>((ref) {
   final state = ref.watch(tableProvider);
-  return state.tables.where((t) => t.status == 1).toList();
+  return state.tables.where((t) => t.status == 'bill_open').toList();
 });
 
 final searchResultsProvider = Provider.family<List<TableModel>, String>((

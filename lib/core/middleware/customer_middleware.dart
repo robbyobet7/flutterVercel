@@ -1,88 +1,93 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:rebill_flutter/core/constants/app_constants.dart';
 import '../models/customers.dart';
 
 class CustomerMiddleware {
-  List<CustomerModel> _customers = [];
-  bool _isInitialized = false;
-
-  // Stream controllers for customer events
-  final _customerStreamController =
-      StreamController<List<CustomerModel>>.broadcast();
-  final _customerErrorController = StreamController<String>.broadcast();
-
-  // Streams that components can listen to
-  Stream<List<CustomerModel>> get customersStream =>
-      _customerStreamController.stream;
-  Stream<String> get errorStream => _customerErrorController.stream;
-
-  // Singleton instance
+  // Singleton Pattern
   static final CustomerMiddleware _instance = CustomerMiddleware._internal();
-
-  // Factory constructor
-  factory CustomerMiddleware() {
-    return _instance;
-  }
-
-  // Private constructor
+  factory CustomerMiddleware() => _instance;
   CustomerMiddleware._internal();
 
-  // Initialize the middleware
-  Future<void> initialize() async {
-    try {
-      if (!_isInitialized) {
-        await _loadCustomersFromJson();
-      }
-      refreshCustomers();
-    } catch (e) {
-      _customerErrorController.add('Failed to initialize customer data: $e');
-    }
-  }
+  // State & Dependencies
+  List<CustomerModel> _customers = [];
+  bool _isInitialized = false;
+  final Dio dio = Dio();
+  final FlutterSecureStorage storage = FlutterSecureStorage();
 
-  // Load customers from JSON
-  Future<void> _loadCustomersFromJson() async {
-    try {
-      final jsonString = await rootBundle.loadString('assets/customers.json');
-      final customers = CustomerModel.parseCustomers(jsonString);
-      setCustomers(customers);
-    } catch (e) {
-      _customerErrorController.add('Failed to load customers from JSON: $e');
-    }
-  }
+  // Stream controllers for customer events
+  final customerStreamController =
+      StreamController<List<CustomerModel>>.broadcast();
+  final customerErrorController = StreamController<String>.broadcast();
 
-  // Set customers data
-  void setCustomers(List<CustomerModel> customers) {
-    _customers = customers;
-    _isInitialized = true;
-  }
+  // Public Streams
+  Stream<List<CustomerModel>> get customersStream =>
+      customerStreamController.stream;
+  Stream<String> get errorStream => customerErrorController.stream;
 
-  // Check if initialized
+  // Public getter
   bool get isInitialized => _isInitialized;
 
-  // Get all customers
-  List<CustomerModel> getAllCustomers() {
+  // Initialize middleware, fetch data only once
+  Future<void> initialize() async {
     if (!_isInitialized) {
-      throw Exception('Customer middleware not initialized');
+      await fetchCustomersFromApi();
+      _isInitialized = true;
     }
-    return _customers;
   }
 
-  // Get a single customer by ID
+  // Fetch customers from API
+  Future<void> fetchCustomersFromApi() async {
+    try {
+      final token = await storage.read(key: AppConstants.authTokenStaffKey);
+      if (token == null) {
+        throw Exception('Staff authentication token not found');
+      }
+
+      // Request headers with token
+      dio.options.headers['Authorization'] = token;
+      final response = await dio.get(AppConstants.customerUrl);
+
+      if (response.statusCode == 200) {
+        List<dynamic> customerListJson = response.data['data'] ?? [];
+        final customers =
+            customerListJson
+                .map((json) => CustomerModel.fromJson(json))
+                .toList();
+        // Update local cache
+        _customers = customers;
+        // Broadcast new data to all listeners
+        customerStreamController.add(customers);
+      } else {
+        throw Exception(
+          'Failed to load customers: ${response.data['message']}',
+        );
+      }
+    } catch (e) {
+      final errorMessage = 'Failed to load customers data $e';
+      customerErrorController.add(errorMessage);
+    }
+  }
+
+  Future<void> refreshCustomers() async {
+    // Memastikan data selalu diambil ulang dari API saat di-refresh
+    await fetchCustomersFromApi();
+  }
+
+  // Get all customers from local cache
+  List<CustomerModel> getAllCustomers() => _customers;
   CustomerModel? getCustomerById(int id) {
-    if (!_isInitialized) {
-      throw Exception('Customer middleware not initialized');
+    try {
+      return _customers.firstWhere((c) => c.customerId == id);
+    } catch (e) {
+      return null;
     }
-    return _customers.firstWhere(
-      (customer) => customer.customerId == id,
-      orElse: () => throw Exception('Customer not found with ID: $id'),
-    );
   }
 
+  // Search customers from local cache
   List<CustomerModel> searchCustomersByName(String query) {
-    if (!_isInitialized) {
-      throw Exception('Customer repository not initialized');
-    }
+    if (query.isEmpty) return _customers;
     final lowercaseQuery = query.toLowerCase();
     return _customers
         .where(
@@ -111,7 +116,7 @@ class CustomerMiddleware {
     _customers.add(newCustomer);
 
     //Notify listeners
-    refreshCustomers();
+    fetchCustomersFromApi();
 
     return newCustomer;
   }
@@ -132,7 +137,7 @@ class CustomerMiddleware {
 
     final updatedCustomer = customer.copyWith(updatedAt: DateTime.now());
     _customers[index] = updatedCustomer;
-    refreshCustomers();
+    fetchCustomersFromApi();
     return updatedCustomer;
   }
 
@@ -148,7 +153,7 @@ class CustomerMiddleware {
     }
 
     _customers.removeAt(index);
-    refreshCustomers();
+    fetchCustomersFromApi();
   }
 
   // Generate the next available customer ID
@@ -176,17 +181,6 @@ class CustomerMiddleware {
     return _customers.where((c) => c.point > 0).toList();
   }
 
-  // Search customers by name
-  Future<void> refreshCustomers() async {
-    try {
-      if (_isInitialized) {
-        _customerStreamController.add(_customers);
-      }
-    } catch (e) {
-      _customerErrorController.add('Failed to load customers: $e');
-    }
-  }
-
   // Search customers by name (public method for API consistency)
   Future<List<CustomerModel>> searchCustomers(String query) async {
     try {
@@ -195,28 +189,14 @@ class CustomerMiddleware {
       }
       return searchCustomersByName(query);
     } catch (e) {
-      _customerErrorController.add('Failed to search customers: $e');
+      customerErrorController.add('Failed to search customers: $e');
       return [];
-    }
-  }
-
-  // Save all customer data
-  Future<void> saveCustomers() async {
-    try {
-      // This would be implemented to save to JSON/DB in a real app
-      final jsonList = getCustomersForSerialization();
-      // ignore: unused_local_variable
-      final jsonString = json.encode(jsonList);
-
-      // In a real app: await file.writeAsString(jsonString);
-    } catch (e) {
-      _customerErrorController.add('Failed to save customers: $e');
     }
   }
 
   // Dispose resources
   void dispose() {
-    _customerStreamController.close();
-    _customerErrorController.close();
+    customerStreamController.close();
+    customerErrorController.close();
   }
 }

@@ -55,14 +55,14 @@ class TableCard extends ConsumerWidget {
           color:
               isSelectedForQR
                   ? theme.colorScheme.primary
-                  : getStatusColor(table.reservationStatus)[1],
+                  : getStatusColor(table.status)[1],
           borderRadius: BorderRadius.circular(12.0),
           border: Border.all(
             width: 2,
             color:
                 isSelectedForQR
                     ? theme.colorScheme.primary
-                    : getStatusColor(table.reservationStatus)[0],
+                    : getStatusColor(table.status)[0],
           ),
         ),
         child: Column(
@@ -76,7 +76,7 @@ class TableCard extends ConsumerWidget {
                   color:
                       isSelectedForQR
                           ? theme.colorScheme.primary
-                          : getStatusColor(table.reservationStatus)[1],
+                          : getStatusColor(table.status)[1],
                   borderRadius:
                       tableType != TableType.nav
                           ? BorderRadius.circular(12.0)
@@ -130,9 +130,7 @@ class TableCard extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      AppDivider(
-                        color: getStatusColor(table.reservationStatus)[0],
-                      ),
+                      AppDivider(color: getStatusColor(table.status)[0]),
                       Expanded(
                         child: Center(
                           child: Text.rich(
@@ -158,9 +156,7 @@ class TableCard extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      AppDivider(
-                        color: getStatusColor(table.reservationStatus)[0],
-                      ),
+                      AppDivider(color: getStatusColor(table.status)[0]),
                       Expanded(
                         child: Center(
                           child: Text(

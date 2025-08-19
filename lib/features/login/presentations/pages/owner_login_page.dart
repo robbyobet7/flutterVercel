@@ -6,7 +6,7 @@ import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_snackbar.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
-import 'package:rebill_flutter/features/login/providers/auth_provider.dart';
+import 'package:rebill_flutter/features/login/providers/owner_auth_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
 
@@ -34,7 +34,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = ref.watch(orientationProvider);
-    final isLoading = ref.watch(authProvider).isLoading;
 
     double boxWidth = isLandscape ? screenWidth * 0.3 : double.infinity;
     double boxHeight = isLandscape ? double.infinity : screenWidth * 0.5;
@@ -71,13 +70,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ),
           ),
-          if (isLoading)
-            Container(
-              width: screenWidth,
-              height: screenHeight,
-              color: Colors.black.withValues(alpha: 0.5),
-              child: Center(child: CircularProgressIndicator()),
-            ),
         ],
       ),
     );
@@ -97,10 +89,6 @@ class LoginComponent extends ConsumerWidget {
     double? boxWidth = isLandscape ? null : double.infinity;
     double? boxHeight = isLandscape ? double.infinity : null;
 
-    Future<void> loadHeavyData() async {
-      await Future.delayed(const Duration(milliseconds: 2000));
-    }
-
     Future<void> login() async {
       try {
         // Close Keyboard
@@ -109,9 +97,6 @@ class LoginComponent extends ConsumerWidget {
         await ref
             .read(authProvider.notifier)
             .login(identityController.text, passwordController.text);
-
-        // ref.read(authProvider.notifier).setIsLoading(true);
-        await loadHeavyData();
 
         await Future.delayed(Duration.zero);
         if (!context.mounted) return;

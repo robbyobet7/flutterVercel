@@ -63,7 +63,7 @@ class AuthMiddleware {
         }
       }
     } catch (e) {
-      throw 'Login failed, please check your identity or password';
+      throw Exception(e);
     }
   }
 

@@ -1,9 +1,32 @@
 import 'dart:convert';
 
+class BillInTable {
+  final int billId;
+  final int total;
+  final String state;
+  final String? cashier;
+
+  BillInTable({
+    required this.billId,
+    required this.total,
+    required this.state,
+    this.cashier,
+  });
+
+  factory BillInTable.fromJson(Map<String, dynamic> json) {
+    return BillInTable(
+      billId: json['bill_id'],
+      total: json['total'] ?? 0,
+      state: json['state'] ?? 'unknown',
+      cashier: json['cashier'],
+    );
+  }
+}
+
 class TableModel {
   final int id;
   final String tableName;
-  final int status;
+  final String status;
   final int outletId;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -14,6 +37,7 @@ class TableModel {
   final int reservationCount;
   final String reservationStatus;
   final int totalBillOpen;
+  final List<BillInTable> bills;
 
   TableModel({
     required this.id,
@@ -29,13 +53,14 @@ class TableModel {
     required this.reservationCount,
     required this.reservationStatus,
     required this.totalBillOpen,
+    required this.bills,
   });
 
   // Create a copy of the current table with changes
   TableModel copyWith({
     int? id,
     String? tableName,
-    int? status,
+    String? status,
     int? outletId,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -46,6 +71,7 @@ class TableModel {
     int? reservationCount,
     String? reservationStatus,
     int? totalBillOpen,
+    List<BillInTable>? bills,
   }) {
     return TableModel(
       id: id ?? this.id,
@@ -61,25 +87,42 @@ class TableModel {
       reservationCount: reservationCount ?? this.reservationCount,
       reservationStatus: reservationStatus ?? this.reservationStatus,
       totalBillOpen: totalBillOpen ?? this.totalBillOpen,
+      bills: bills ?? this.bills,
     );
   }
 
   // Convert JSON Map to TableModel object
   factory TableModel.fromJson(Map<String, dynamic> json) {
+    var billListFromJson = json['bills'] as List? ?? [];
+    List<BillInTable> billList =
+        billListFromJson.map((b) => BillInTable.fromJson(b)).toList();
+    int calculatedTotalBillOpen = 0;
+    for (var bill in billList) {
+      if (bill.state == 'open') {
+        calculatedTotalBillOpen += bill.total;
+      }
+    }
     return TableModel(
       id: json['id'],
       tableName: json['table_name'],
-      status: json['status'],
-      outletId: json['outlet_id'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-      minimumCharge: json['minimum_charge'],
+      status: json['status'] ?? 'available',
+      countBillOpen: json['open_bill_count'] ?? 0,
+      outletId: json['outlet_id'] ?? 0,
+      createdAt:
+          json['created_at'] != null
+              ? DateTime.parse(json['created_at'])
+              : DateTime.now(),
+      updatedAt:
+          json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'])
+              : DateTime.now(),
+      minimumCharge: json['minimum_charge'] ?? 0,
       key: json['key'],
-      countBillOpen: json['countBillOpen'],
       reservations: json['reservations'] ?? [],
-      reservationCount: json['reservation_count'],
-      reservationStatus: json['reservation_status'],
-      totalBillOpen: json['totalBillOpen'],
+      reservationCount: json['reservation_count'] ?? 0,
+      reservationStatus: json['reservation_status'] ?? '',
+      bills: billList,
+      totalBillOpen: calculatedTotalBillOpen,
     );
   }
 
@@ -109,7 +152,7 @@ class TableModel {
   }
 
   // Get table status as string
-  String get statusText => status == 1 ? 'Active' : 'Inactive';
+  String get statusText => status == 'bill_open' ? 'Active' : 'Available';
 
   // Get formatted minimum charge
   String get formattedMinimumCharge =>

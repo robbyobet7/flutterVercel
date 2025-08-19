@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebill_flutter/features/login/presentations/pages/owner_login_page.dart';
 import 'package:rebill_flutter/features/login/presentations/pages/staff_login_page.dart';
-import 'package:rebill_flutter/features/login/providers/auth_provider.dart';
+import 'package:rebill_flutter/features/login/providers/owner_auth_provider.dart';
 import 'package:rebill_flutter/features/login/providers/staff_auth_provider.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../constants/app_constants.dart';

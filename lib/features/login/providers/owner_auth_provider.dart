@@ -45,24 +45,6 @@ class AuthProvider extends StateNotifier<AuthState> {
     ref.invalidate(availableCategoriesProvider);
   }
 
-  // Logout Staff
-  Future<void> logoutStaff() async {
-    // no-op for owner provider
-    final secureStorage = FlutterSecureStorage();
-
-    await secureStorage.delete(key: AppConstants.authTokenStaffKey);
-    await secureStorage.delete(key: AppConstants.refreshTokenStaffKey);
-    await secureStorage.delete(key: AppConstants.userDataKey);
-
-    // Reset state
-    state = AuthState();
-
-    // Invalidate product-related providers so next login refetches
-    ref.invalidate(productMiddlewareProvider);
-    ref.invalidate(availableProductsProvider);
-    ref.invalidate(availableCategoriesProvider);
-  }
-
   // Validate PIN format
   bool isValidPinFormat(String pin) {
     return RegExp(r'^[0-9]{6}$').hasMatch(pin);

@@ -9,7 +9,7 @@ import 'core/utils/router.dart';
 import 'core/providers/orientation_provider.dart';
 import 'core/utils/app_lifecycle_manager.dart';
 import 'core/widgets/unfocus_on_tap.dart';
-import 'features/login/providers/auth_provider.dart';
+import 'features/login/providers/owner_auth_provider.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();

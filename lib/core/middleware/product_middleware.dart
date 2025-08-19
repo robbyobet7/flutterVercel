@@ -6,8 +6,9 @@ import 'package:flutter/foundation.dart';
 import '../models/product.dart';
 import '../constants/app_constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:rebill_flutter/core/models/product_category.dart';
 
-// Top-level function untuk compute()
+// Top-level function for compute()
 List<Product> parseProductsJson(String jsonString) {
   final Map<String, dynamic> jsonData = json.decode(jsonString);
   final productList = jsonData['products'] as List<dynamic>;
@@ -16,60 +17,55 @@ List<Product> parseProductsJson(String jsonString) {
 
 class ProductMiddleware {
   // Cache untuk menyimpan produk
-  List<Product> _cachedProducts = [];
+  List<Product> cachedProducts = [];
   final Dio dio = Dio();
 
   // Stream controllers
   final productStreamController = StreamController<List<Product>>.broadcast();
   final productErrorController = StreamController<String>.broadcast();
 
-  // Streams yang bisa di-subscribe
+  //  Subscribeable streams
   Stream<List<Product>> get productsStream => productStreamController.stream;
   Stream<String> get errorStream => productErrorController.stream;
 
-  // Konstruktor
+  // Constructor
   ProductMiddleware() {
-    // Load produk saat instance dibuat
     loadProductsFromJson();
   }
 
   // Setter untuk cache produk
   void setProducts(List<Product> products) {
-    _cachedProducts = products;
+    cachedProducts = products;
   }
 
-  // Load products dari JSON menggunakan compute() di background thread
+  // Load products from JSON using compute() in a background thread
   Future<void> loadProductsFromJson() async {
     try {
       final String jsonString = await rootBundle.loadString(
         'assets/product.json',
       );
 
-      // Parse JSON di background thread dengan compute()
+      // Parse JSON
       final products = await compute(parseProductsJson, jsonString);
       setProducts(products);
 
-      // Update stream dengan data baru
       productStreamController.add(products);
     } catch (e) {
       productErrorController.add('Failed to load products from JSON: $e');
     }
   }
 
-  // Metode untuk fetch produk dari API
+  // Method for fetch products with API
   Future<List<Product>> fetchProductsFromAPI() async {
     try {
-      // Ambil token dari secure storage
       final storage = FlutterSecureStorage();
       final token = await storage.read(key: AppConstants.authTokenStaffKey);
 
       if (token == null) {
-        print('Authentication token not found'); // Debug: Cetak pesan
         throw Exception('Authentication token not found');
       }
 
-      // Konfigurasi header dengan token
-      dio.options.headers['Authorization'] = '$token';
+      dio.options.headers['Authorization'] = token;
 
       // Make login request
       final response = await dio.get(
@@ -79,18 +75,16 @@ class ProductMiddleware {
         ),
       );
 
-      // Periksa status response
       if (response.statusCode == 200) {
-        // Parse data produk dari response dengan struktur baru
         final Map<String, dynamic> responseData = response.data['data'];
         final List<dynamic> productList = responseData['products'] ?? [];
         final products =
             productList.map((item) => Product.fromJson(item)).toList();
 
-        // Update cache produk
+        // Update products cache
         setProducts(products);
 
-        // Update stream dengan data baru
+        // Update stream with new data
         productStreamController.add(products);
 
         return products;
@@ -109,38 +103,32 @@ class ProductMiddleware {
       // Handle network atau koneksi error
       final errorMessage =
           e.response?.data?['message'] ?? 'Network error occurred';
-      print('Dio Error: $errorMessage'); // Debug: Cetak error Dio
-      print('Error Details: ${e.toString()}'); // Debug: Cetak detail error
       productErrorController.add(errorMessage);
       throw Exception(errorMessage);
     } catch (e) {
       // Handle error umum
-      print(
-        'Unexpected Error: ${e.toString()}',
-      ); // Debug: Cetak error tidak terduga
       productErrorController.add(e.toString());
-      throw Exception('Gagal load product');
+      throw Exception('Failed to load all products');
     }
   }
 
-  // Metode untuk load produk dari API
+  // Method for load products from API
   Future<List<Product>> loadProductsFromAPI() async {
     try {
       return await fetchProductsFromAPI();
     } catch (e) {
-      // Lempar exception dengan pesan error
-      throw Exception('Gagal load product');
+      throw Exception('Failed to load all products');
     }
   }
 
-  // Override metode getAllProducts untuk menggunakan fetch API terlebih dahulu
+  // Override the getAllProducts method to use the fetch API
   Future<List<Product>> getAllProducts() async {
     try {
       // Coba fetch dari API terlebih dahulu
       return await fetchProductsFromAPI();
     } catch (e) {
       // Jika fetch API gagal, lempar exception
-      throw Exception('Gagal load product');
+      throw Exception('Failed to load all products');
     }
   }
 
@@ -151,12 +139,11 @@ class ProductMiddleware {
       final products = await fetchProductsFromAPI();
       return products.where((p) => p.status == 1 && p.isInStock).toList();
     } catch (e) {
-      // Jika fetch API gagal, lempar exception
-      throw Exception('Gagal load product');
+      throw Exception('Failed to load products');
     }
   }
 
-  // Override metode getProductsByType untuk menggunakan fetch API
+  // Override the getProductsByType method to use the fetch API
   Future<List<Product>> getProductsByType(String type) async {
     try {
       // Coba fetch dari API
@@ -165,20 +152,18 @@ class ProductMiddleware {
           .where((p) => p.productsType == type || p.type == type)
           .toList();
     } catch (e) {
-      // Jika fetch API gagal, lempar exception
-      throw Exception('Gagal load product');
+      throw Exception('Failed to load products');
     }
   }
 
-  // Override metode refreshProducts untuk melakukan fetch ulang dari API
   void refreshProducts() {
-    // Hapus cache produk
-    _cachedProducts = [];
+    // delete cache products
+    cachedProducts = [];
 
-    // Coba fetch ulang dari API
+    // Trying fecth API again
     fetchProductsFromAPI().catchError((e) {
-      // Jika fetch gagal, tampilkan error
-      productErrorController.add('Gagal load product');
+      productErrorController.add('Failed to load products');
+      return <Product>[];
     });
   }
 
@@ -186,5 +171,56 @@ class ProductMiddleware {
   void dispose() {
     productStreamController.close();
     productErrorController.close();
+  }
+
+  Future<List<ProductCategory>> getProductCategories() async {
+    try {
+      final storage = FlutterSecureStorage();
+      final token = await storage.read(key: AppConstants.authTokenStaffKey);
+
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+
+      // Configuration with header token
+      dio.options.headers['Authorization'] = token;
+
+      // Panggil endpoint kategori produk
+      final response = await dio.get(
+        AppConstants.productCategoriesUrl,
+        options: Options(
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      // Check response
+      if (response.statusCode == 200) {
+        // PERHATIKAN: Data list ada di dalam key 'data'
+        final List<dynamic> categoryList = response.data['data'] as List;
+
+        // Parsing data with ProductCategory Model
+        final categories =
+            categoryList.map((item) => ProductCategory.fromJson(item)).toList();
+
+        return categories;
+      } else if (response.statusCode == 401) {
+        final errorMessage = 'Unauthorized: Token is not valid or expired';
+        productErrorController.add(errorMessage);
+        throw Exception(errorMessage);
+      } else {
+        final errorMessage =
+            response.data['message'] ?? 'Failed to take products category';
+        productErrorController.add(errorMessage);
+        throw Exception(errorMessage);
+      }
+    } on DioException catch (e) {
+      final errorMessage =
+          e.response?.data?['message'] ??
+          'Network Error when taking product with caregory';
+      throw Exception(errorMessage);
+    } catch (e) {
+      productErrorController.add(e.toString());
+      throw Exception('Failed to load products');
+    }
   }
 }

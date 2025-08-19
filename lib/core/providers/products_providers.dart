@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
+import 'package:rebill_flutter/core/models/product_category.dart';
 import '../middleware/product_middleware.dart';
 
 // Provider for the ProductMiddleware
@@ -20,6 +21,19 @@ final availableProductsProvider = FutureProvider<List<Product>>((ref) async {
   return products.where((product) => product.status == 1).toList();
 });
 
+final availableCategoriesProvider = FutureProvider<List<String>>((ref) async {
+  final repository = ref.watch(productMiddlewareProvider);
+
+  final List<ProductCategory> categoryObjects =
+      await repository.getProductCategories();
+
+  final List<String> categoryNames =
+      categoryObjects.map((category) => category.categoriesName).toList();
+
+  categoryNames.sort();
+  return categoryNames;
+});
+
 // Provider to check if products are loading based on availableProductsProvider state
 final productsLoadingProvider = Provider<bool>((ref) {
   final productsState = ref.watch(availableProductsProvider);
@@ -27,75 +41,53 @@ final productsLoadingProvider = Provider<bool>((ref) {
 });
 
 // Provider for filtered products (combines search and category filters)
-final filteredProductsProvider = Provider<AsyncValue<List<Product>>>((ref) {
+final filteredProductsProvider = Provider<List<Product>>((ref) {
   final selectedCategory = ref.watch(selectedCategoryProvider);
   final searchQuery = ref.watch(searchQueryProvider);
+
+  // watch the value from availableProductsProvider
   final productsAsyncValue = ref.watch(availableProductsProvider);
+  return productsAsyncValue.maybeWhen(
+    data: (products) {
+      List<Product> filteredList = products;
 
-  return productsAsyncValue.whenData((products) {
-    // Start with all products
-    List<Product> filteredProducts = products;
+      // Filter by category
+      if (selectedCategory != null && selectedCategory.isNotEmpty) {
+        filteredList =
+            filteredList
+                .where(
+                  (product) =>
+                      product.productsType == selectedCategory ||
+                      product.type == selectedCategory,
+                )
+                .toList();
+      }
 
-    // Apply category filter if selected
-    if (selectedCategory != null && selectedCategory.isNotEmpty) {
-      filteredProducts =
-          filteredProducts
-              .where(
-                (product) =>
-                    product.productsType == selectedCategory ||
-                    product.type == selectedCategory,
-              )
-              .toList();
-    }
+      // Filter by search
+      if (searchQuery.isNotEmpty) {
+        final lowercaseQuery = searchQuery.toLowerCase();
+        filteredList =
+            filteredList
+                .where(
+                  (product) =>
+                      product.productsName?.toLowerCase().contains(
+                        lowercaseQuery,
+                      ) ??
+                      false,
+                )
+                .toList();
+      }
 
-    // Apply search filter if query exists
-    if (searchQuery.isNotEmpty) {
-      final lowercaseQuery = searchQuery.toLowerCase();
-      filteredProducts =
-          filteredProducts
-              .where(
-                (product) =>
-                    product.productsName?.toLowerCase().contains(
-                      lowercaseQuery,
-                    ) ??
-                    false,
-              )
-              .toList();
-    }
-
-    return filteredProducts;
-  });
+      return filteredList;
+    },
+    orElse: () => [],
+  );
 });
 
-// Provider for refreshing products data
+// Provider for refresh a products
 final refreshProductsProvider = Provider<void Function()>((ref) {
   return () {
-    // Clear the cache in the repository
     ref.read(productMiddlewareProvider).refreshProducts();
-
-    // Invalidate the products provider to trigger a refresh
     ref.invalidate(availableProductsProvider);
   };
-});
-
-// Provider for all available categories - fetches unique category types from products
-final availableCategoriesProvider = FutureProvider<List<String>>((ref) async {
-  final repository = ref.watch(productMiddlewareProvider);
-  final products = await repository.getProductsInStock();
-  final availableProducts =
-      products.where((product) => product.status == 1).toList();
-
-  // Extract unique category types from products
-  final Set<String> categories = {};
-
-  for (var product in availableProducts) {
-    if (product.productsType != null && product.productsType!.isNotEmpty) {
-      categories.add(product.productsType!);
-    }
-    if (product.type != 'product' && product.type.isNotEmpty) {
-      categories.add(product.type);
-    }
-  }
-
-  return categories.toList()..sort();
 });

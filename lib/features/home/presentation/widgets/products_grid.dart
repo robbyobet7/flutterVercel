@@ -12,12 +12,13 @@ class ProductsGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isLandscape = ref.watch(orientationProvider);
-    final productsAsyncValue = ref.watch(filteredProductsProvider);
+    final productsAsyncValue = ref.watch(availableProductsProvider);
     // final isLoading = ref.watch(productsLoadingProvider);
 
     return Expanded(
       child: productsAsyncValue.when(
-        data: (products) {
+        data: (_) {
+          final products = ref.watch(filteredProductsProvider);
           if (products.isEmpty) {
             return Center(
               child: Text(

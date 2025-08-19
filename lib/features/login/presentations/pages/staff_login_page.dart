@@ -5,7 +5,6 @@ import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_snackbar.dart';
 import 'package:rebill_flutter/features/login/providers/staff_auth_provider.dart';
-// accounts fetching merged into staff_auth_provider
 import 'package:rebill_flutter/features/login/models/staff_account.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
@@ -126,21 +125,20 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
         FocusScope.of(context).unfocus();
         AppSnackbar.showError(
           context,
-          ttile: 'Outlet Belum Dipilih',
-          message: 'Pilih outlet terlebih dahulu',
+          ttile: 'Outlet not selected',
+          message: 'Select the outlet first',
         );
         pinController.clear();
         return;
       }
 
       if (selectedStaff == null) {
-        // Tutup keyboard dan tampilkan error
         FocusScope.of(context).unfocus();
 
         AppSnackbar.showError(
           context,
-          message: 'Pilih staff terlebih dahulu',
-          ttile: 'Staff Belum Dipilih',
+          ttile: 'Staff not yet selected',
+          message: 'Select staff first',
         );
         pinController.clear();
         return;
@@ -157,7 +155,6 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
 
       if (!mounted) return;
 
-      // Close Keyboard
       FocusScope.of(context).unfocus();
 
       ref.read(staffAuthProvider.notifier).setIsLoading(true);
@@ -168,7 +165,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
     } catch (e) {
       if (!mounted) return;
 
-      // Tutup keyboard dan clear PIN on error
+      // Close Keyboard and pin error
       FocusScope.of(context).unfocus();
       pinController.clear();
 
@@ -178,30 +175,27 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
 
   Future<void> loginStaff() async {
     try {
-      // Close Keyboard
       FocusScope.of(context).unfocus();
 
       // Validate Input
       if (selectedOutlet == null) {
-        // Close Keyboard
         FocusScope.of(context).unfocus();
 
         AppSnackbar.showError(
           context,
-          message: 'Pilih outlet terlebih dahulu',
-          ttile: 'Outlet Belum Dipilih',
+          message: 'Select the outlet first',
+          ttile: 'Outlet not selected',
         );
         return;
       }
 
       if (selectedStaff == null) {
-        // Close keyboard and show error
         FocusScope.of(context).unfocus();
 
         AppSnackbar.showError(
           context,
-          message: 'Pilih staff terlebih dahulu',
-          ttile: 'Staff Belum Dipilih',
+          message: 'Select staff first',
+          ttile: 'Staff not yet selected',
         );
         return;
       }
@@ -225,13 +219,12 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
     } catch (e) {
       if (!mounted) return;
 
-      // Tutup keyboard dan tampilkan error
       FocusScope.of(context).unfocus();
       await Future.delayed(const Duration(seconds: 3));
       AppSnackbar.showError(
         context,
         message: e.toString(),
-        ttile: 'Login Gagal',
+        ttile: 'Login Failed',
       );
     }
   }
@@ -285,7 +278,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
               child: Column(
                 spacing: 15,
                 children: [
-                  // Dropdown Outlet dengan PopupMenuButton
+                  // Outlet Dropdown
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -302,16 +295,15 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       constraints: const BoxConstraints(
                         minWidth: 200,
                         maxWidth: 300,
-                        maxHeight:
-                            3.5 * 50, // 3 item penuh + setengah item ke-4
+                        maxHeight: 3.5 * 50,
                       ),
-                      color: Colors.white, // background putih
+                      color: Colors.white,
                       itemBuilder: (BuildContext context) {
                         return widget.outlets.map<PopupMenuEntry<StaffAccount>>(
                           (outlet) {
                             return PopupMenuItem<StaffAccount>(
                               value: outlet,
-                              height: 48, // tinggi item
+                              height: 48,
                               child: Text(
                                 outlet.name,
                                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -364,7 +356,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                     ),
                   ),
 
-                  // Dropdown Staff dengan PopupMenuButton
+                  // Staff Dropdown
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -382,17 +374,16 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       constraints: const BoxConstraints(
                         minWidth: 200,
                         maxWidth: 300,
-                        maxHeight:
-                            3.5 * 48, // 3 item penuh + setengah item ke-4
+                        maxHeight: 3.5 * 48,
                       ),
-                      color: Colors.white, // background putih
+                      color: Colors.white,
                       itemBuilder: (BuildContext context) {
                         final staffList =
                             selectedOutlet == null ? [] : selectedOutlet!.staff;
                         return staffList.map<PopupMenuEntry<Staff>>((staff) {
                           return PopupMenuItem<Staff>(
                             value: staff,
-                            height: 48, // tinggi item
+                            height: 48,
                             child: Text(
                               staff.name,
                               style: theme.textTheme.bodyMedium?.copyWith(
@@ -449,7 +440,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                     ),
                   ),
 
-                  // Input PIN menggunakan Pinput
+                  // Input PIN with Pinput
                   Pinput(
                     length: 6,
                     controller: pinController,
@@ -462,7 +453,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       validateAndLogin();
                     },
                     defaultPinTheme: PinTheme(
-                      width: 40,
+                      width: 44,
                       height: 44,
                       textStyle:
                           theme.textTheme.headlineSmall?.copyWith(
@@ -479,7 +470,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       ),
                     ),
                     focusedPinTheme: PinTheme(
-                      width: 40,
+                      width: 44,
                       height: 44,
                       textStyle:
                           theme.textTheme.headlineSmall?.copyWith(
@@ -496,7 +487,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       ),
                     ),
                     submittedPinTheme: PinTheme(
-                      width: 40,
+                      width: 44,
                       height: 44,
                       textStyle:
                           theme.textTheme.headlineSmall?.copyWith(

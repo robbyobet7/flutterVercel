@@ -1,5 +1,7 @@
+import 'package:dio/dio.dart';
+import 'package:rebill_flutter/core/constants/app_constants.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:async';
-import 'package:flutter/services.dart' show rootBundle;
 import '../models/bill.dart';
 
 class BillMiddleware {
@@ -17,6 +19,43 @@ class BillMiddleware {
   // Singleton instance
   static final BillMiddleware _instance = BillMiddleware._internal();
 
+  final Dio dio = Dio();
+  final FlutterSecureStorage storage = FlutterSecureStorage();
+
+  Future<List<BillModel>> fetchBillsFromAPI() async {
+    try {
+      final token = await storage.read(key: AppConstants.authTokenStaffKey);
+      if (token == null) {
+        throw Exception('Token unauthorized');
+      }
+
+      // Request to API
+      final response = await dio.get(
+        AppConstants.billsUrl,
+        options: Options(
+          headers: {'Authorization': ' $token'},
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      // Check Response
+      if (response.statusCode == 200) {
+        final List<dynamic> billListJson = response.data['data'] as List;
+
+        // JSON Parsing to List<BillModel>
+        final bills =
+            billListJson.map((json) => BillModel.fromJson(json)).toList();
+        return bills;
+      } else {
+        throw Exception('Bill not found');
+      }
+    } on DioException catch (e) {
+      throw Exception('Error jaringan: ${e.message}');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // Factory constructor
   factory BillMiddleware() {
     return _instance;
@@ -27,34 +66,24 @@ class BillMiddleware {
 
   // Initialize the middleware
   Future<void> initialize() async {
-    try {
-      if (!_isInitialized) {
-        await _loadBillsFromJson();
-      }
-      refreshBills();
-    } catch (e) {
-      _billErrorController.add('Failed to initialize bill data: $e');
-    }
-  }
-
-  // Load bills from JSON
-  Future<void> _loadBillsFromJson() async {
-    try {
-      final jsonString = await rootBundle.loadString('assets/bills.json');
-      final bills = BillModel.parseBills(jsonString);
-      setBills(bills);
-    } catch (e) {
-      _billErrorController.add('Failed to load bills from JSON: $e');
+    if (!_isInitialized) {
+      await refreshBills();
+      _isInitialized = true;
     }
   }
 
   // Load and broadcast all bills
   Future<void> refreshBills() async {
     try {
-      final bills = getAllBills();
-      _billStreamController.add(bills);
+      final newBills = await fetchBillsFromAPI();
+
+      // Save data to internal cache
+      setBills(newBills);
+
+      // Send a new data for update UI
+      _billStreamController.add(newBills);
     } catch (e) {
-      _billErrorController.add('Failed to load bills: $e');
+      _billErrorController.add('Gagal me-refresh bills: $e');
     }
   }
 

@@ -20,7 +20,6 @@ class _OwnerLoginSplashPageState extends ConsumerState<OwnerLoginSplashPage>
   }
 
   Future<void> _proceed() async {
-    // Simulasikan proses setelah login owner: load data ringan, dsb.
     await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
     context.go(AppConstants.loginStaffPage);

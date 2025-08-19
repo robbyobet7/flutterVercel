@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import '../models/customers.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 import '../middleware/customer_middleware.dart';
 
@@ -41,46 +40,15 @@ class CustomerState {
 // Customer notifier
 class CustomerNotifier extends StateNotifier<CustomerState> {
   final CustomerMiddleware _middleware;
-  final _customerStreamController =
-      StreamController<List<CustomerModel>>.broadcast();
-  final _errorStreamController = StreamController<String>.broadcast();
-
-  Stream<List<CustomerModel>> get customersStream =>
-      _customerStreamController.stream;
-  Stream<String> get errorStream => _errorStreamController.stream;
 
   CustomerNotifier(this._middleware) : super(CustomerState(customers: [])) {
     _initialize();
-    _setupStreams();
   }
 
   // Initialize the provider
   Future<void> _initialize() async {
     state = state.copyWith(isLoading: true);
-    try {
-      if (!_middleware.isInitialized) {
-        await _loadCustomersFromJson();
-      }
-      refreshCustomers();
-    } catch (e) {
-      _errorStreamController.add('Failed to initialize customer data: $e');
-    }
-  }
-
-  // Load customers from JSON
-  Future<void> _loadCustomersFromJson() async {
-    try {
-      final jsonString = await rootBundle.loadString('assets/customers.json');
-      final customers = CustomerModel.parseCustomers(jsonString);
-      _middleware.setCustomers(customers);
-    } catch (e) {
-      _errorStreamController.add('Failed to load customers from JSON: $e');
-    }
-  }
-
-  // Setup streams
-  void _setupStreams() {
-    customersStream.listen((customers) {
+    _middleware.customersStream.listen((customers) {
       state = state.copyWith(
         customers: state.searchQuery.isEmpty ? customers : state.customers,
         allCustomers: customers,
@@ -88,74 +56,51 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
       );
     });
 
-    errorStream.listen((error) {
+    _middleware.errorStream.listen((error) {
       state = state.copyWith(errorMessage: error, isLoading: false);
     });
+
+    try {
+      await _middleware.initialize();
+    } catch (e) {
+      // Error already take it by errorStream.
+    }
   }
 
   // Refresh customer list
   Future<void> refreshCustomers() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final customers = _middleware.getAllCustomers();
-      _customerStreamController.add(customers);
+      await _middleware.fetchCustomersFromApi();
     } catch (e) {
-      _errorStreamController.add('Failed to load customers: $e');
+      // Error already take it by errorStream.
     }
   }
 
   // Add a new customer
-  Future<void> addCustomer(CustomerModel customer) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    try {
-      _middleware.addCustomer(customer);
-      refreshCustomers();
-    } catch (e) {
-      _errorStreamController.add('Failed to add customer: $e');
-    }
+  void addCustomer(CustomerModel customer) {
+    _middleware.addCustomer(customer);
   }
 
   // Update an existing customer
-  Future<void> updateCustomer(CustomerModel customer) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    try {
-      _middleware.updateCustomer(customer);
-      refreshCustomers();
-    } catch (e) {
-      _errorStreamController.add('Failed to update customer: $e');
-    }
+  void updateCustomer(CustomerModel customer) {
+    _middleware.updateCustomer(customer);
   }
 
   // Delete a customer
-  Future<void> deleteCustomer(int id) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    try {
-      _middleware.deleteCustomer(id);
-      refreshCustomers();
-    } catch (e) {
-      _errorStreamController.add('Failed to delete customer: $e');
-    }
+  void deleteCustomer(int id) {
+    _middleware.deleteCustomer(id);
   }
 
   // Search customers
   Future<void> searchCustomers(String query) async {
-    state = state.copyWith(
-      isLoading: true,
-      errorMessage: null,
-      searchQuery: query,
-    );
+    state = state.copyWith(searchQuery: query);
 
     if (query.isEmpty) {
-      state = state.copyWith(customers: state.allCustomers, isLoading: false);
-      return;
-    }
-
-    try {
+      state = state.copyWith(customers: state.allCustomers);
+    } else {
       final results = _middleware.searchCustomersByName(query);
-      state = state.copyWith(customers: results, isLoading: false);
-    } catch (e) {
-      _errorStreamController.add('Failed to search customers: $e');
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(customers: results);
     }
   }
 
@@ -165,13 +110,8 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   }
 
   // Get customer by ID
-  Future<CustomerModel?> getCustomerById(int id) async {
-    try {
-      return _middleware.getCustomerById(id);
-    } catch (e) {
-      _errorStreamController.add('Failed to get customer with ID $id: $e');
-      return null;
-    }
+  CustomerModel? getCustomerById(int id) {
+    return _middleware.getCustomerById(id);
   }
 
   // Get customers with loyalty points
@@ -185,8 +125,8 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
         isLoading: false,
       );
     } catch (e) {
-      _errorStreamController.add('Failed to get loyalty customers: $e');
       state = state.copyWith(isLoading: false);
+      throw Exception(e);
     }
   }
 
@@ -202,8 +142,8 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
       // In a real app: await file.writeAsString(jsonString);
       state = state.copyWith(isLoading: false);
     } catch (e) {
-      _errorStreamController.add('Failed to save customers: $e');
       state = state.copyWith(isLoading: false);
+      throw Exception(e);
     }
   }
 
@@ -211,16 +151,7 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   void clearError() {
     state = state.copyWith(errorMessage: null);
   }
-
-  @override
-  void dispose() {
-    _customerStreamController.close();
-    _errorStreamController.close();
-    super.dispose();
-  }
 }
-
-// Provider definitions
 
 // Singleton repository provider
 final customerMiddlewareProvider = Provider<CustomerMiddleware>((ref) {

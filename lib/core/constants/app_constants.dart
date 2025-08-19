@@ -5,16 +5,18 @@ class AppConstants {
   static const String appName = 'Rebill POS';
   static const String appVersion = '1.0.0';
 
+  // Base URL
+  static const String baseUrl =
+      'https://make-skirt-des-formerly.trycloudflare.com';
+
   // Service URL
-  static const String service = 'pos/';
+  static const String service = '/pos/';
   static const String apiVersion = 'v1/';
   static const String authOwnerPath = 'auth/owner';
   static const String authStaffPath = 'auth/staff';
   static const String products = 'products';
-
-  // Base URL
-  static const String baseUrl =
-      'https://banners-difference-fw-routine.trycloudflare.com/';
+  static const String bill = 'bill';
+  static const String masterdata = 'masterdata';
 
   // Login URL
   static const String loginUrl =
@@ -27,6 +29,30 @@ class AppConstants {
   // Product Categories URL
   static const String productCategoriesUrl =
       '$baseUrl$service$apiVersion$products/get-all-product-categories';
+
+  // Bill URL
+  static const String billsUrl =
+      '$baseUrl$service$apiVersion$bill/list?limit=3&offset=0';
+
+  // Create Bill URL
+  static const String createBillsUrl =
+      '$baseUrl$service$apiVersion$bill/create';
+
+  // Staff Accounts URL
+  static const String staffAccountUrl =
+      '$baseUrl$service$apiVersion$masterdata/staff-accounts';
+
+  // Tables URL
+  static const String tablesUrl =
+      '$baseUrl$service$apiVersion$masterdata/tables';
+
+  // Merchants URL
+  static const String merchantsUrl =
+      '$baseUrl$service$apiVersion$masterdata/all-merchant-channels';
+
+  // Customers URL
+  static const String customerUrl =
+      '$baseUrl$service$apiVersion$masterdata/customer-list';
 
   // Refresh Token URL
   static const String refreshTokenUrl =
