@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/label_text.dart';
 import 'package:rebill_flutter/features/checkout/models/checkout_discount.dart';
-import 'package:rebill_flutter/features/checkout/models/payment_method.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/available_discounts_dialog.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_action_row.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_button.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/payment_amount.dart';
 
-enum Method { cash, bank, other }
-
 enum PaymentType { full, split }
 
-class CheckoutDialog extends StatefulWidget {
+class CheckoutDialog extends ConsumerStatefulWidget {
   const CheckoutDialog({super.key});
 
   @override
-  State<CheckoutDialog> createState() => _CheckoutDialogState();
+  ConsumerState<CheckoutDialog> createState() => _CheckoutDialogState();
 }
 
-class _CheckoutDialogState extends State<CheckoutDialog> {
+class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
   String? selectedDelivery;
   String? selectedDiscount;
   PaymentType? selectedPayment;
@@ -33,7 +31,6 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
   ];
 
   late final List<CheckoutDiscount> _discounts;
-  late final List<PaymentMethod> _paymentMethods;
 
   // Cached widget lists
   List<Widget>? _cachedDeliveryButtons;
@@ -95,13 +92,6 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
         },
       ),
     ];
-
-    _paymentMethods = [
-      PaymentMethod(name: 'Cash', method: Method.cash),
-      PaymentMethod(name: 'BCA', method: Method.bank),
-      PaymentMethod(name: 'Mandiri', method: Method.bank),
-      PaymentMethod(name: 'Midtrans', method: Method.other),
-    ];
   }
 
   List<Widget> _buildDeliveryButtons() {
@@ -159,16 +149,36 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
         .toList();
   }
 
-  Widget _buildSection({required String title, required List<Widget> buttons}) {
-    return Column(
-      children: [
-        LabelText(text: title),
-        SizedBox(
-          width: double.infinity,
-          height: 45,
-          child: Row(spacing: 8, children: buttons),
-        ),
-      ],
+  Widget _buildSection({
+    required String title,
+    required List<Widget> buttons,
+    int columns = 2,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double spacing = 8;
+        final double totalSpacing = spacing * (columns - 1);
+        final double itemWidth =
+            (constraints.maxWidth - totalSpacing) / columns;
+
+        return Column(
+          children: [
+            LabelText(text: title),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children:
+                    buttons
+                        .map((w) => SizedBox(width: itemWidth, child: w))
+                        .toList(),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -179,34 +189,40 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
     _cachedDiscountButtons ??= _buildDiscountButtons();
     _cachedPaymentButtons ??= _buildPaymentButtons();
 
+    // Intentionally left for future keyboard-aware adjustments if needed.
+
     return Expanded(
       child: Column(
-        spacing: 16,
         children: [
           const AppDivider(),
-          Expanded(
+          Flexible(
             child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
+              padding: EdgeInsets.all(16),
+              physics: const BouncingScrollPhysics(),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               child: Column(
-                spacing: 16,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSection(
                     title: 'Delivery',
                     buttons: _cachedDeliveryButtons!,
+                    columns: 2,
                   ),
+                  const SizedBox(height: 16),
                   _buildSection(
                     title: 'Discounts',
                     buttons: _cachedDiscountButtons!,
+                    columns: 3,
                   ),
+                  const SizedBox(height: 16),
                   _buildSection(
                     title: 'Payment',
                     buttons: _cachedPaymentButtons!,
+                    columns: 2,
                   ),
+                  const SizedBox(height: 16),
                   PaymentAmount(
                     paymentType: selectedPayment ?? PaymentType.full,
-                    paymentMethods: _paymentMethods,
                   ),
                 ],
               ),

@@ -1,33 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/providers/payment_method_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 import 'package:rebill_flutter/core/widgets/label_text.dart';
-import 'package:rebill_flutter/features/checkout/models/payment_method.dart';
-import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_button.dart';
-import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_dialog.dart';
+import '../../models/payment_method.dart';
+import 'checkout_button.dart';
+import 'checkout_dialog.dart';
 
-class PaymentAmount extends StatefulWidget {
-  const PaymentAmount({
-    super.key,
-    required this.paymentType,
-    required this.paymentMethods,
-  });
+class PaymentAmount extends ConsumerStatefulWidget {
+  const PaymentAmount({super.key, required this.paymentType});
 
   final PaymentType paymentType;
-  final List<PaymentMethod> paymentMethods;
 
   @override
-  State<PaymentAmount> createState() => _PaymentAmountState();
+  ConsumerState<PaymentAmount> createState() => _PaymentAmountState();
 }
 
-class _PaymentAmountState extends State<PaymentAmount> {
+class _PaymentAmountState extends ConsumerState<PaymentAmount> {
   PaymentMethod? selectedPaymentMethod;
   PaymentMethod? selectedPaymentMethod2;
 
   late final TextEditingController _receivedAmountController;
   late final TextEditingController _receivedAmount2Controller;
-
-  List<Widget>? _cachedPaymentButtons;
-  List<Widget>? _cachedPaymentButtons2;
 
   @override
   void initState() {
@@ -43,37 +37,26 @@ class _PaymentAmountState extends State<PaymentAmount> {
     super.dispose();
   }
 
-  @override
-  void didUpdateWidget(PaymentAmount oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Clear cache if payment methods changed
-    if (oldWidget.paymentMethods != widget.paymentMethods) {
-      _cachedPaymentButtons = null;
-      _cachedPaymentButtons2 = null;
-    }
-  }
-
-  List<Widget> _buildPaymentMethodButtons({bool isSecondary = false}) {
-    return widget.paymentMethods.map((e) {
+  List<Widget> _buildPaymentMethodButtons(
+    List<PaymentMethod> methods, {
+    bool isSecondary = false,
+  }) {
+    return methods.map((e) {
       final isSelected =
           isSecondary
-              ? selectedPaymentMethod2?.name == e.name
-              : selectedPaymentMethod?.name == e.name;
+              ? selectedPaymentMethod2?.id == e.id
+              : selectedPaymentMethod?.id == e.id;
 
       return CheckoutButton(
-        text: e.name,
-        icon: _getPaymentMethodIcon(e.method),
+        text: e.paymentName,
+        icon: _getPaymentMethodIcon(e.methodType),
         isSelected: isSelected,
         onTap: () {
           setState(() {
             if (isSecondary) {
               selectedPaymentMethod2 = e;
-              _cachedPaymentButtons2 =
-                  null; // Clear cache to rebuild with new selection
             } else {
               selectedPaymentMethod = e;
-              _cachedPaymentButtons =
-                  null; // Clear cache to rebuild with new selection
             }
           });
         },
@@ -81,45 +64,60 @@ class _PaymentAmountState extends State<PaymentAmount> {
     }).toList();
   }
 
-  IconData _getPaymentMethodIcon(Method method) {
+  IconData _getPaymentMethodIcon(PaymentMethodType method) {
     switch (method) {
-      case Method.cash:
+      case PaymentMethodType.cash:
         return Icons.money;
-      case Method.bank:
+      case PaymentMethodType.transfer:
         return Icons.account_balance;
-      case Method.other:
+      case PaymentMethodType.other:
         return Icons.payment;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Cache payment buttons if not already cached or if selection changed
-    _cachedPaymentButtons ??= _buildPaymentMethodButtons();
-    if (widget.paymentType == PaymentType.split) {
-      _cachedPaymentButtons2 ??= _buildPaymentMethodButtons(isSecondary: true);
-    }
+    final paymentState = ref.watch(paymentMethodProvider);
+    final theme = Theme.of(context);
 
     return Column(
-      spacing: 16,
       children: [
         AppTextField(
           controller: _receivedAmountController,
           labelText: 'Received Amount/Down Payment',
         ),
-        _PaymentMethodSection(
-          title: 'Payment Method',
-          buttons: _cachedPaymentButtons!,
-        ),
+        const SizedBox(height: 16),
+        // Handle state di sini
+        paymentState.isLoading
+            ? const CircularProgressIndicator()
+            : paymentState.errorMessage != null
+            ? Text(
+              paymentState.errorMessage!,
+              style: TextStyle(color: theme.colorScheme.error),
+            )
+            : _PaymentMethodSection(
+              title: 'Payment Method',
+              buttons: _buildPaymentMethodButtons(paymentState.paymentMethods),
+            ),
         if (widget.paymentType == PaymentType.split) ...[
+          const SizedBox(height: 16),
           AppTextField(
             controller: _receivedAmount2Controller,
             labelText: 'Received Amount 2',
           ),
-          _PaymentMethodSection(
-            title: 'Payment Method 2',
-            buttons: _cachedPaymentButtons2!,
-          ),
+          const SizedBox(height: 16),
+          // Handle state juga untuk bagian kedua
+          paymentState.isLoading
+              ? const SizedBox.shrink() // Tidak perlu loading 2x
+              : paymentState.errorMessage != null
+              ? const SizedBox.shrink() // Tidak perlu error 2x
+              : _PaymentMethodSection(
+                title: 'Payment Method 2',
+                buttons: _buildPaymentMethodButtons(
+                  paymentState.paymentMethods,
+                  isSecondary: true,
+                ),
+              ),
         ],
       ],
     );
@@ -134,14 +132,33 @@ class _PaymentMethodSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        LabelText(text: title),
-        SizedBox(
-          width: double.infinity,
-          child: Row(spacing: 8, children: buttons),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const int columns = 3;
+        const double spacing = 8;
+        final double totalSpacing = spacing * (columns - 1);
+        final double itemWidth =
+            (constraints.maxWidth - totalSpacing) / columns;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LabelText(text: title),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children:
+                    buttons
+                        .map((w) => SizedBox(width: itemWidth, child: w))
+                        .toList(),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

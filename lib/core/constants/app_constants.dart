@@ -54,6 +54,10 @@ class AppConstants {
   static const String customerUrl =
       '$baseUrl$service$apiVersion$masterdata/customer-list';
 
+  // Payments URL
+  static const String paymentsUrl =
+      '$baseUrl$service$apiVersion$masterdata/all-payment-methods';
+
   // Refresh Token URL
   static const String refreshTokenUrl =
       '$baseUrl$service$apiVersion$authOwnerPath/refresh-token';
