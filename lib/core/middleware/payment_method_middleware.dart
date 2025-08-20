@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
 import 'package:rebill_flutter/features/checkout/models/payment_method.dart';
@@ -60,7 +59,6 @@ class PaymentMethodMiddleware {
       }
     } catch (e) {
       final errorMessage = 'Gagal memuat payment method: $e';
-      debugPrint('!!! ERROR SAAT MENGAMBIL PAYMENT METHOD: $e');
       errorStreamController.add(errorMessage);
     }
   }

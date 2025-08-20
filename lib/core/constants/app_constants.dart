@@ -7,7 +7,7 @@ class AppConstants {
 
   // Base URL
   static const String baseUrl =
-      'https://make-skirt-des-formerly.trycloudflare.com';
+      'https://isle-jones-talks-waste.trycloudflare.com';
 
   // Service URL
   static const String service = '/pos/';
@@ -57,6 +57,10 @@ class AppConstants {
   // Payments URL
   static const String paymentsUrl =
       '$baseUrl$service$apiVersion$masterdata/all-payment-methods';
+
+  // Discounts URL
+  static const String discountsUrl =
+      '$baseUrl$service$apiVersion$masterdata/discounts-list';
 
   // Refresh Token URL
   static const String refreshTokenUrl =

@@ -91,6 +91,19 @@ class TableNotifier extends StateNotifier<TableState> {
     state = state.copyWith(errorMessage: null);
   }
 
+  // Refresh tables data
+  Future<void> refreshTables() async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await _middleware.refreshTables();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Failed to refresh tables: $e',
+      );
+    }
+  }
+
   @override
   void dispose() {
     // Not disposing the middleware here as it's a singleton

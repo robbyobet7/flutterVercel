@@ -15,8 +15,20 @@ import 'package:rebill_flutter/features/login/providers/staff_auth_provider.dart
 import 'package:rebill_flutter/core/widgets/app_snackbar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
+// Import providers for refresh functionality
+import 'package:rebill_flutter/core/providers/products_providers.dart';
+import 'package:rebill_flutter/core/providers/customer_provider.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
+import 'package:rebill_flutter/core/providers/table_bill_provider.dart';
+import 'package:rebill_flutter/core/providers/table_provider.dart';
+import 'package:rebill_flutter/core/providers/merchant_provider.dart';
+import 'package:rebill_flutter/core/providers/merge_bill_provider.dart';
+import 'package:rebill_flutter/features/kitchen-order/providers/kitchen_order_provider.dart';
+import 'package:rebill_flutter/features/reservation/providers/reservation_provider.dart';
+import 'package:rebill_flutter/features/stock-taking/providers/stock_taking_provider.dart';
 
 final hideNavbarProvider = StateProvider<bool>((ref) => false);
+final isRefreshingProvider = StateProvider<bool>((ref) => false);
 
 class Navbar extends ConsumerWidget {
   const Navbar({super.key});
@@ -91,6 +103,172 @@ class Navbar extends ConsumerWidget {
           );
         }
       }
+    }
+  }
+
+  /// Refresh all application data from the server
+  /// This function synchronizes all major data types including:
+  /// - Products and categories
+  /// - Customer information
+  /// - Bills (regular and table bills)
+  /// - Table status
+  /// - Kitchen orders
+  /// - Reservations
+  /// - Stock takings
+  /// - Merchant data
+  ///
+  /// The refresh is performed in parallel for optimal performance
+  /// with a 30-second timeout to prevent hanging operations.
+  Future<void> handleRefreshData(BuildContext context, WidgetRef ref) async {
+    try {
+      // Set refreshing state to true
+      ref.read(isRefreshingProvider.notifier).state = true;
+
+      // Show loading indicator
+      AppSnackbar.showInfo(context, message: 'Refreshing data...');
+
+      // Refresh all providers in parallel with timeout
+      await Future.wait([
+        // Refresh products
+        _refreshProducts(ref),
+        // Refresh customers
+        _refreshCustomers(ref),
+        // Refresh bills
+        _refreshBills(ref),
+        // Refresh table bills
+        _refreshTableBills(ref),
+        // Refresh tables
+        _refreshTables(ref),
+        // Refresh kitchen orders
+        _refreshKitchenOrders(ref),
+        // Refresh reservations
+        _refreshReservations(ref),
+        // Refresh stock takings
+        _refreshStockTakings(ref),
+        // Refresh merchants
+        _refreshMerchants(ref),
+      ]).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Refresh timeout - some data may not be updated');
+        },
+      );
+
+      // Show success message
+      if (context.mounted) {
+        AppSnackbar.showSuccess(
+          context,
+          message: 'Data refreshed successfully!',
+        );
+      }
+    } catch (e) {
+      // Show error message
+      if (context.mounted) {
+        AppSnackbar.showError(
+          context,
+          message: 'Failed to refresh data: ${e.toString()}',
+        );
+      }
+    } finally {
+      // Set refreshing state to false
+      ref.read(isRefreshingProvider.notifier).state = false;
+    }
+  }
+
+  // ==================== Helper Methods for Individual Data Refresh ====================
+
+  /// Refresh products data including categories
+  /// Invalidates the products cache and fetches fresh data from API
+  Future<void> _refreshProducts(WidgetRef ref) async {
+    try {
+      // Refresh products middleware
+      ref.read(productMiddlewareProvider).refreshProducts();
+      // Invalidate products providers
+      ref.invalidate(availableProductsProvider);
+      ref.invalidate(availableCategoriesProvider);
+    } catch (e) {
+      debugPrint('Error refreshing products: $e');
+    }
+  }
+
+  /// Refresh customer database
+  /// Updates customer information from the server
+  Future<void> _refreshCustomers(WidgetRef ref) async {
+    try {
+      await ref.read(customerProvider.notifier).refreshCustomers();
+    } catch (e) {
+      debugPrint('Error refreshing customers: $e');
+    }
+  }
+
+  /// Refresh bills data
+  /// Loads latest bill information from the server
+  Future<void> _refreshBills(WidgetRef ref) async {
+    try {
+      await ref.read(billProvider.notifier).loadBills();
+    } catch (e) {
+      debugPrint('Error refreshing bills: $e');
+    }
+  }
+
+  /// Refresh table bills and merge bills
+  /// Updates both regular table bills and merge bill data
+  Future<void> _refreshTableBills(WidgetRef ref) async {
+    try {
+      await ref.read(tableBillProvider.notifier).loadBills();
+      await ref.read(mergeBillProvider.notifier).loadBills();
+    } catch (e) {
+      debugPrint('Error refreshing table bills: $e');
+    }
+  }
+
+  /// Refresh table status and information
+  /// Updates table availability and current status
+  Future<void> _refreshTables(WidgetRef ref) async {
+    try {
+      await ref.read(tableProvider.notifier).refreshTables();
+    } catch (e) {
+      debugPrint('Error refreshing tables: $e');
+    }
+  }
+
+  /// Refresh kitchen orders
+  /// Updates the kitchen order queue and status
+  Future<void> _refreshKitchenOrders(WidgetRef ref) async {
+    try {
+      await reloadKitchenOrders(ref);
+    } catch (e) {
+      debugPrint('Error refreshing kitchen orders: $e');
+    }
+  }
+
+  /// Refresh reservation data
+  /// Updates reservation information and availability
+  Future<void> _refreshReservations(WidgetRef ref) async {
+    try {
+      await ref.read(reservationProvider.notifier).fetchReservations();
+    } catch (e) {
+      debugPrint('Error refreshing reservations: $e');
+    }
+  }
+
+  /// Refresh stock taking data
+  /// Updates inventory and stock information
+  Future<void> _refreshStockTakings(WidgetRef ref) async {
+    try {
+      await reloadStockTakings(ref);
+    } catch (e) {
+      debugPrint('Error refreshing stock takings: $e');
+    }
+  }
+
+  /// Refresh merchant information
+  /// Updates merchant data and settings
+  Future<void> _refreshMerchants(WidgetRef ref) async {
+    try {
+      await ref.read(merchantProvider.notifier).refresh();
+    } catch (e) {
+      debugPrint('Error refreshing merchants: $e');
     }
   }
 
@@ -218,9 +396,10 @@ class Navbar extends ConsumerWidget {
                                             .read(hideNavbarProvider.notifier)
                                             .state;
                                     break;
-                                  // case 'fullscreen':
-                                  //   // Handle fullscreen action
-                                  //   break;
+                                  case 'refresh':
+                                    // Handle refresh data action
+                                    handleRefreshData(context, ref);
+                                    break;
                                   case 'logout':
                                     // Handle logout action
                                     handleLogout(context, ref);
@@ -327,6 +506,63 @@ class Navbar extends ConsumerWidget {
                                       child: Divider(
                                         color: theme.colorScheme.outlineVariant,
                                         height: .5,
+                                      ),
+                                    ),
+                                    PopupMenuItem<String>(
+                                      value: 'refresh',
+                                      enabled: !ref.watch(isRefreshingProvider),
+                                      child: Consumer(
+                                        builder: (context, ref, child) {
+                                          final isRefreshing = ref.watch(
+                                            isRefreshingProvider,
+                                          );
+                                          return Row(
+                                            children: [
+                                              if (isRefreshing)
+                                                SizedBox(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                          Color
+                                                        >(
+                                                          theme
+                                                              .colorScheme
+                                                              .primary,
+                                                        ),
+                                                  ),
+                                                )
+                                              else
+                                                Icon(
+                                                  Icons.sync_rounded,
+                                                  color:
+                                                      theme
+                                                          .colorScheme
+                                                          .onSurface,
+                                                  size: 20,
+                                                ),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                isRefreshing
+                                                    ? 'Refreshing...'
+                                                    : 'Refresh Data',
+                                                style: theme
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color:
+                                                          theme
+                                                              .colorScheme
+                                                              .onSurface,
+                                                    ),
+                                              ),
+                                            ],
+                                          );
+                                        },
                                       ),
                                     ),
                                     PopupMenuItem<String>(
