@@ -176,14 +176,9 @@ class Navbar extends ConsumerWidget {
   }
 
   // ==================== Helper Methods for Individual Data Refresh ====================
-
-  /// Refresh products data including categories
-  /// Invalidates the products cache and fetches fresh data from API
   Future<void> _refreshProducts(WidgetRef ref) async {
     try {
-      // Refresh products middleware
       ref.read(productMiddlewareProvider).refreshProducts();
-      // Invalidate products providers
       ref.invalidate(availableProductsProvider);
       ref.invalidate(availableCategoriesProvider);
     } catch (e) {
@@ -191,8 +186,6 @@ class Navbar extends ConsumerWidget {
     }
   }
 
-  /// Refresh customer database
-  /// Updates customer information from the server
   Future<void> _refreshCustomers(WidgetRef ref) async {
     try {
       await ref.read(customerProvider.notifier).refreshCustomers();
@@ -201,8 +194,6 @@ class Navbar extends ConsumerWidget {
     }
   }
 
-  /// Refresh bills data
-  /// Loads latest bill information from the server
   Future<void> _refreshBills(WidgetRef ref) async {
     try {
       await ref.read(billProvider.notifier).loadBills();
@@ -211,8 +202,6 @@ class Navbar extends ConsumerWidget {
     }
   }
 
-  /// Refresh table bills and merge bills
-  /// Updates both regular table bills and merge bill data
   Future<void> _refreshTableBills(WidgetRef ref) async {
     try {
       await ref.read(tableBillProvider.notifier).loadBills();
@@ -222,8 +211,6 @@ class Navbar extends ConsumerWidget {
     }
   }
 
-  /// Refresh table status and information
-  /// Updates table availability and current status
   Future<void> _refreshTables(WidgetRef ref) async {
     try {
       await ref.read(tableProvider.notifier).refreshTables();
@@ -232,8 +219,6 @@ class Navbar extends ConsumerWidget {
     }
   }
 
-  /// Refresh kitchen orders
-  /// Updates the kitchen order queue and status
   Future<void> _refreshKitchenOrders(WidgetRef ref) async {
     try {
       await reloadKitchenOrders(ref);
@@ -243,7 +228,6 @@ class Navbar extends ConsumerWidget {
   }
 
   /// Refresh reservation data
-  /// Updates reservation information and availability
   Future<void> _refreshReservations(WidgetRef ref) async {
     try {
       await ref.read(reservationProvider.notifier).fetchReservations();
@@ -253,7 +237,6 @@ class Navbar extends ConsumerWidget {
   }
 
   /// Refresh stock taking data
-  /// Updates inventory and stock information
   Future<void> _refreshStockTakings(WidgetRef ref) async {
     try {
       await reloadStockTakings(ref);
@@ -263,7 +246,6 @@ class Navbar extends ConsumerWidget {
   }
 
   /// Refresh merchant information
-  /// Updates merchant data and settings
   Future<void> _refreshMerchants(WidgetRef ref) async {
     try {
       await ref.read(merchantProvider.notifier).refresh();

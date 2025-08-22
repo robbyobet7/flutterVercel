@@ -5,6 +5,7 @@ import 'package:rebill_flutter/core/providers/customer_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
+import 'package:rebill_flutter/features/home/providers/search_provider.dart';
 import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main-bill/presentations/widgets/add_customer_dialog.dart';
 import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
@@ -14,11 +15,19 @@ final tempSelectedCustomerProvider = StateProvider<CustomerModel?>(
   (ref) => null,
 );
 
-class KnownIndividualDialog extends ConsumerWidget {
+class KnownIndividualDialog extends ConsumerStatefulWidget {
   const KnownIndividualDialog({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<KnownIndividualDialog> createState() =>
+      _KnownIndividualDialogState();
+}
+
+class _KnownIndividualDialogState extends ConsumerState<KnownIndividualDialog> {
+  bool _isRefreshing = false;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tempSelectedCustomer = ref.watch(tempSelectedCustomerProvider);
     final selectedCustomer = ref.watch(knownIndividualProvider);
@@ -28,19 +37,91 @@ class KnownIndividualDialog extends ConsumerWidget {
     final customers = ref.watch(customerProvider);
     return Expanded(
       child: Column(
-        spacing: 12,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppSearchBar(
-            hintText: 'Search Customer...',
-            onSearch: (value) {
-              ref.read(customerProvider.notifier).searchCustomers(value);
-            },
-            onClear: () {
-              ref.read(customerProvider.notifier).clearSearch();
-            },
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: AppSearchBar(
+                  hintText: 'Search Customer...',
+                  searchProvider: customerSearchQueryProvider,
+                  onSearch: (value) {
+                    ref.read(customerProvider.notifier).searchCustomers(value);
+                    ref
+                        .read(customerSearchQueryProvider.notifier)
+                        .updateSearchQuery(value);
+                  },
+                  onClear: () {
+                    ref.read(customerProvider.notifier).clearSearch();
+                    ref
+                        .read(customerSearchQueryProvider.notifier)
+                        .clearSearch();
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed:
+                    _isRefreshing
+                        ? null // Disable button while refreshing
+                        : () async {
+                          setState(() {
+                            _isRefreshing = true;
+                          });
+
+                          ref
+                              .read(tempSelectedCustomerProvider.notifier)
+                              .state = null;
+                          ref.read(customerProvider.notifier).clearSearch();
+                          ref
+                              .read(customerSearchQueryProvider.notifier)
+                              .clearSearch();
+
+                          await Future.delayed(
+                            const Duration(milliseconds: 500),
+                          );
+
+                          if (mounted) {
+                            setState(() {
+                              _isRefreshing = false;
+                            });
+                          }
+                        },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(color: theme.colorScheme.primary),
+                  ),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 16,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Refresh',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.refresh,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
           Expanded(
             child: Column(
               children: [
@@ -94,162 +175,182 @@ class KnownIndividualDialog extends ConsumerWidget {
                     ],
                   ),
                 ),
-                // Table body
                 Expanded(
-                  child: ListView.builder(
-                    physics: const BouncingScrollPhysics(
-                      parent: AlwaysScrollableScrollPhysics(),
-                    ),
-                    cacheExtent: 100,
-                    itemCount: customers.customers.length,
-                    itemBuilder: (context, index) {
-                      // Get customer data
-                      final customer = customers.customers[index];
-
-                      return Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              ref
-                                  .read(tempSelectedCustomerProvider.notifier)
-                                  .state = customer;
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              height: 60,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                color:
-                                    tempSelectedCustomer?.customerId ==
-                                                customer.customerId ||
-                                            selectedCustomer?.customerId ==
-                                                customer.customerId
-                                        ? theme.colorScheme.primary
-                                        : index % 2 == 0
-                                        ? theme.colorScheme.surfaceContainer
-                                        : theme.colorScheme.surface,
-                                border: Border.all(
-                                  color:
-                                      index % 2 == 0
-                                          ? Colors.transparent
-                                          : theme.colorScheme.onSurface
-                                              .withOpacity(0.05),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: Text(
-                                      customer.customerName,
-                                      style: theme.textTheme.titleSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color:
-                                                tempSelectedCustomer
-                                                                ?.customerId ==
-                                                            customer
-                                                                .customerId ||
-                                                        selectedCustomer
-                                                                ?.customerId ==
-                                                            customer.customerId
-                                                    ? Colors.white
-                                                    : theme
-                                                        .colorScheme
-                                                        .onSurface,
-                                          ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: Text(
-                                      customer.emailSocial ?? '',
-                                      style: theme.textTheme.titleSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w400,
-                                            color:
-                                                tempSelectedCustomer
-                                                                ?.customerId ==
-                                                            customer
-                                                                .customerId ||
-                                                        selectedCustomer
-                                                                ?.customerId ==
-                                                            customer.customerId
-                                                    ? Colors.white
-                                                    : theme
-                                                        .colorScheme
-                                                        .onSurface,
-                                          ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: Text(
-                                      customer.phone ?? '',
-                                      style: theme.textTheme.titleSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w400,
-                                            color:
-                                                tempSelectedCustomer
-                                                                ?.customerId ==
-                                                            customer
-                                                                .customerId ||
-                                                        selectedCustomer
-                                                                ?.customerId ==
-                                                            customer.customerId
-                                                    ? Colors.white
-                                                    : theme
-                                                        .colorScheme
-                                                        .onSurface,
-                                          ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      customer.affiliate ?? '',
-                                      style: theme.textTheme.titleSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w400,
-                                            color:
-                                                tempSelectedCustomer
-                                                                ?.customerId ==
-                                                            customer
-                                                                .customerId ||
-                                                        selectedCustomer
-                                                                ?.customerId ==
-                                                            customer.customerId
-                                                    ? Colors.white
-                                                    : theme
-                                                        .colorScheme
-                                                        .onSurface,
-                                          ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                  child:
+                      _isRefreshing
+                          ? Center(
+                            child: CircularProgressIndicator(
+                              color: theme.colorScheme.primary,
                             ),
+                          )
+                          : ListView.builder(
+                            physics: const BouncingScrollPhysics(
+                              parent: AlwaysScrollableScrollPhysics(),
+                            ),
+                            cacheExtent: 100,
+                            itemCount: customers.customers.length,
+                            itemBuilder: (context, index) {
+                              final customer = customers.customers[index];
+                              return Column(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (tempSelectedCustomer?.customerId ==
+                                          customer.customerId) {
+                                        ref
+                                            .read(
+                                              tempSelectedCustomerProvider
+                                                  .notifier,
+                                            )
+                                            .state = null;
+                                      } else {
+                                        ref
+                                            .read(
+                                              tempSelectedCustomerProvider
+                                                  .notifier,
+                                            )
+                                            .state = customer;
+                                      }
+                                    },
+                                    child: AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
+                                      height: 60,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        color:
+                                            tempSelectedCustomer?.customerId ==
+                                                        customer.customerId ||
+                                                    selectedCustomer
+                                                            ?.customerId ==
+                                                        customer.customerId
+                                                ? theme.colorScheme.primary
+                                                : index % 2 == 0
+                                                ? theme
+                                                    .colorScheme
+                                                    .surfaceContainer
+                                                : theme.colorScheme.surface,
+                                        border: Border.all(
+                                          color:
+                                              index % 2 == 0
+                                                  ? Colors.transparent
+                                                  : theme.colorScheme.onSurface
+                                                      .withOpacity(0.05),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 2,
+                                            child: Text(
+                                              customer.customerName,
+                                              style: theme.textTheme.titleSmall?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                color:
+                                                    tempSelectedCustomer
+                                                                    ?.customerId ==
+                                                                customer
+                                                                    .customerId ||
+                                                            selectedCustomer
+                                                                    ?.customerId ==
+                                                                customer
+                                                                    .customerId
+                                                        ? Colors.white
+                                                        : theme
+                                                            .colorScheme
+                                                            .onSurface,
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 2,
+                                            child: Text(
+                                              customer.emailSocial ?? '',
+                                              style: theme.textTheme.titleSmall?.copyWith(
+                                                fontWeight: FontWeight.w400,
+                                                color:
+                                                    tempSelectedCustomer
+                                                                    ?.customerId ==
+                                                                customer
+                                                                    .customerId ||
+                                                            selectedCustomer
+                                                                    ?.customerId ==
+                                                                customer
+                                                                    .customerId
+                                                        ? Colors.white
+                                                        : theme
+                                                            .colorScheme
+                                                            .onSurface,
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 2,
+                                            child: Text(
+                                              customer.phone ?? '',
+                                              style: theme.textTheme.titleSmall?.copyWith(
+                                                fontWeight: FontWeight.w400,
+                                                color:
+                                                    tempSelectedCustomer
+                                                                    ?.customerId ==
+                                                                customer
+                                                                    .customerId ||
+                                                            selectedCustomer
+                                                                    ?.customerId ==
+                                                                customer
+                                                                    .customerId
+                                                        ? Colors.white
+                                                        : theme
+                                                            .colorScheme
+                                                            .onSurface,
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              customer.affiliate ?? '',
+                                              style: theme.textTheme.titleSmall?.copyWith(
+                                                fontWeight: FontWeight.w400,
+                                                color:
+                                                    tempSelectedCustomer
+                                                                    ?.customerId ==
+                                                                customer
+                                                                    .customerId ||
+                                                            selectedCustomer
+                                                                    ?.customerId ==
+                                                                customer
+                                                                    .customerId
+                                                        ? Colors.white
+                                                        : theme
+                                                            .colorScheme
+                                                            .onSurface,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                              );
+                            },
                           ),
-
-                          const SizedBox(height: 12),
-                        ],
-                      );
-                    },
-                  ),
                 ),
               ],
             ),
           ),
-
+          const SizedBox(height: 12),
           SizedBox(
             height: 40,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  spacing: 12,
                   children: [
                     AppButton(
                       onPressed: () {
@@ -265,6 +366,7 @@ class KnownIndividualDialog extends ConsumerWidget {
                       backgroundColor: theme.colorScheme.surface,
                       borderSide: BorderSide(color: theme.colorScheme.primary),
                     ),
+                    const SizedBox(width: 12),
                     AppButton(
                       onPressed: () {},
                       text: 'Edit',
@@ -281,7 +383,6 @@ class KnownIndividualDialog extends ConsumerWidget {
                   ],
                 ),
                 Row(
-                  spacing: 12,
                   children: [
                     AppButton(
                       onPressed: () {
@@ -292,6 +393,10 @@ class KnownIndividualDialog extends ConsumerWidget {
                               .read(knownIndividualProvider.notifier)
                               .setKnownIndividual(null);
                         }
+                        ref.read(customerProvider.notifier).clearSearch();
+                        ref
+                            .read(customerSearchQueryProvider.notifier)
+                            .clearSearch();
                         Navigator.pop(context);
                       },
                       text: 'Cancel',
@@ -300,6 +405,7 @@ class KnownIndividualDialog extends ConsumerWidget {
                         color: theme.colorScheme.error,
                       ),
                     ),
+                    const SizedBox(width: 12),
                     AppButton(
                       onPressed:
                           tempSelectedCustomer == null
@@ -314,6 +420,12 @@ class KnownIndividualDialog extends ConsumerWidget {
                                     .read(knownIndividualProvider.notifier)
                                     .setKnownIndividual(tempSelectedCustomer);
                                 Navigator.pop(context);
+                                ref
+                                    .read(customerProvider.notifier)
+                                    .clearSearch();
+                                ref
+                                    .read(customerSearchQueryProvider.notifier)
+                                    .clearSearch();
                               },
                       text: 'Select',
                       backgroundColor: theme.colorScheme.primary,

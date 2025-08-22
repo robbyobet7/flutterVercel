@@ -323,7 +323,12 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                           children: [
                             Icon(
                               Icons.store_outlined,
-                              color: theme.colorScheme.primary,
+                              color:
+                                  selectedOutlet != null
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.scrim.withOpacity(
+                                        0.2,
+                                      ),
                               size: 22,
                             ),
                             const SizedBox(width: 12),
@@ -366,7 +371,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       ),
                     ),
                     child: PopupMenuButton<Staff>(
-                      offset: const Offset(0, 45),
+                      offset: const Offset(0, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -374,7 +379,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       constraints: const BoxConstraints(
                         minWidth: 200,
                         maxWidth: 300,
-                        maxHeight: 3.5 * 48,
+                        maxHeight: 3.5 * 50,
                       ),
                       color: Colors.white,
                       itemBuilder: (BuildContext context) {
@@ -403,21 +408,22 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                             Icon(
                               Icons.person_outline_rounded,
                               color:
-                                  selectedOutlet != null
+                                  selectedStaff != null
                                       ? theme.colorScheme.primary
-                                      : Colors.grey[400],
+                                      : theme.colorScheme.scrim.withOpacity(
+                                        0.2,
+                                      ),
                               size: 22,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 selectedStaff?.name ?? 'Select Staff',
-                                style: theme.textTheme.bodySmall?.copyWith(
+                                style: theme.textTheme.bodyMedium?.copyWith(
                                   color:
                                       selectedStaff != null
                                           ? Colors.black87
                                           : Colors.grey[600],
-                                  fontSize: 16,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -425,7 +431,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                             Icon(
                               Icons.arrow_drop_down_rounded,
                               color:
-                                  selectedOutlet != null
+                                  selectedStaff != null
                                       ? theme.colorScheme.primary
                                       : Colors.grey[400],
                             ),
@@ -437,6 +443,12 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                           selectedStaff = staff;
                         });
                       },
+                    ),
+                  ),
+                  Text(
+                    'Input your pin',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.scrim.withOpacity(0.5),
                     ),
                   ),
 
@@ -463,7 +475,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border.all(
-                          color: theme.colorScheme.primary.withOpacity(0.4),
+                          color: theme.colorScheme.scrim.withOpacity(0.2),
                           width: 1.5,
                         ),
                         borderRadius: BorderRadius.circular(10),
@@ -480,7 +492,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       decoration: BoxDecoration(
                         color: theme.colorScheme.onPrimary,
                         border: Border.all(
-                          color: theme.colorScheme.primary,
+                          color: theme.colorScheme.primary.withOpacity(0.3),
                           width: 2,
                         ),
                         borderRadius: BorderRadius.circular(8),
@@ -491,9 +503,11 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       height: 44,
                       textStyle:
                           theme.textTheme.headlineSmall?.copyWith(
+                            fontSize: 18,
                             color: theme.colorScheme.surface,
                           ) ??
-                          const TextStyle(color: Colors.grey),
+                          const TextStyle(color: Colors.grey, fontSize: 18),
+
                       decoration: BoxDecoration(
                         color: theme.colorScheme.onPrimary,
                         border: Border.all(

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
 import 'package:rebill_flutter/core/models/merchant.dart';
@@ -37,7 +36,6 @@ class MerchantMiddleware {
   Future<void> loadMerchantsFromApi() async {
     try {
       final token = await storage.read(key: AppConstants.authTokenStaffKey);
-      debugPrint('Trying to take merchant data with token staff: $token');
 
       if (token == null) {
         throw Exception('Staff authentication token not found');
@@ -59,7 +57,6 @@ class MerchantMiddleware {
       }
     } catch (e) {
       final errorMessage = 'Failed to load merchants: $e';
-      debugPrint('!!! ERROR: $e');
       errorStreamController.add(errorMessage);
     }
   }

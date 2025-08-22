@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/features/home/providers/category_mode_provider.dart';
+import 'package:rebill_flutter/features/home/providers/search_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/providers/products_providers.dart';
@@ -103,11 +104,16 @@ class HomeProducts extends ConsumerWidget {
           ),
           AppSearchBar(
             hintText: 'Search Product...',
+            searchProvider: productSearchQueryProvider,
             onSearch: (value) {
               ref.read(searchQueryProvider.notifier).state = value;
+              ref
+                  .read(productSearchQueryProvider.notifier)
+                  .updateSearchQuery(value);
             },
             onClear: () {
               ref.read(searchQueryProvider.notifier).state = '';
+              ref.read(productSearchQueryProvider.notifier).clearSearch();
             },
           ),
           isCategoryMode ? const CategoriesGrid() : const ProductsGrid(),

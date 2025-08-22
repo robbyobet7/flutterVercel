@@ -69,6 +69,7 @@ class AppTheme {
       surfaceContainer: Colors.black.withOpacity(0.2),
       errorContainer: const Color(0xFFFDEEED),
       onPrimary: Colors.white,
+      scrim: Colors.black,
       primaryContainer: const Color(
         0xFF2C3A5C,
       ), // Darker version of light primaryContainer

@@ -111,6 +111,14 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
               _features.length * 120.0; // 60 width + 8 margin
           final bool needsScrolling = totalWidth > constraints.maxWidth;
 
+          // Responsive font size for labels
+          final double labelFontSize =
+              constraints.maxWidth >= 1200
+                  ? 10
+                  : constraints.maxWidth >= 900
+                  ? 9
+                  : 8;
+
           if (needsScrolling) {
             // Original scrollable implementation with arrows
             return Row(
@@ -120,7 +128,7 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
                   icon: Icon(Icons.arrow_back_ios, size: 10),
                   onPressed: _scrollLeft,
                   tooltip: 'Scroll left',
-                  iconSize: 16,
+                  iconSize: 24,
                   constraints: const BoxConstraints(
                     minWidth: 32,
                     minHeight: 32,
@@ -177,6 +185,7 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
                                   context,
                                   feature.icon,
                                   feature.label,
+                                  labelFontSize: labelFontSize,
                                   onTap: feature.onTap,
                                 ),
                                 const SizedBox(width: 4),
@@ -201,21 +210,26 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
               ],
             );
           } else {
-            // Simplified layout without arrows when scrolling isn't needed
             return SizedBox(
               height: 60,
-              child: Row(
-                spacing: 8,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children:
-                    _features.map((feature) {
-                      return _buildFeatureBox(
-                        context,
-                        feature.icon,
-                        feature.label,
-                        onTap: feature.onTap,
-                      );
-                    }).toList(),
+              child: Align(
+                alignment: const Alignment(0.16, 0.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children:
+                      _features.map((feature) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: _buildFeatureBox(
+                            context,
+                            feature.icon,
+                            feature.label,
+                            labelFontSize: labelFontSize,
+                            onTap: feature.onTap,
+                          ),
+                        );
+                      }).toList(),
+                ),
               ),
             );
           }
@@ -228,6 +242,7 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
     BuildContext context,
     IconData icon,
     String label, {
+    double labelFontSize = 8,
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
@@ -270,7 +285,7 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 8,
+                    fontSize: labelFontSize,
                     color:
                         active
                             ? theme.colorScheme.primary

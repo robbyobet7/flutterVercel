@@ -5,6 +5,16 @@ final searchProvider = StateNotifierProvider<SearchNotifier, String>((ref) {
   return SearchNotifier();
 });
 
+final productSearchQueryProvider =
+    StateNotifierProvider<SearchNotifier, String>((ref) {
+      return SearchNotifier();
+    });
+
+final customerSearchQueryProvider =
+    StateNotifierProvider<SearchNotifier, String>((ref) {
+      return SearchNotifier();
+    });
+
 /// Notifier class to handle search query state
 class SearchNotifier extends StateNotifier<String> {
   SearchNotifier() : super('');
