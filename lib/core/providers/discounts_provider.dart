@@ -21,7 +21,6 @@ final discountsProvider = FutureProvider<List<DiscountModel>>((ref) {
   return discountMiddleware.fetchDiscounts();
 });
 
-// Provider ini tetap sama, untuk menyimpan item yang dipilih
 final selectedDiscountsProvider = StateProvider<List<DiscountModel>>(
   (ref) => [],
 );

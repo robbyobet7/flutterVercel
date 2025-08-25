@@ -11,10 +11,11 @@ import 'package:rebill_flutter/features/login/models/staff_account.dart';
 class StaffAuthState {
   final String? token;
   final String? identity;
-  final bool isLoading; // UI loading (e.g., navigating after login)
-  final List<StaffAccount> outlets; // fetched outlets for staff selection
-  final bool accountsLoading; // loading state for fetching outlets
+  final bool isLoading;
+  final List<StaffAccount> outlets;
+  final bool accountsLoading;
   final String? accountsError;
+  final Staff? loggedInStaff;
 
   const StaffAuthState({
     this.token,
@@ -23,6 +24,7 @@ class StaffAuthState {
     this.outlets = const [],
     this.accountsLoading = false,
     this.accountsError,
+    this.loggedInStaff,
   });
 
   StaffAuthState copyWith({
@@ -32,6 +34,7 @@ class StaffAuthState {
     List<StaffAccount>? outlets,
     bool? accountsLoading,
     String? accountsError,
+    Staff? loggedInStaff,
   }) {
     return StaffAuthState(
       token: token ?? this.token,
@@ -40,6 +43,7 @@ class StaffAuthState {
       outlets: outlets ?? this.outlets,
       accountsLoading: accountsLoading ?? this.accountsLoading,
       accountsError: accountsError ?? this.accountsError,
+      loggedInStaff: loggedInStaff ?? this.loggedInStaff,
     );
   }
 }
@@ -59,17 +63,22 @@ class StaffAuthProvider extends StateNotifier<StaffAuthState> {
   }
 
   Future<void> loginStaff(
-    String outletId,
-    String staffId,
+    StaffAccount outlet,
+    Staff staff,
     String password,
   ) async {
     try {
       final storage = FlutterSecureStorage();
-      await authMiddleware.loginStaff(outletId, staffId, password);
+      await authMiddleware.loginStaff(
+        outlet.id.toString(),
+        staff.id.toString(),
+        password,
+      );
 
       state = state.copyWith(
         token: await storage.read(key: AppConstants.authTokenStaffKey),
-        identity: staffId,
+        identity: staff.id.toString(),
+        loggedInStaff: staff,
       );
 
       startRefreshTokenTimer();
@@ -197,6 +206,7 @@ class StaffAuthProvider extends StateNotifier<StaffAuthState> {
     await secureStorage.delete(key: AppConstants.authTokenStaffKey);
     await secureStorage.delete(key: AppConstants.refreshTokenStaffKey);
     await secureStorage.delete(key: AppConstants.userDataKey);
+    // await secureStorage.delete(key: AppConstants.loggedInStaffname)
 
     state = const StaffAuthState();
 

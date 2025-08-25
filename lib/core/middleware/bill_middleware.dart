@@ -50,7 +50,7 @@ class BillMiddleware {
         throw Exception('Bill not found');
       }
     } on DioException catch (e) {
-      throw Exception('Error jaringan: ${e.message}');
+      throw Exception('Network Error: ${e.message}');
     } catch (e) {
       rethrow;
     }
@@ -83,7 +83,7 @@ class BillMiddleware {
       // Send a new data for update UI
       _billStreamController.add(newBills);
     } catch (e) {
-      _billErrorController.add('Gagal me-refresh bills: $e');
+      _billErrorController.add('Failed to refresh bills $e');
     }
   }
 

@@ -125,10 +125,10 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  icon: Icon(Icons.arrow_back_ios, size: 10),
+                  icon: Icon(Icons.keyboard_arrow_left),
                   onPressed: _scrollLeft,
                   tooltip: 'Scroll left',
-                  iconSize: 24,
+                  iconSize: 20,
                   constraints: const BoxConstraints(
                     minWidth: 32,
                     minHeight: 32,
@@ -198,10 +198,10 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.arrow_forward_ios, size: 10),
+                  icon: Icon(Icons.keyboard_arrow_right),
                   onPressed: _scrollRight,
                   tooltip: 'Scroll right',
-                  iconSize: 16,
+                  iconSize: 20,
                   constraints: const BoxConstraints(
                     minWidth: 32,
                     minHeight: 32,

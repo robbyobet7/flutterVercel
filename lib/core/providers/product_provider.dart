@@ -786,14 +786,13 @@ class ProductNotifier extends StateNotifier<ProductState> {
     return state.activeDiscounts[productId];
   }
 
-  // Metode untuk memuat produk dari API
+  // Method for load products from API
   Future<void> loadProductsFromAPI() async {
     try {
       final products = await _repository.loadProductsFromAPI();
       setProducts(products);
     } catch (e) {
-      // Tampilkan pesan error
-      print('Gagal load product');
+      throw Exception('Failed to load products.');
     }
   }
 
@@ -805,8 +804,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
           products.where((product) => product.status == 1).toList();
       setProducts(availableProducts);
     } catch (e) {
-      // Tampilkan pesan error
-      print('Gagal load product');
+      throw Exception('Failed to load products.');
     }
   }
 
@@ -817,8 +815,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
       products.sort((a, b) => (b.sold ?? 0).compareTo(a.sold ?? 0));
       setProducts(products.take(limit).toList());
     } catch (e) {
-      // Tampilkan pesan error
-      print('Gagal load product');
+      throw Exception('Failed to load products.');
     }
   }
 
@@ -836,8 +833,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
               .toList();
       setProducts(filteredProducts);
     } catch (e) {
-      // Tampilkan pesan error
-      print('Gagal load product');
+      throw Exception('Failed to load products.');
     }
   }
 

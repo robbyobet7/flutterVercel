@@ -147,11 +147,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
       // Proses login staff
       await ref
           .read(staffAuthProvider.notifier)
-          .loginStaff(
-            selectedOutlet!.id.toString(),
-            selectedStaff!.id.toString(),
-            pinController.text,
-          );
+          .loginStaff(selectedOutlet!, selectedStaff!, pinController.text);
 
       if (!mounted) return;
 
@@ -203,11 +199,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
       // Staff Login Process
       await ref
           .read(staffAuthProvider.notifier)
-          .loginStaff(
-            selectedOutlet!.id.toString(),
-            selectedStaff!.id.toString(),
-            pinController.text,
-          );
+          .loginStaff(selectedOutlet!, selectedStaff!, pinController.text);
 
       if (!mounted) return;
 
@@ -503,8 +495,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       height: 44,
                       textStyle:
                           theme.textTheme.headlineSmall?.copyWith(
-                            fontSize: 18,
-                            color: theme.colorScheme.surface,
+                            color: theme.colorScheme.scrim,
                           ) ??
                           const TextStyle(color: Colors.grey, fontSize: 18),
 

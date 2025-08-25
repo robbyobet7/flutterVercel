@@ -15,7 +15,6 @@ import 'package:rebill_flutter/features/login/providers/staff_auth_provider.dart
 import 'package:rebill_flutter/core/widgets/app_snackbar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
-// Import providers for refresh functionality
 import 'package:rebill_flutter/core/providers/products_providers.dart';
 import 'package:rebill_flutter/core/providers/customer_provider.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
@@ -267,6 +266,9 @@ class Navbar extends ConsumerWidget {
       );
     }
 
+    final staffState = ref.watch(staffAuthProvider);
+    final staffName = staffState.loggedInStaff?.name;
+
     final theme = Theme.of(context);
     return AnimatedSize(
       duration: const Duration(milliseconds: 200),
@@ -296,8 +298,8 @@ class Navbar extends ConsumerWidget {
                   )
                   : Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                      horizontal: 30,
+                      vertical: 10,
                     ),
 
                     child: Row(
@@ -346,9 +348,9 @@ class Navbar extends ConsumerWidget {
                                 ),
                               ),
                             PopupMenuButton<String>(
-                              icon: const Icon(Icons.expand_more),
                               tooltip: 'Options',
                               elevation: 2,
+                              padding: EdgeInsets.zero,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -401,7 +403,6 @@ class Navbar extends ConsumerWidget {
                                             color: theme.colorScheme.onSurface,
                                             size: 20,
                                           ),
-                                          const SizedBox(width: 12),
                                           Text(
                                             'Printer Settings',
                                             style: theme.textTheme.bodyMedium
@@ -424,7 +425,6 @@ class Navbar extends ConsumerWidget {
                                             color: theme.colorScheme.onSurface,
                                             size: 20,
                                           ),
-                                          const SizedBox(width: 12),
                                           Text(
                                             Theme.of(context).brightness ==
                                                     Brightness.dark
@@ -449,7 +449,6 @@ class Navbar extends ConsumerWidget {
                                                   theme.colorScheme.onSurface,
                                               size: 20,
                                             ),
-                                            const SizedBox(width: 12),
                                             Text(
                                               'Collapse',
                                               style: theme.textTheme.bodyMedium
@@ -529,7 +528,7 @@ class Navbar extends ConsumerWidget {
                                               Text(
                                                 isRefreshing
                                                     ? 'Refreshing...'
-                                                    : 'Refresh Data',
+                                                    : 'Refresh',
                                                 style: theme
                                                     .textTheme
                                                     .bodyMedium
@@ -556,7 +555,6 @@ class Navbar extends ConsumerWidget {
                                             color: theme.colorScheme.error,
                                             size: 20,
                                           ),
-                                          const SizedBox(width: 12),
                                           Text(
                                             'Logout',
                                             style: theme.textTheme.bodyMedium
@@ -570,8 +568,8 @@ class Navbar extends ConsumerWidget {
                                       ),
                                     ),
                                   ],
+                              child: ProfileAvatar(name: staffName),
                             ),
-                            ProfileAvatar(),
                           ],
                         ),
                       ],

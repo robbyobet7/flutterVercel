@@ -51,7 +51,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 image: DecorationImage(
                   image: AssetImage('assets/images/login_background.webp'),
                   alignment:
-                      isLandscape ? Alignment(-3, 0) : Alignment(0.0, -1.2),
+                      isLandscape ? Alignment(-7, 0) : Alignment(0.0, -1.2),
                 ),
               ),
               child: Container(

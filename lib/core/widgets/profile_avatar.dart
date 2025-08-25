@@ -1,46 +1,52 @@
 import 'package:flutter/material.dart';
 
 class ProfileAvatar extends StatelessWidget {
-  const ProfileAvatar({super.key});
+  final String? name;
+
+  const ProfileAvatar({super.key, this.name});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Ambil inisial dari nama, atau 'A' jika nama tidak ada
+    final initials =
+        (name?.isNotEmpty ?? false)
+            ? name!
+                .trim()
+                .split(' ')
+                .map((l) => l[0])
+                .take(2)
+                .join()
+                .toUpperCase()
+            : 'A';
 
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
         CircleAvatar(
-          radius: 15,
+          radius: 22,
           backgroundColor: theme.colorScheme.primary,
           child: Text(
-            'JD',
+            initials,
             style: TextStyle(
-              color: theme.colorScheme.onPrimary,
               fontWeight: FontWeight.bold,
-              fontSize: 12,
+              color: theme.colorScheme.onPrimaryContainer,
             ),
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 12),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Admin',
-              style: TextStyle(
+              name ?? 'Admin', // <-- TAMPILKAN NAMA DI SINI
+              style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
-                fontSize: 12,
               ),
             ),
             Text(
               'Online',
-              style: TextStyle(
-                fontSize: 10,
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.green),
             ),
           ],
         ),

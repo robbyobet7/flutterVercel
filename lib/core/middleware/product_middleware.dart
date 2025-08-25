@@ -16,7 +16,7 @@ List<Product> parseProductsJson(String jsonString) {
 }
 
 class ProductMiddleware {
-  // Cache untuk menyimpan produk
+  // Cache to save products
   List<Product> cachedProducts = [];
   final Dio dio = Dio();
 
@@ -93,20 +93,17 @@ class ProductMiddleware {
         productErrorController.add('Unauthorized: Please log in again');
         throw Exception('Unauthorized: Please log in again');
       } else {
-        // Handle error response
         final errorMessage =
             response.data['message'] ?? 'Failed to fetch products';
         productErrorController.add(errorMessage);
         throw Exception(errorMessage);
       }
     } on DioException catch (e) {
-      // Handle network atau koneksi error
       final errorMessage =
           e.response?.data?['message'] ?? 'Network error occurred';
       productErrorController.add(errorMessage);
       throw Exception(errorMessage);
     } catch (e) {
-      // Handle error umum
       productErrorController.add(e.toString());
       throw Exception('Failed to load all products');
     }
@@ -124,18 +121,15 @@ class ProductMiddleware {
   // Override the getAllProducts method to use the fetch API
   Future<List<Product>> getAllProducts() async {
     try {
-      // Coba fetch dari API terlebih dahulu
       return await fetchProductsFromAPI();
     } catch (e) {
-      // Jika fetch API gagal, lempar exception
       throw Exception('Failed to load all products');
     }
   }
 
-  // Override metode getProductsInStock untuk menggunakan fetch API
+  // Override the getProductsInStock method to use the fetch API
   Future<List<Product>> getProductsInStock() async {
     try {
-      // Coba fetch dari API
       final products = await fetchProductsFromAPI();
       return products.where((p) => p.status == 1 && p.isInStock).toList();
     } catch (e) {
@@ -143,7 +137,7 @@ class ProductMiddleware {
     }
   }
 
-  // Override the getProductsByType method to use the fetch API
+  //Override the getProductsByType method to use the fetch API
   Future<List<Product>> getProductsByType(String type) async {
     try {
       // Coba fetch dari API
@@ -157,7 +151,7 @@ class ProductMiddleware {
   }
 
   void refreshProducts() {
-    // delete cache products
+    // Delete cache products
     cachedProducts = [];
 
     // Trying fecth API again
@@ -185,7 +179,6 @@ class ProductMiddleware {
       // Configuration with header token
       dio.options.headers['Authorization'] = token;
 
-      // Panggil endpoint kategori produk
       final response = await dio.get(
         AppConstants.productCategoriesUrl,
         options: Options(
@@ -195,7 +188,6 @@ class ProductMiddleware {
 
       // Check response
       if (response.statusCode == 200) {
-        // PERHATIKAN: Data list ada di dalam key 'data'
         final List<dynamic> categoryList = response.data['data'] as List;
 
         // Parsing data with ProductCategory Model

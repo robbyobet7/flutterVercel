@@ -87,7 +87,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Text(
-                              'Gagal memuat diskon:\n$err',
+                              'Failed to load discount:\n$err',
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -95,7 +95,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                     data: (discounts) {
                       if (discounts.isEmpty) {
                         return const Center(
-                          child: Text('Tidak ada diskon tersedia.'),
+                          child: Text('No discounts available.'),
                         );
                       }
                       return ListView.builder(
@@ -227,8 +227,16 @@ class AvailableDiscountsDialog extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                AppButton(
+                  onPressed: () => Navigator.pop(context),
+                  text: 'Back',
+                  backgroundColor: theme.colorScheme.scrim,
+                  textStyle: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+                const SizedBox(width: 12),
                 AppButton(
                   onPressed: () => Navigator.pop(context),
                   text: 'Cancel',
@@ -240,7 +248,6 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                 const SizedBox(width: 12),
                 AppButton(
                   onPressed: () {
-                    // Cukup tutup dialog, state sudah disimpan di selectedDiscountsProvider
                     Navigator.pop(context);
                   },
                   text: 'Apply Discount',

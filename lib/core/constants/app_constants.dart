@@ -7,7 +7,7 @@ class AppConstants {
 
   // Base URL
   static const String baseUrl =
-      'https://evaluation-barriers-chains-vulnerable.trycloudflare.com';
+      'https://eleven-convinced-traveller-equipped.trycloudflare.com';
 
   // Service URL
   static const String service = '/pos/';
@@ -61,6 +61,10 @@ class AppConstants {
   // Discounts URL
   static const String discountsUrl =
       '$baseUrl$service$apiVersion$masterdata/discounts-list';
+
+  // Discounts URL
+  static const String rewardsUrl =
+      '$baseUrl$service$apiVersion$masterdata/rewards-list';
 
   // Refresh Token URL
   static const String refreshTokenUrl =

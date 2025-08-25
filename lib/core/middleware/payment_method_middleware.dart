@@ -58,7 +58,7 @@ class PaymentMethodMiddleware {
         );
       }
     } catch (e) {
-      final errorMessage = 'Gagal memuat payment method: $e';
+      final errorMessage = 'Failed to load payment methods $e';
       errorStreamController.add(errorMessage);
     }
   }

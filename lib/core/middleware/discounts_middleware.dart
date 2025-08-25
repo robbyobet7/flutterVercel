@@ -4,7 +4,6 @@ import 'package:rebill_flutter/core/constants/app_constants.dart';
 import 'package:rebill_flutter/features/checkout/models/checkout_discount.dart';
 
 class DiscountMiddleware {
-  // Class ini sekarang menerima Dio dari luar, tidak membuatnya sendiri.
   final Dio dio;
   final FlutterSecureStorage storage;
 
@@ -14,9 +13,7 @@ class DiscountMiddleware {
     try {
       final token = await storage.read(key: AppConstants.authTokenStaffKey);
       if (token == null) {
-        throw Exception(
-          'Token otentikasi tidak ditemukan. Silakan login ulang.',
-        );
+        throw Exception('Authentication token not found, please log in again');
       }
 
       final response = await dio.get(
@@ -30,21 +27,21 @@ class DiscountMiddleware {
             .map((json) => DiscountModel.fromJson(json))
             .toList();
       } else {
-        throw Exception('Gagal memuat diskon: ${response.data['message']}');
+        throw Exception('Failed to load discount: ${response.data['message']}');
       }
     } on DioException catch (e) {
       if (e.response != null) {
         if (e.response?.statusCode == 401) {
-          throw Exception('Token tidak valid atau kedaluwarsa (Unauthorized).');
+          throw Exception('Token is not valid or expired (Unauthorized).');
         }
         throw Exception(
           'Error ${e.response?.statusCode}: ${e.response?.data?['message'] ?? 'Unknown Error'}',
         );
       } else {
-        throw Exception('Terjadi masalah jaringan: ${e.message}');
+        throw Exception('A network problem occurred: ${e.message}');
       }
     } catch (e) {
-      throw Exception('Terjadi kesalahan tidak diketahui: $e');
+      throw Exception('$e');
     }
   }
 }

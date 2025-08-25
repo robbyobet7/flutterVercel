@@ -4,6 +4,7 @@ import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/label_text.dart';
 import 'package:rebill_flutter/features/checkout/models/checkout_discount.dart';
+import 'package:rebill_flutter/features/checkout/presetantions/available_rewards_dialog.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/available_discounts_dialog.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_action_row.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_button.dart';
@@ -67,7 +68,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
             if (mounted) {
               AppDialog.showCustom(
                 context,
-                content: const AvailableDiscountsDialog(),
+                content: AvailableRewardsDialog(),
                 dialogType: DialogType.large,
                 title: 'Reward',
               );
