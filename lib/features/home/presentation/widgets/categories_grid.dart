@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/orientation_provider.dart';
+import 'package:rebill_flutter/core/providers/product_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/features/home/providers/category_mode_provider.dart';
 import 'package:rebill_flutter/core/providers/products_providers.dart';
@@ -40,14 +41,24 @@ class CategoriesGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isLandscape = ref.watch(orientationProvider);
-
     // Watch the categories provider
     final categoriesAsync = ref.watch(availableCategoriesProvider);
+    final searchQuery = ref.watch(searchQueryProvider);
 
     return Expanded(
       child: categoriesAsync.when(
         data: (categories) {
-          if (categories.isEmpty) {
+          final filteredCategories =
+              searchQuery.isEmpty
+                  ? categories
+                  : categories
+                      .where(
+                        (category) => category.toLowerCase().contains(
+                          searchQuery.toLowerCase(),
+                        ),
+                      )
+                      .toList();
+          if (filteredCategories.isEmpty) {
             return Center(
               child: Text(
                 'No categories available',
@@ -68,9 +79,9 @@ class CategoriesGrid extends ConsumerWidget {
               crossAxisSpacing: 12,
               childAspectRatio: 1.5,
             ),
-            itemCount: categories.length,
+            itemCount: filteredCategories.length,
             itemBuilder: (context, index) {
-              final categoryName = categories[index];
+              final categoryName = filteredCategories[index];
               final color = _generateColor(index);
               return _buildCategoryItem(
                 context,
@@ -82,6 +93,13 @@ class CategoriesGrid extends ConsumerWidget {
                   ref.read(selectedCategoryProvider.notifier).state =
                       categoryName;
                   ref.read(categoryModeProvider.notifier).toggleCategoryMode();
+                  ref.read(searchQueryProvider.notifier).state = '';
+                  ref
+                      .read(paginatedProductsProvider.notifier)
+                      .applyFilter(
+                        category: categoryName,
+                        query: '', // Reset query
+                      );
                 },
               );
             },

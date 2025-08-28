@@ -4,12 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
 import 'package:rebill_flutter/core/middleware/auth_middleware.dart';
+import 'package:rebill_flutter/core/providers/product_provider.dart';
 import 'package:rebill_flutter/core/providers/products_providers.dart';
 
 class AuthProvider extends StateNotifier<AuthState> {
   final Ref ref;
-  AuthProvider(this.ref) : super(AuthState());
-  AuthMiddleware authMiddleware = AuthMiddleware();
+  late final AuthMiddleware authMiddleware;
+
+  AuthProvider(this.ref) : super(AuthState()) {
+    authMiddleware = AuthMiddleware(ref);
+  }
 
   @override
   void dispose() {
@@ -41,7 +45,7 @@ class AuthProvider extends StateNotifier<AuthState> {
 
     // Invalidate product-related providers so next login refetches
     ref.invalidate(productMiddlewareProvider);
-    ref.invalidate(availableProductsProvider);
+    await ref.read(paginatedProductsProvider.notifier).refresh();
     ref.invalidate(availableCategoriesProvider);
   }
 

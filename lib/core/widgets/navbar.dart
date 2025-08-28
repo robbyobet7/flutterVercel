@@ -25,6 +25,7 @@ import 'package:rebill_flutter/core/providers/merge_bill_provider.dart';
 import 'package:rebill_flutter/features/kitchen-order/providers/kitchen_order_provider.dart';
 import 'package:rebill_flutter/features/reservation/providers/reservation_provider.dart';
 import 'package:rebill_flutter/features/stock-taking/providers/stock_taking_provider.dart';
+import '../providers/product_provider.dart';
 
 final hideNavbarProvider = StateProvider<bool>((ref) => false);
 final isRefreshingProvider = StateProvider<bool>((ref) => false);
@@ -177,8 +178,7 @@ class Navbar extends ConsumerWidget {
   // ==================== Helper Methods for Individual Data Refresh ====================
   Future<void> _refreshProducts(WidgetRef ref) async {
     try {
-      ref.read(productMiddlewareProvider).refreshProducts();
-      ref.invalidate(availableProductsProvider);
+      await ref.read(paginatedProductsProvider.notifier).refresh();
       ref.invalidate(availableCategoriesProvider);
     } catch (e) {
       debugPrint('Error refreshing products: $e');

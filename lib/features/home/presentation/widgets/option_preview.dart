@@ -5,9 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/widgets/app_checkbox.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
-
 import '../../../../core/providers/product_provider.dart';
-import '../../../../core/providers/products_providers.dart';
+import 'package:rebill_flutter/core/providers/products_providers.dart';
+
+final complimentarySearchProvider = StateProvider.autoDispose<String>(
+  (ref) => '',
+);
 
 class OptionPreview extends ConsumerStatefulWidget {
   const OptionPreview({
@@ -27,8 +30,8 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
   @override
   void initState() {
     super.initState();
-    // Initialize options when widget is created
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Gunakan ref.read di dalam initState untuk sebuah aksi.
       ref
           .read(productProvider.notifier)
           .initializeProductOptions(widget.productId);
@@ -40,18 +43,19 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
     final theme = Theme.of(context);
     List<dynamic> options = [];
 
-    // Get the product provider
-    final productNotifier = ref.watch(productProvider.notifier);
+    // 1. PISAHKAN antara Notifier (untuk aksi) dan State (untuk UI)
+    // Gunakan .read untuk mengambil notifier, karena instance-nya tidak perlu ditonton.
+    final productNotifier = ref.read(productProvider.notifier);
+    // Gunakan .watch untuk menonton state, karena datanya bisa berubah dan UI perlu update.
+    final productState = ref.watch(productProvider);
 
     try {
-      // Try to parse the option string as JSON
       options = List<dynamic>.from(
         (widget.option.startsWith('[')
             ? (widget.option.isNotEmpty ? json.decode(widget.option) : [])
             : []),
       );
     } catch (e) {
-      // If parsing fails, return an empty container
       return Container();
     }
 
@@ -59,9 +63,7 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
       return Container();
     }
 
-    // Build the option selectors for each option type
     return Column(
-      spacing: 12,
       crossAxisAlignment: CrossAxisAlignment.start,
       children:
           options.map((opt) {
@@ -75,117 +77,92 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
               final List<dynamic> choices = opt['options'];
               if (choices.isEmpty) return const SizedBox.shrink();
 
-              return Column(
-                spacing: 8,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            optionName,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          if (isRequired)
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
                             Text(
-                              '*',
+                              optionName,
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.error,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 36,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: choices.length,
-                      itemBuilder: (context, index) {
-                        final choice = choices[index];
-                        final choiceName = choice['name'] ?? 'Option';
-                        final choicePrice = choice['price'] ?? 0;
+                            const SizedBox(width: 4),
+                            if (isRequired)
+                              Text(
+                                '*',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.error,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 36,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: choices.length,
+                        itemBuilder: (context, index) {
+                          final choice = choices[index];
+                          final choiceName = choice['name'] ?? 'Option';
+                          final choicePrice = choice['price'] ?? 0;
 
-                        // Check if this choice is selected
-                        final selectedOption = productNotifier
-                            .getSelectedOption(widget.productId, optionId);
-                        final isSelected = productNotifier.isSameOption(
-                          selectedOption,
-                          choice,
-                        );
+                          // 2. AMBIL DATA dari 'productState', bukan panggil method dari notifier
+                          final selectedValue =
+                              productState
+                                  .productOptions[widget.productId]?[optionId]
+                                  ?.value;
+                          final isSelected = productNotifier.isSameOption(
+                            selectedValue,
+                            choice,
+                          );
 
-                        return GestureDetector(
-                          onTap: () {
-                            // First see if this is already selected
-                            final selectedOption = productNotifier
-                                .getSelectedOption(widget.productId, optionId);
-                            final isThisSelected = productNotifier.isSameOption(
-                              selectedOption,
-                              choice,
-                            );
-
-                            if (isThisSelected && !isRequired) {
-                              // If already selected and not required, remove it
-                              productNotifier.removeProductOption(
-                                widget.productId,
-                                optionId,
-                              );
-                            } else {
-                              // Otherwise set it
-                              productNotifier.setProductOption(
+                          return GestureDetector(
+                            onTap: () {
+                              // AKSI tetap menggunakan notifier
+                              productNotifier.toggleOption(
                                 widget.productId,
                                 optionId,
                                 choice,
-                                'option',
                               );
-                            }
-                          },
-                          behavior: HitTestBehavior.opaque,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              color:
-                                  isSelected
-                                      ? theme.colorScheme.primaryContainer
-                                      : theme.colorScheme.surfaceContainer,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
+                            },
+                            behavior: HitTestBehavior.opaque,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              decoration: BoxDecoration(
                                 color:
                                     isSelected
-                                        ? theme.colorScheme.primary
+                                        ? theme.colorScheme.primaryContainer
                                         : theme.colorScheme.surfaceContainer,
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  choiceName,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color:
-                                        isSelected
-                                            ? theme.colorScheme.primary
-                                            : theme
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                    fontWeight: FontWeight.normal,
-                                  ),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color:
+                                      isSelected
+                                          ? theme.colorScheme.primary
+                                          : Colors.transparent,
+                                  width: 1.5,
                                 ),
-                                if (choicePrice > 0) ...[
-                                  const SizedBox(width: 4),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
                                   Text(
-                                    '+${NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(choicePrice)}',
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                    choiceName,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
                                       color:
                                           isSelected
                                               ? theme.colorScheme.primary
@@ -194,288 +171,206 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                                                   .onSurfaceVariant,
                                     ),
                                   ),
+                                  if (choicePrice > 0) ...[
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '+${NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(choicePrice)}',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color:
+                                                isSelected
+                                                    ? theme.colorScheme.primary
+                                                    : theme
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             }
             // Handle extras (checkboxes or toggles)
             else if (optionType == 'extra') {
               final price = opt['price'] ?? 0;
-              final bool isSelected = productNotifier.isExtraSelected(
-                widget.productId,
-                optionId,
-              );
-
-              return GestureDetector(
-                onTap: () {
-                  final isSelected = productNotifier.isExtraSelected(
-                    widget.productId,
+              // 3. GUNAKAN STATE untuk mengecek, bukan notifier
+              final isSelected =
+                  productState.productOptions[widget.productId]?.containsKey(
                     optionId,
-                  );
+                  ) ??
+                  false;
 
-                  if (isSelected) {
-                    productNotifier.removeProductOption(
-                      widget.productId,
-                      optionId,
-                    );
-                  } else {
-                    productNotifier.setProductOption(
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: GestureDetector(
+                  onTap: () {
+                    // AKSI tetap menggunakan notifier
+                    productNotifier.toggleProductExtra(
                       widget.productId,
                       optionId,
                       opt,
-                      'option',
                     );
-                  }
-                },
-                behavior: HitTestBehavior.opaque,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        isSelected
-                            ? theme.colorScheme.primaryContainer
-                            : theme.colorScheme.surfaceContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      AppCheckbox(value: isSelected, size: 16, borderRadius: 4),
-                      const SizedBox(width: 8),
-                      Text(
-                        optionName,
-                        style: theme.textTheme.bodyMedium?.copyWith(),
-                      ),
-                      const Spacer(),
-                      if (price > 0)
-                        Text(
-                          '+${NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(price)}',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          isSelected
+                              ? theme.colorScheme.primaryContainer
+                              : theme.colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        AppCheckbox(
+                          value: isSelected,
+                          size: 16,
+                          borderRadius: 4,
                         ),
-                    ],
+                        const SizedBox(width: 8),
+                        Text(
+                          optionName,
+                          style: theme.textTheme.bodyMedium?.copyWith(),
+                        ),
+                        const Spacer(),
+                        if (price > 0)
+                          Text(
+                            '+${NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(price)}',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               );
             }
-            // Handle complimentary items (just a display, not selectable)
+            // Handle complimentary items
             else if (optionType == 'complimentary') {
-              // Check if a complimentary product is already selected
-              final selectedOption = productNotifier.getSelectedOption(
-                widget.productId,
-                optionId,
-              );
+              // 4. GUNAKAN STATE untuk mendapatkan data, bukan notifier
+              final selectedOption =
+                  productState
+                      .productOptions[widget.productId]?[optionId]
+                      ?.value;
               final hasSelectedProduct = selectedOption != null;
 
-              return GestureDetector(
-                onTap: () {
-                  AppDialog.showCustom(
-                    context,
-                    title: 'Select Complimentary',
-                    content: Expanded(
-                      child: Column(
-                        spacing: 16,
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: GestureDetector(
+                  onTap: () {
+                    // Reset search provider saat dialog dibuka
+                    ref.invalidate(complimentarySearchProvider);
+                    AppDialog.showCustom(
+                      context,
+                      title: 'Select Complimentary',
+                      content: Column(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          AppSearchBar(hintText: 'Search products...'),
-                          // Product list
+                          AppSearchBar(
+                            hintText: 'Search products...',
+                            onSearch:
+                                (value) =>
+                                    ref
+                                        .read(
+                                          complimentarySearchProvider.notifier,
+                                        )
+                                        .state = value,
+                            onClear:
+                                () =>
+                                    ref
+                                        .read(
+                                          complimentarySearchProvider.notifier,
+                                        )
+                                        .state = '',
+                          ),
+                          const SizedBox(height: 16),
                           Expanded(
                             child: Consumer(
                               builder: (context, ref, child) {
-                                // Get all products
-                                final productList = ref.watch(
-                                  availableProductsProvider,
+                                final productListAsync = ref.watch(
+                                  allProductsProvider,
                                 );
-                                // Get currently selected product for this option
-                                final selectedOption = ref
-                                    .watch(productProvider.notifier)
-                                    .getSelectedOption(
-                                      widget.productId,
-                                      optionId,
-                                    );
+                                final searchQuery = ref.watch(
+                                  complimentarySearchProvider,
+                                );
 
-                                return productList.when(
+                                return productListAsync.when(
                                   data: (products) {
-                                    // Filter products based on search
-                                    final searchText = '';
                                     final filteredProducts =
-                                        products
-                                            .where(
-                                              (product) =>
-                                                  product.productsName
-                                                      ?.toLowerCase()
-                                                      .contains(searchText) ??
-                                                  false,
-                                            )
-                                            .toList();
+                                        searchQuery.isEmpty
+                                            ? products
+                                            : products
+                                                .where(
+                                                  (p) =>
+                                                      p.productsName
+                                                          ?.toLowerCase()
+                                                          .contains(
+                                                            searchQuery
+                                                                .toLowerCase(),
+                                                          ) ??
+                                                      false,
+                                                )
+                                                .toList();
 
                                     if (filteredProducts.isEmpty) {
-                                      return const Padding(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Center(
-                                          child: Text('No products found'),
-                                        ),
+                                      return const Center(
+                                        child: Text('No products found'),
                                       );
                                     }
 
-                                    return Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        if (selectedOption != null)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              bottom: 16.0,
-                                            ),
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                // Remove product selection
-                                                ref
-                                                    .read(
-                                                      productProvider.notifier,
-                                                    )
-                                                    .removeProductOption(
-                                                      widget.productId,
-                                                      optionId,
-                                                    );
-                                                Navigator.of(context).pop();
-                                              },
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 8,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: theme
-                                                      .colorScheme
-                                                      .errorContainer
-                                                      .withOpacity(0.3),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.delete_outline,
-                                                      size: 16,
-                                                      color:
-                                                          theme
-                                                              .colorScheme
-                                                              .error,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      'Clear selection',
-                                                      style: theme
-                                                          .textTheme
-                                                          .bodySmall
-                                                          ?.copyWith(
-                                                            color:
-                                                                theme
-                                                                    .colorScheme
-                                                                    .error,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                          ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        Expanded(
-                                          child: ListView.builder(
-                                            itemCount: filteredProducts.length,
-                                            itemBuilder: (context, index) {
-                                              final product =
-                                                  filteredProducts[index];
-                                              // Check if this product is selected
-                                              final isSelected =
-                                                  selectedOption != null &&
-                                                  selectedOption['id'] ==
-                                                      product.id;
+                                    return ListView.builder(
+                                      itemCount: filteredProducts.length,
+                                      itemBuilder: (context, index) {
+                                        final product = filteredProducts[index];
+                                        final isSelected =
+                                            selectedOption != null &&
+                                            selectedOption is Map &&
+                                            selectedOption['id'] == product.id;
 
-                                              return ListTile(
-                                                title: Text(
-                                                  product.productsName ??
-                                                      'Unknown',
-                                                  style:
-                                                      isSelected
-                                                          ? TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color:
-                                                                theme
-                                                                    .colorScheme
-                                                                    .primary,
-                                                          )
-                                                          : null,
-                                                ),
-                                                subtitle: Text(
-                                                  NumberFormat.currency(
-                                                    locale: 'id',
-                                                    symbol: 'Rp',
-                                                    decimalDigits: 0,
-                                                  ).format(
-                                                    product.productsPrice ?? 0,
-                                                  ),
-                                                  style:
-                                                      theme.textTheme.bodySmall,
-                                                ),
-                                                trailing:
-                                                    isSelected
-                                                        ? Icon(
-                                                          Icons.check_circle,
-                                                          color:
-                                                              theme
-                                                                  .colorScheme
-                                                                  .primary,
-                                                        )
-                                                        : null,
-                                                onTap: () {
-                                                  // Set product as complimentary option
-                                                  ref
-                                                      .read(
-                                                        productProvider
-                                                            .notifier,
-                                                      )
-                                                      .setProductOption(
-                                                        widget.productId,
-                                                        optionId,
-                                                        {
-                                                          'id': product.id,
-                                                          'name':
-                                                              product
-                                                                  .productsName,
-                                                          'price':
-                                                              product
-                                                                  .productsPrice,
-                                                          'isComplimentary':
-                                                              true,
-                                                        },
-                                                        'option',
-                                                      );
-                                                  Navigator.of(context).pop();
-                                                },
-                                              );
-                                            },
+                                        return ListTile(
+                                          title: Text(
+                                            product.productsName ?? 'Unknown',
                                           ),
-                                        ),
-                                      ],
+                                          selected: isSelected,
+                                          trailing:
+                                              isSelected
+                                                  ? Icon(
+                                                    Icons.check_circle,
+                                                    color:
+                                                        theme
+                                                            .colorScheme
+                                                            .primary,
+                                                  )
+                                                  : null,
+                                          onTap: () {
+                                            productNotifier.setProductOption(
+                                              widget.productId,
+                                              optionId,
+                                              {
+                                                'id': product.id,
+                                                'name': product.productsName,
+                                                'price': product.productsPrice,
+                                                'isComplimentary': true,
+                                              },
+                                              'option',
+                                            );
+                                            Navigator.of(context).pop();
+                                          },
+                                        );
+                                      },
                                     );
                                   },
                                   loading:
@@ -492,109 +387,54 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                           ),
                         ],
                       ),
+                      dialogType: DialogType.medium,
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 14,
                     ),
-                    dialogType: DialogType.medium,
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        hasSelectedProduct
-                            ? theme.colorScheme.primaryContainer.withOpacity(
-                              0.3,
-                            )
-                            : theme.colorScheme.surfaceContainer,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: theme.colorScheme.primary,
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.card_giftcard,
-                        size: 18,
-                        color: theme.colorScheme.primary,
+                    decoration: BoxDecoration(
+                      color:
+                          hasSelectedProduct
+                              ? theme.colorScheme.primaryContainer.withOpacity(
+                                0.3,
+                              )
+                              : theme.colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withOpacity(0.5),
+                        width: 1,
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Complimentary: ${selectedOption != null && selectedOption is Map ? (selectedOption["name"] ?? "Select Item") : "Select Item"}',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            if (hasSelectedProduct &&
-                                selectedOption['name'] != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            theme.colorScheme.primaryContainer,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        'FREE',
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: theme.colorScheme.primary,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                      ),
-                                    ),
-                                    if (selectedOption['price'] != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(left: 4),
-                                        child: Text(
-                                          NumberFormat.currency(
-                                            locale: 'id',
-                                            symbol: 'Rp',
-                                            decimalDigits: 0,
-                                          ).format(selectedOption['price']),
-                                          style: theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                                decoration:
-                                                    TextDecoration.lineThrough,
-                                                color: theme
-                                                    .colorScheme
-                                                    .onSurfaceVariant
-                                                    .withOpacity(0.7),
-                                              ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                          ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.card_giftcard,
+                          size: 18,
+                          color: theme.colorScheme.primary,
                         ),
-                      ),
-                      Icon(
-                        Icons.arrow_drop_down,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Complimentary: ${selectedOption != null && selectedOption is Map ? (selectedOption["name"] ?? "Select Item") : "Select Item"}',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_drop_down,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
             }
-            // Other option types can be implemented similarly
-
             return const SizedBox.shrink();
           }).toList(),
     );

@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
 import 'package:rebill_flutter/core/middleware/auth_middleware.dart';
+import 'package:rebill_flutter/core/middleware/rewards_middleware.dart';
+import 'package:rebill_flutter/core/providers/product_provider.dart';
 import 'package:rebill_flutter/core/providers/products_providers.dart';
 import 'package:rebill_flutter/features/login/models/staff_account.dart';
 
@@ -50,11 +53,13 @@ class StaffAuthState {
 
 class StaffAuthProvider extends StateNotifier<StaffAuthState> {
   final Ref ref;
-  StaffAuthProvider(this.ref) : super(const StaffAuthState());
-
-  final AuthMiddleware authMiddleware = AuthMiddleware();
+  late final AuthMiddleware authMiddleware;
   Timer? _refreshTokenTimer;
-  final Dio dio = Dio();
+  final Duration cacheDuration = const Duration(hours: 1);
+
+  StaffAuthProvider(this.ref) : super(const StaffAuthState()) {
+    authMiddleware = AuthMiddleware(ref);
+  }
 
   @override
   void dispose() {
@@ -87,24 +92,58 @@ class StaffAuthProvider extends StateNotifier<StaffAuthState> {
       try {
         ref.read(productMiddlewareProvider).refreshProducts();
       } catch (_) {}
-      ref.invalidate(availableProductsProvider);
+      await ref.read(paginatedProductsProvider.notifier).refresh();
       ref.invalidate(availableCategoriesProvider);
     } catch (e) {
       rethrow;
     }
   }
 
-  // Merge: fetch staff accounts (previously in staff_account_provider)
-  Future<void> fetchStaffAccounts() async {
-    try {
-      state = state.copyWith(accountsLoading: true, accountsError: null);
+  // Load or fecth staff accounts
+  Future<void> loadOrFetchStaffAccounts() async {
+    final storage = FlutterSecureStorage();
 
-      final storage = FlutterSecureStorage();
+    try {
+      final cachedDataJson = await storage.read(
+        key: AppConstants.staffAccountsCacheKey,
+      );
+      final cachedTimeStamp = await storage.read(
+        key: AppConstants.staffAccountsCacheTimestampKey,
+      );
+
+      if (cachedDataJson != null && cachedTimeStamp != null) {
+        final cacheTime = DateTime.parse(cachedTimeStamp);
+        final bool isCacheFresh =
+            DateTime.now().difference(cacheTime) < cacheDuration;
+
+        if (isCacheFresh) {
+          final List<dynamic> outletList = jsonDecode(cachedDataJson);
+          final outlets =
+              outletList
+                  .map((outletJson) => StaffAccount.fromJson(outletJson))
+                  .toList();
+          state = state.copyWith(outlets: outlets, accountsLoading: false);
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint("Could not read from cache: $e");
+    }
+    debugPrint("Cache is stale or not found. Fecthing from network...");
+    await fetchStaffAccountsFromApi();
+  }
+
+  Future<void> fetchStaffAccountsFromApi() async {
+    state = state.copyWith(accountsLoading: true, accountsError: null);
+    final storage = FlutterSecureStorage();
+
+    try {
       final token = await storage.read(key: AppConstants.authTokenKey);
       if (token == null) {
         throw Exception('Authentication token not found');
       }
 
+      final dio = ref.read(dioProvider);
       dio.options.headers['Authorization'] = token;
 
       final response = await dio.get(
@@ -121,6 +160,15 @@ class StaffAuthProvider extends StateNotifier<StaffAuthState> {
                 .map((outletJson) => StaffAccount.fromJson(outletJson))
                 .toList();
         state = state.copyWith(outlets: outlets, accountsLoading: false);
+        await storage.write(
+          key: AppConstants.staffAccountsCacheKey,
+          value: jsonEncode(outletList),
+        );
+        await storage.write(
+          key: AppConstants.staffAccountsCacheTimestampKey,
+          value: DateTime.now().toIso8601String(),
+        );
+        debugPrint("Staff accounts fecthed from API and saved to cache.");
       } else {
         final errorMessage =
             response.data['message'] ?? 'Failed to fetch staff accounts';
@@ -211,7 +259,7 @@ class StaffAuthProvider extends StateNotifier<StaffAuthState> {
     state = const StaffAuthState();
 
     ref.invalidate(productMiddlewareProvider);
-    ref.invalidate(availableProductsProvider);
+    await ref.read(paginatedProductsProvider.notifier).refresh();
     ref.invalidate(availableCategoriesProvider);
   }
 

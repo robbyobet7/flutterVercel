@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:rebill_flutter/core/providers/dio_provider.dart';
 
 class AuthMiddleware {
-  final Dio dio = Dio();
-
-  AuthMiddleware();
+  final Ref ref;
+  AuthMiddleware(this.ref);
 
   // Save Owner Tokens
   Future<void> saveOwnerTokens(String token, String refreshToken) async {
@@ -33,6 +34,7 @@ class AuthMiddleware {
   // Login
   Future<void> login(String identity, String password) async {
     try {
+      final dio = ref.read(dioProvider);
       final response = await dio.post(
         AppConstants.loginUrl,
         data: {'identity': identity, 'password': password},
@@ -123,6 +125,7 @@ class AuthMiddleware {
   // Refresh Token Owner
   Future<void> refreshTokenOwner() async {
     try {
+      final dio = ref.read(dioProvider);
       final secureStorage = FlutterSecureStorage();
       final refreshToken = await secureStorage.read(
         key: AppConstants.refreshTokenOwnerKey,
@@ -163,6 +166,7 @@ class AuthMiddleware {
   // Refresh Token Staff
   Future<void> refreshTokenStaff() async {
     try {
+      final dio = ref.read(dioProvider);
       final secureStorage = FlutterSecureStorage();
       final refreshToken = await secureStorage.read(
         key: AppConstants.refreshTokenStaffKey,

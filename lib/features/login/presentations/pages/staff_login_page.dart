@@ -22,11 +22,6 @@ class _LoginStaffPageState extends ConsumerState<LoginStaffPage> {
   @override
   void initState() {
     super.initState();
-    // Fetch staff accounts when page initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(staffAuthProvider.notifier).fetchStaffAccounts();
-      debugPrint('');
-    });
   }
 
   @override
@@ -35,8 +30,8 @@ class _LoginStaffPageState extends ConsumerState<LoginStaffPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = ref.watch(orientationProvider);
-    final isLoading = ref.watch(staffAuthProvider).isLoading;
     final staffState = ref.watch(staffAuthProvider);
+    final isLoggingIn = staffState.isLoading;
 
     double boxWidth = isLandscape ? screenWidth * 0.3 : double.infinity;
     double boxHeight = isLandscape ? double.infinity : screenWidth * 0.5;
@@ -73,12 +68,12 @@ class _LoginStaffPageState extends ConsumerState<LoginStaffPage> {
               ),
             ),
           ),
-          if (isLoading || staffState.accountsLoading)
+          if (isLoggingIn)
             Container(
               width: screenWidth,
               height: screenHeight,
               color: Colors.black.withValues(alpha: 0.5),
-              child: Center(child: CircularProgressIndicator()),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),

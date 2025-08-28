@@ -7,20 +7,72 @@ class AppConstants {
 
   // Base URL
   static const String baseUrl =
-      'https://eleven-convinced-traveller-equipped.trycloudflare.com';
+      'https://electoral-beside-cloth-burton.trycloudflare.com';
 
   // Service URL
   static const String service = '/pos/';
   static const String apiVersion = 'v1/';
+  static const String auth = 'auth';
   static const String authOwnerPath = 'auth/owner';
   static const String authStaffPath = 'auth/staff';
   static const String products = 'products';
   static const String bill = 'bill';
   static const String masterdata = 'masterdata';
 
-  // Login URL
+  // Login Owner URL
   static const String loginUrl =
       '$baseUrl$service$apiVersion$authOwnerPath/login';
+
+  // Auth Owner URL
+  static const String authOwnerUrl =
+      '$baseUrl$service$apiVersion$authOwnerPath/auth-check';
+
+  // Refresh Token Owner URL
+  static const String refreshTokenOwnerUrl =
+      '$baseUrl$service$apiVersion$authOwnerPath/refresh-token';
+
+  // Staff Login URL
+  static const String staffLoginUrl =
+      '$baseUrl$service$apiVersion$authStaffPath/login';
+
+  // Auth Staff URL
+  static const String authStaffUrl =
+      '$baseUrl$service$apiVersion$authStaffPath/auth-check';
+
+  // Refresh Token Staff URL
+  static const String refreshTokenStaffUrl =
+      '$baseUrl$service$apiVersion$authStaffPath/refresh-token';
+
+  // Auth Check Me URL
+  static const String authMeUrl = '$baseUrl$service$apiVersion$auth/me';
+
+  // Staff Accounts URL
+  static const String staffAccountUrl =
+      '$baseUrl$service$apiVersion$masterdata/staff-accounts';
+
+  // Customers URL
+  static const String customerUrl =
+      '$baseUrl$service$apiVersion$masterdata/customer-list';
+
+  // Tables URL
+  static const String tablesUrl =
+      '$baseUrl$service$apiVersion$masterdata/tables';
+
+  // Merchants URL
+  static const String merchantsUrl =
+      '$baseUrl$service$apiVersion$masterdata/all-merchant-channels';
+
+  // Payments URL
+  static const String paymentsUrl =
+      '$baseUrl$service$apiVersion$masterdata/all-payment-methods';
+
+  // Discounts URL
+  static const String discountsUrl =
+      '$baseUrl$service$apiVersion$masterdata/discounts-list';
+
+  // Rewards URL
+  static const String rewardsUrl =
+      '$baseUrl$service$apiVersion$masterdata/rewards-list';
 
   // Product URL
   static const String productUrl =
@@ -38,44 +90,6 @@ class AppConstants {
   static const String createBillsUrl =
       '$baseUrl$service$apiVersion$bill/create';
 
-  // Staff Accounts URL
-  static const String staffAccountUrl =
-      '$baseUrl$service$apiVersion$masterdata/staff-accounts';
-
-  // Tables URL
-  static const String tablesUrl =
-      '$baseUrl$service$apiVersion$masterdata/tables';
-
-  // Merchants URL
-  static const String merchantsUrl =
-      '$baseUrl$service$apiVersion$masterdata/all-merchant-channels';
-
-  // Customers URL
-  static const String customerUrl =
-      '$baseUrl$service$apiVersion$masterdata/customer-list';
-
-  // Payments URL
-  static const String paymentsUrl =
-      '$baseUrl$service$apiVersion$masterdata/all-payment-methods';
-
-  // Discounts URL
-  static const String discountsUrl =
-      '$baseUrl$service$apiVersion$masterdata/discounts-list';
-
-  // Discounts URL
-  static const String rewardsUrl =
-      '$baseUrl$service$apiVersion$masterdata/rewards-list';
-
-  // Refresh Token URL
-  static const String refreshTokenUrl =
-      '$baseUrl$service$apiVersion$authOwnerPath/refresh-token';
-
-  // Explicit refresh URLs for clarity
-  static const String refreshTokenOwnerUrl =
-      '$baseUrl$service$apiVersion$authOwnerPath/refresh-token';
-  static const String refreshTokenStaffUrl =
-      '$baseUrl$service$apiVersion$authStaffPath/refresh-token';
-
   // Storage Keys
   static const String authTokenKey = 'auth_token';
   static const String userDataKey = 'user_data';
@@ -85,9 +99,10 @@ class AppConstants {
   static const String authTokenStaffKey = 'auth_token_staff';
   static const String refreshTokenStaffKey = 'refresh_token_staff';
 
-  // Staff Login URL
-  static const String staffLoginUrl =
-      '$baseUrl$service$apiVersion$authStaffPath/login';
+  // Cachce Keys
+  static const String staffAccountsCacheKey = 'staff_accounts_cache';
+  static const String staffAccountsCacheTimestampKey =
+      'staff_accounts_cache_timestamp';
 
   // Routes
   static const String homeRoute = '/';

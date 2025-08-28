@@ -1,13 +1,16 @@
+// HomeProducts.dart (Versi Final dengan Search Bar Reset)
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/features/home/providers/category_mode_provider.dart';
-import 'package:rebill_flutter/features/home/providers/search_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
+import 'package:rebill_flutter/core/providers/product_provider.dart';
 import 'package:rebill_flutter/core/providers/products_providers.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/categories_grid.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/products_grid.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
+import 'package:rebill_flutter/features/home/providers/search_provider.dart';
 
 class HomeProducts extends ConsumerWidget {
   const HomeProducts({super.key});
@@ -17,6 +20,8 @@ class HomeProducts extends ConsumerWidget {
     final theme = Theme.of(context);
     final isCategoryMode = ref.watch(categoryModeProvider);
     final selectedCategory = ref.watch(selectedCategoryProvider);
+    final searchQuery = ref.watch(searchQueryProvider);
+
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -25,7 +30,6 @@ class HomeProducts extends ConsumerWidget {
       ),
       padding: const EdgeInsets.all(12),
       child: Column(
-        spacing: 12,
         children: [
           Container(
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
@@ -41,39 +45,40 @@ class HomeProducts extends ConsumerWidget {
                   ),
                 ),
                 Row(
-                  spacing: 6,
                   children: [
                     AppButton(
                       onPressed: () {
                         if (selectedCategory != null) {
                           ref.read(selectedCategoryProvider.notifier).state =
                               null;
+                          ref
+                              .read(paginatedProductsProvider.notifier)
+                              .applyFilter(category: null, query: searchQuery);
                         } else {
                           ref
                               .read(categoryModeProvider.notifier)
                               .toggleCategoryMode();
-                        }
-                        if (isCategoryMode) {
-                          ref.read(selectedCategoryProvider.notifier).state =
-                              null;
+                          ref.read(searchQueryProvider.notifier).state = '';
+                          ref
+                              .read(productSearchQueryProvider.notifier)
+                              .clearSearch();
                         }
                       },
                       text: '',
                       backgroundColor: theme.colorScheme.surfaceContainer,
                       child: Row(
                         children: [
-                          selectedCategory != null
-                              ? Row(
-                                children: [
-                                  Icon(
-                                    Icons.cancel,
-                                    size: 14,
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                  const SizedBox(width: 6),
-                                ],
-                              )
-                              : const SizedBox(),
+                          if (selectedCategory != null)
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.cancel,
+                                  size: 14,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                            ),
                           Text(
                             isCategoryMode
                                 ? 'View Products'
@@ -85,6 +90,7 @@ class HomeProducts extends ConsumerWidget {
                         ],
                       ),
                     ),
+                    const SizedBox(width: 6),
                     Container(
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainer,
@@ -102,20 +108,22 @@ class HomeProducts extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 12),
           AppSearchBar(
-            hintText: 'Search Product...',
-            searchProvider: productSearchQueryProvider,
             onSearch: (value) {
               ref.read(searchQueryProvider.notifier).state = value;
               ref
-                  .read(productSearchQueryProvider.notifier)
-                  .updateSearchQuery(value);
+                  .read(paginatedProductsProvider.notifier)
+                  .applyFilter(query: value, category: selectedCategory);
             },
             onClear: () {
               ref.read(searchQueryProvider.notifier).state = '';
-              ref.read(productSearchQueryProvider.notifier).clearSearch();
+              ref
+                  .read(paginatedProductsProvider.notifier)
+                  .applyFilter(query: '', category: selectedCategory);
             },
           ),
+          const SizedBox(height: 12),
           isCategoryMode ? const CategoriesGrid() : const ProductsGrid(),
         ],
       ),

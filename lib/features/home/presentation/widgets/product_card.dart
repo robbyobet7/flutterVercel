@@ -1,3 +1,6 @@
+// product_card.dart (Versi Final dengan Optimasi Gambar)
+
+import 'package:cached_network_image/cached_network_image.dart'; // <-- IMPORT BARU
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
@@ -65,73 +68,47 @@ class ProductCard extends ConsumerWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
+                    // --- PERUBAHAN DIMULAI DI SINI ---
                     product.productImage != null &&
                             product.productImage!.isNotEmpty
-                        ? Image.network(
-                          product.productImage!,
+                        ? CachedNetworkImage(
+                          imageUrl: product.productImage!,
                           fit: BoxFit.cover,
-                          cacheWidth: 300,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Image.asset(
-                              'assets/images/product_placeholder.webp',
-                              fit: BoxFit.cover,
-                              cacheWidth: 300,
-                            );
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value:
-                                    loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress
-                                                .cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
+                          // Tampilkan ini saat gambar sedang di-download
+                          placeholder:
+                              (context, url) =>
+                                  Container(color: Colors.grey[200]),
+                          // Tampilkan ini jika gagal memuat gambar
+                          errorWidget:
+                              (context, url, error) => Image.asset(
+                                'assets/images/product_placeholder.webp',
+                                fit: BoxFit.cover,
                               ),
-                            );
-                          },
                         )
                         : Image.asset(
                           'assets/images/product_placeholder.webp',
                           fit: BoxFit.cover,
-                          cacheWidth: 300,
-                          frameBuilder: (
-                            context,
-                            child,
-                            frame,
-                            wasSynchronouslyLoaded,
-                          ) {
-                            if (wasSynchronouslyLoaded || frame != null) {
-                              return child;
-                            }
-                            return AnimatedOpacity(
-                              opacity: frame != null ? 1 : 0,
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeOut,
-                              child: child,
-                            );
-                          },
                         ),
+                    // --- PERUBAHAN SELESAI DI SINI ---
 
                     // Check if the product is in the cart
-                    isInCart
-                        ? Positioned(
-                          top: 8,
-                          right: 8,
-                          child: CircleAvatar(
-                            radius: 12,
-                            backgroundColor: theme.colorScheme.primary,
-                            child: Text(
-                              count.toString(),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onPrimary,
-                                fontSize: 12,
-                              ),
+                    if (isInCart) // Cara penulisan if yang lebih ringkas
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: CircleAvatar(
+                          radius: 12,
+                          backgroundColor: theme.colorScheme.primary,
+                          child: Text(
+                            count.toString(),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onPrimary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        )
-                        : const SizedBox(),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -152,7 +129,6 @@ class ProductCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Column(
-                    spacing: 2,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text.rich(
@@ -176,19 +152,22 @@ class ProductCard extends ConsumerWidget {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 2),
                       Row(
-                        spacing: 4,
                         children: [
                           Icon(
                             Icons.inventory_2_outlined,
-                            color: theme.colorScheme.onSurface,
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),
                             size: 12,
                           ),
+                          const SizedBox(width: 4),
                           Text(
                             stock,
                             textAlign: TextAlign.start,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface,
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.7,
+                              ),
                               fontSize: 10,
                             ),
                           ),

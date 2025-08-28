@@ -1,10 +1,141 @@
 // ignore_for_file: unused_local_variable
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/core_exports.dart';
 import 'dart:convert';
-import '../models/product.dart';
 import 'package:intl/intl.dart';
 import '../middleware/product_middleware.dart';
+
+//Pagination
+class PaginatedProductsState {
+  final List<Product> products;
+  final bool isLoading;
+  final bool isFetchingMore;
+  final bool hasMore;
+  final String? error;
+
+  PaginatedProductsState({
+    this.products = const [],
+    this.isLoading = true,
+    this.isFetchingMore = false,
+    this.hasMore = true,
+    this.error,
+  });
+
+  PaginatedProductsState copyWith({
+    List<Product>? products,
+    bool? isLoading,
+    bool? isFetchingMore,
+    bool? hasMore,
+    String? error,
+  }) {
+    return PaginatedProductsState(
+      products: products ?? this.products,
+      isFetchingMore: isFetchingMore ?? this.isFetchingMore,
+      isLoading: isLoading ?? this.isLoading,
+      hasMore: hasMore ?? this.hasMore,
+      error: error ?? this.error,
+    );
+  }
+}
+
+class PaginatedProductsNotifier extends StateNotifier<PaginatedProductsState> {
+  final ProductMiddleware _middleware;
+  final Ref ref;
+  List<Product> _fullProductList = [];
+  List<Product> _filteredProductList = [];
+
+  static const _pageSize = 20;
+
+  PaginatedProductsNotifier(this.ref, this._middleware)
+    : super(PaginatedProductsState()) {
+    fetchInitialProducts();
+  }
+
+  Future<void> fetchInitialProducts() async {
+    try {
+      state = state.copyWith(isLoading: true);
+      _fullProductList = await _middleware.getAllProducts();
+      _filteredProductList = _fullProductList;
+
+      final firstPageProducts = _fullProductList.take(_pageSize).toList();
+
+      state = state.copyWith(
+        products: firstPageProducts,
+        isLoading: false,
+        hasMore: _fullProductList.length > _pageSize,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> fetchMoreProducts() async {
+    if (state.isFetchingMore || !state.hasMore) return;
+    state = state.copyWith(isFetchingMore: true);
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final currentCount = state.products.length;
+    final nextPageProducts =
+        _filteredProductList.skip(currentCount).take(_pageSize).toList();
+
+    final newProductList = List<Product>.from(state.products)
+      ..addAll(nextPageProducts);
+
+    state = state.copyWith(
+      products: newProductList,
+      isFetchingMore: false,
+      hasMore: newProductList.length < _filteredProductList.length,
+    );
+  }
+
+  void applyFilter({String? query, String? category}) {
+    List<Product> tempProducts = List.from(_fullProductList);
+
+    // Filter by category
+    if (category != null && category.isNotEmpty) {
+      tempProducts =
+          tempProducts.where((p) => p.productsType == category).toList();
+    }
+
+    // Filter by search query
+    if (query != null && query.isNotEmpty) {
+      tempProducts =
+          tempProducts
+              .where(
+                (p) =>
+                    p.productsName?.toLowerCase().contains(
+                      query.toLowerCase(),
+                    ) ??
+                    false,
+              )
+              .toList();
+    }
+
+    _filteredProductList = tempProducts;
+
+    state = state.copyWith(
+      products: _filteredProductList.take(_pageSize).toList(),
+      hasMore: _filteredProductList.length > _pageSize,
+      isFetchingMore: false,
+    );
+  }
+
+  Future<void> refresh() async {
+    _fullProductList = [];
+    _filteredProductList = [];
+    state = PaginatedProductsState();
+    await fetchInitialProducts();
+  }
+}
+
+final paginatedProductsProvider =
+    StateNotifierProvider<PaginatedProductsNotifier, PaginatedProductsState>((
+      ref,
+    ) {
+      final repository = ref.watch(productMiddlewareProvider);
+      return PaginatedProductsNotifier(ref, repository);
+    });
 
 // Class to represent a selected option or extra
 class ProductOptionItem {
