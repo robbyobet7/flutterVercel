@@ -37,6 +37,8 @@ class BillTypeNotifier extends StateNotifier<BillType?> {
   }
 }
 
+final customerExpandableProvider = StateProvider<bool>((ref) => false);
+
 final billTypeProvider = StateNotifierProvider<BillTypeNotifier, BillType?>((
   ref,
 ) {

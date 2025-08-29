@@ -269,10 +269,6 @@ final allBillsProvider = Provider<List<BillsByDate>>((ref) {
       status: bill.states,
     );
 
-    // Add debug print to see BillItem properties
-
-    // Add debug print to see actual total value
-
     if (billsByDate.containsKey(dateString)) {
       billsByDate[dateString]!.add(billItem);
     } else {

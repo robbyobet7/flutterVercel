@@ -1,4 +1,4 @@
-// HomeProducts.dart (Versi Final dengan Search Bar Reset)
+// HomeProducts.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +20,8 @@ class HomeProducts extends ConsumerWidget {
     final theme = Theme.of(context);
     final isCategoryMode = ref.watch(categoryModeProvider);
     final selectedCategory = ref.watch(selectedCategoryProvider);
-    final searchQuery = ref.watch(searchQueryProvider);
+    final activeSearchProvider =
+        isCategoryMode ? searchProvider : productSearchQueryProvider;
 
     return Container(
       decoration: BoxDecoration(
@@ -51,17 +52,32 @@ class HomeProducts extends ConsumerWidget {
                         if (selectedCategory != null) {
                           ref.read(selectedCategoryProvider.notifier).state =
                               null;
+                          final currentProductQuery = ref.read(
+                            productSearchQueryProvider,
+                          );
                           ref
                               .read(paginatedProductsProvider.notifier)
-                              .applyFilter(category: null, query: searchQuery);
+                              .applyFilter(
+                                category: null,
+                                query: currentProductQuery,
+                              );
                         } else {
+                          if (isCategoryMode) {
+                            ref.read(searchProvider.notifier).clearSearch();
+                          } else {
+                            ref
+                                .read(productSearchQueryProvider.notifier)
+                                .clearSearch();
+                            ref
+                                .read(paginatedProductsProvider.notifier)
+                                .applyFilter(
+                                  query: '',
+                                  category: ref.read(selectedCategoryProvider),
+                                );
+                          }
                           ref
                               .read(categoryModeProvider.notifier)
                               .toggleCategoryMode();
-                          ref.read(searchQueryProvider.notifier).state = '';
-                          ref
-                              .read(productSearchQueryProvider.notifier)
-                              .clearSearch();
                         }
                       },
                       text: '',
@@ -110,17 +126,25 @@ class HomeProducts extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           AppSearchBar(
+            key: ValueKey(
+              isCategoryMode ? 'categories_search' : 'products_search',
+            ),
+            searchProvider: activeSearchProvider,
             onSearch: (value) {
-              ref.read(searchQueryProvider.notifier).state = value;
-              ref
-                  .read(paginatedProductsProvider.notifier)
-                  .applyFilter(query: value, category: selectedCategory);
+              ref.read(activeSearchProvider.notifier).updateSearchQuery(value);
+              if (!isCategoryMode) {
+                ref
+                    .read(paginatedProductsProvider.notifier)
+                    .applyFilter(query: value, category: selectedCategory);
+              }
             },
             onClear: () {
-              ref.read(searchQueryProvider.notifier).state = '';
-              ref
-                  .read(paginatedProductsProvider.notifier)
-                  .applyFilter(query: '', category: selectedCategory);
+              ref.read(activeSearchProvider.notifier).clearSearch();
+              if (!isCategoryMode) {
+                ref
+                    .read(paginatedProductsProvider.notifier)
+                    .applyFilter(query: '', category: selectedCategory);
+              }
             },
           ),
           const SizedBox(height: 12),

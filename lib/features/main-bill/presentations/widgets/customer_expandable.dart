@@ -4,7 +4,7 @@ import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart'
 import 'package:rebill_flutter/features/main-bill/presentations/widgets/customer_type_card.dart';
 import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
-class CustomerExpandable extends ConsumerStatefulWidget {
+class CustomerExpandable extends ConsumerWidget {
   const CustomerExpandable({
     super.key,
     required this.customerTypes,
@@ -13,28 +13,26 @@ class CustomerExpandable extends ConsumerStatefulWidget {
 
   final List<Map<String, Object>> customerTypes;
   final bool disabled;
-  @override
-  ConsumerState<CustomerExpandable> createState() => _CustomerExpandableState();
-}
-
-class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
-  bool _isExpanded = false;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final selectedCustomerType = ref.watch(customerTypeProvider);
     final selectedCustomer = ref.watch(knownIndividualProvider);
+
+    final isExpanded = ref.watch(customerExpandableProvider);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         children: [
-          // Header with expand/collapse functionality
           GestureDetector(
             onTap: () {
-              setState(() {
-                _isExpanded = !_isExpanded;
-              });
+              if (!disabled) {
+                final currentState = ref.read(customerExpandableProvider);
+                ref.read(customerExpandableProvider.notifier).state =
+                    !currentState;
+              }
             },
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
@@ -67,29 +65,28 @@ class _CustomerExpandableState extends ConsumerState<CustomerExpandable> {
                     ],
                   ),
                   Icon(
-                    _isExpanded ? Icons.expand_less : Icons.expand_more,
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
                     color: theme.colorScheme.onSurface,
                   ),
                 ],
               ),
             ),
           ),
-          // Simple animation for expanding/collapsing
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            height: _isExpanded ? 112 : 0,
+            height: isExpanded ? 112 : 0,
             curve: Curves.easeInOut,
             child: SingleChildScrollView(
               physics: const NeverScrollableScrollPhysics(),
               child: Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: Row(
-                  spacing: 12,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children:
-                      widget.customerTypes
+                      customerTypes
                           .map(
                             (customerType) => CustomerTypeCard(
-                              disabled: widget.disabled,
+                              disabled: disabled,
                               theme: theme,
                               icon: customerType['icon'] as IconData,
                               label: customerType['label'] as String,

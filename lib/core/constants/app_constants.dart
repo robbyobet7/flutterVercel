@@ -7,7 +7,7 @@ class AppConstants {
 
   // Base URL
   static const String baseUrl =
-      'https://electoral-beside-cloth-burton.trycloudflare.com';
+      'https://dragon-pointed-soma-tmp.trycloudflare.com';
 
   // Service URL
   static const String service = '/pos/';

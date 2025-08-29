@@ -13,7 +13,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final discountsAsyncValue = ref.watch(discountsProvider);
-    final selectedDiscounts = ref.watch(selectedDiscountsProvider);
+    final tempSelectedDiscounts = ref.watch(tempSelectedDiscountsProvider);
 
     return Expanded(
       child: Column(
@@ -104,7 +104,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                         itemCount: discounts.length,
                         itemBuilder: (context, index) {
                           final discount = discounts[index];
-                          final isSelected = selectedDiscounts.any(
+                          final isSelected = tempSelectedDiscounts.any(
                             (selected) => selected.id == discount.id,
                           );
 
@@ -118,19 +118,22 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                                   borderRadius: BorderRadius.circular(8),
                                   onTap: () {
                                     final notifier = ref.read(
-                                      selectedDiscountsProvider.notifier,
+                                      tempSelectedDiscountsProvider.notifier,
                                     );
-                                    final currentSelected = [
-                                      ...selectedDiscounts,
-                                    ];
                                     if (isSelected) {
-                                      currentSelected.removeWhere(
-                                        (item) => item.id == discount.id,
-                                      );
+                                      notifier.state =
+                                          notifier.state
+                                              .where(
+                                                (item) =>
+                                                    item.id != discount.id,
+                                              )
+                                              .toList();
                                     } else {
-                                      currentSelected.add(discount);
+                                      notifier.state = [
+                                        ...notifier.state,
+                                        discount,
+                                      ];
                                     }
-                                    notifier.state = currentSelected;
                                   },
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
@@ -228,17 +231,9 @@ class AvailableDiscountsDialog extends ConsumerWidget {
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
-                AppButton(
-                  onPressed: () => Navigator.pop(context),
-                  text: 'Back',
-                  backgroundColor: theme.colorScheme.scrim,
-                  textStyle: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
-                  ),
-                ),
                 const SizedBox(width: 12),
                 AppButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(context, false),
                   text: 'Cancel',
                   backgroundColor: theme.colorScheme.errorContainer,
                   textStyle: theme.textTheme.bodySmall?.copyWith(
@@ -248,6 +243,8 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                 const SizedBox(width: 12),
                 AppButton(
                   onPressed: () {
+                    ref.read(selectedDiscountsProvider.notifier).state = ref
+                        .read(tempSelectedDiscountsProvider);
                     Navigator.pop(context);
                   },
                   text: 'Apply Discount',

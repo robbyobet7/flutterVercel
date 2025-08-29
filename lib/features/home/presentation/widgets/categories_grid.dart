@@ -5,6 +5,7 @@ import 'package:rebill_flutter/core/providers/product_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/features/home/providers/category_mode_provider.dart';
 import 'package:rebill_flutter/core/providers/products_providers.dart';
+import 'package:rebill_flutter/features/home/providers/search_provider.dart';
 
 class CategoriesGrid extends ConsumerWidget {
   const CategoriesGrid({super.key});
@@ -43,7 +44,7 @@ class CategoriesGrid extends ConsumerWidget {
     final isLandscape = ref.watch(orientationProvider);
     // Watch the categories provider
     final categoriesAsync = ref.watch(availableCategoriesProvider);
-    final searchQuery = ref.watch(searchQueryProvider);
+    final searchQuery = ref.watch(searchProvider);
 
     return Expanded(
       child: categoriesAsync.when(
@@ -93,7 +94,7 @@ class CategoriesGrid extends ConsumerWidget {
                   ref.read(selectedCategoryProvider.notifier).state =
                       categoryName;
                   ref.read(categoryModeProvider.notifier).toggleCategoryMode();
-                  ref.read(searchQueryProvider.notifier).state = '';
+                  ref.read(searchProvider.notifier).clearSearch();
                   ref
                       .read(paginatedProductsProvider.notifier)
                       .applyFilter(

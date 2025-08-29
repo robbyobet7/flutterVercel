@@ -11,7 +11,7 @@ import 'package:rebill_flutter/features/main-bill/presentations/widgets/add_cust
 import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
 // Provider for temporarily selected customer
-final tempSelectedCustomerProvider = StateProvider<CustomerModel?>(
+final tempSelectedCustomerProvider = StateProvider.autoDispose<CustomerModel?>(
   (ref) => null,
 );
 
@@ -33,8 +33,8 @@ class _KnownIndividualDialogState extends ConsumerState<KnownIndividualDialog> {
     final selectedCustomer = ref.watch(knownIndividualProvider);
     final isLightBackground =
         theme.colorScheme.surface.computeLuminance() > 0.5;
-
     final customers = ref.watch(customerProvider);
+
     return Expanded(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -191,12 +191,44 @@ class _KnownIndividualDialogState extends ConsumerState<KnownIndividualDialog> {
                             itemCount: customers.customers.length,
                             itemBuilder: (context, index) {
                               final customer = customers.customers[index];
+                              final isCurrentlySaved =
+                                  selectedCustomer?.customerId ==
+                                  customer.customerId;
+                              final isNewlySelected =
+                                  tempSelectedCustomer?.customerId ==
+                                  customer.customerId;
+                              final Color backgroundColor;
+                              final Color textColor;
+                              final Color borderColor;
+
+                              if (isNewlySelected) {
+                                backgroundColor =
+                                    theme.colorScheme.primaryContainer;
+                                textColor = theme.colorScheme.primary;
+                                borderColor = theme.colorScheme.primary;
+                              } else if (isCurrentlySaved) {
+                                backgroundColor = theme.colorScheme.primary;
+                                textColor = theme.colorScheme.onPrimary;
+                                borderColor = Colors.transparent;
+                              } else {
+                                // State: Default
+                                backgroundColor =
+                                    index % 2 == 0
+                                        ? theme.colorScheme.surfaceContainer
+                                        : theme.colorScheme.surface;
+                                textColor = theme.colorScheme.onSurface;
+                                borderColor =
+                                    index % 2 == 0
+                                        ? Colors.transparent
+                                        : theme.colorScheme.onSurface
+                                            .withOpacity(0.05);
+                              }
+
                               return Column(
                                 children: [
                                   GestureDetector(
                                     onTap: () {
-                                      if (tempSelectedCustomer?.customerId ==
-                                          customer.customerId) {
+                                      if (isNewlySelected) {
                                         ref
                                             .read(
                                               tempSelectedCustomerProvider
@@ -222,25 +254,8 @@ class _KnownIndividualDialogState extends ConsumerState<KnownIndividualDialog> {
                                       ),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(8),
-                                        color:
-                                            tempSelectedCustomer?.customerId ==
-                                                        customer.customerId ||
-                                                    selectedCustomer
-                                                            ?.customerId ==
-                                                        customer.customerId
-                                                ? theme.colorScheme.primary
-                                                : index % 2 == 0
-                                                ? theme
-                                                    .colorScheme
-                                                    .surfaceContainer
-                                                : theme.colorScheme.surface,
-                                        border: Border.all(
-                                          color:
-                                              index % 2 == 0
-                                                  ? Colors.transparent
-                                                  : theme.colorScheme.onSurface
-                                                      .withOpacity(0.05),
-                                        ),
+                                        color: backgroundColor,
+                                        border: Border.all(color: borderColor),
                                       ),
                                       child: Row(
                                         children: [
@@ -248,87 +263,43 @@ class _KnownIndividualDialogState extends ConsumerState<KnownIndividualDialog> {
                                             flex: 2,
                                             child: Text(
                                               customer.customerName,
-                                              style: theme.textTheme.titleSmall?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    tempSelectedCustomer
-                                                                    ?.customerId ==
-                                                                customer
-                                                                    .customerId ||
-                                                            selectedCustomer
-                                                                    ?.customerId ==
-                                                                customer
-                                                                    .customerId
-                                                        ? Colors.white
-                                                        : theme
-                                                            .colorScheme
-                                                            .onSurface,
-                                              ),
+                                              style: theme.textTheme.titleSmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: textColor,
+                                                  ),
                                             ),
                                           ),
                                           Expanded(
                                             flex: 2,
                                             child: Text(
                                               customer.emailSocial ?? '',
-                                              style: theme.textTheme.titleSmall?.copyWith(
-                                                fontWeight: FontWeight.w400,
-                                                color:
-                                                    tempSelectedCustomer
-                                                                    ?.customerId ==
-                                                                customer
-                                                                    .customerId ||
-                                                            selectedCustomer
-                                                                    ?.customerId ==
-                                                                customer
-                                                                    .customerId
-                                                        ? Colors.white
-                                                        : theme
-                                                            .colorScheme
-                                                            .onSurface,
-                                              ),
+                                              style: theme.textTheme.titleSmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w400,
+                                                    color: textColor,
+                                                  ),
                                             ),
                                           ),
                                           Expanded(
                                             flex: 2,
                                             child: Text(
                                               customer.phone ?? '',
-                                              style: theme.textTheme.titleSmall?.copyWith(
-                                                fontWeight: FontWeight.w400,
-                                                color:
-                                                    tempSelectedCustomer
-                                                                    ?.customerId ==
-                                                                customer
-                                                                    .customerId ||
-                                                            selectedCustomer
-                                                                    ?.customerId ==
-                                                                customer
-                                                                    .customerId
-                                                        ? Colors.white
-                                                        : theme
-                                                            .colorScheme
-                                                            .onSurface,
-                                              ),
+                                              style: theme.textTheme.titleSmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w400,
+                                                    color: textColor,
+                                                  ),
                                             ),
                                           ),
                                           Expanded(
                                             child: Text(
                                               customer.affiliate ?? '',
-                                              style: theme.textTheme.titleSmall?.copyWith(
-                                                fontWeight: FontWeight.w400,
-                                                color:
-                                                    tempSelectedCustomer
-                                                                    ?.customerId ==
-                                                                customer
-                                                                    .customerId ||
-                                                            selectedCustomer
-                                                                    ?.customerId ==
-                                                                customer
-                                                                    .customerId
-                                                        ? Colors.white
-                                                        : theme
-                                                            .colorScheme
-                                                            .onSurface,
-                                              ),
+                                              style: theme.textTheme.titleSmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w400,
+                                                    color: textColor,
+                                                  ),
                                             ),
                                           ),
                                         ],
@@ -419,6 +390,9 @@ class _KnownIndividualDialogState extends ConsumerState<KnownIndividualDialog> {
                                 ref
                                     .read(knownIndividualProvider.notifier)
                                     .setKnownIndividual(tempSelectedCustomer);
+                                ref
+                                    .read(customerExpandableProvider.notifier)
+                                    .state = false;
                                 Navigator.pop(context);
                                 ref
                                     .read(customerProvider.notifier)

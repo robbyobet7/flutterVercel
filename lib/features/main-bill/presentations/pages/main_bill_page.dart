@@ -48,10 +48,12 @@ class MainBillPage extends ConsumerWidget {
       {
         'icon': Icons.person_rounded,
         'label': 'Guest',
-        'onTap':
-            () => ref
-                .read(customerTypeProvider.notifier)
-                .setCustomerType(CustomerType.guest),
+        'onTap': () {
+          ref
+              .read(customerTypeProvider.notifier)
+              .setCustomerType(CustomerType.guest);
+          ref.read(knownIndividualProvider.notifier).setKnownIndividual(null);
+        },
       },
       {
         'icon': Icons.person_pin_rounded,

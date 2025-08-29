@@ -46,24 +46,28 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     _discounts = [
       CheckoutDiscount(
         name: 'Show Available Discount',
-        onTap: () {
-          Navigator.pop(context);
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (mounted) {
-              AppDialog.showCustom(
-                context,
-                content: const AvailableDiscountsDialog(),
-                dialogType: DialogType.large,
-                title: 'Available Discounts',
-              );
-            }
+        onTap: () async {
+          setState(() {
+            selectedDiscount = 'Show Available Discount';
           });
+          final result = await AppDialog.showCustom(
+            context,
+            content: const AvailableDiscountsDialog(),
+            dialogType: DialogType.large,
+            title: 'Available Discounts',
+          );
+          if (result == null || result == false) {
+            if (mounted) {
+              setState(() {
+                selectedDiscount = null;
+              });
+            }
+          }
         },
       ),
       CheckoutDiscount(
         name: 'Reward',
         onTap: () {
-          Navigator.pop(context);
           Future.delayed(const Duration(milliseconds: 100), () {
             if (mounted) {
               AppDialog.showCustom(
@@ -79,7 +83,6 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
       CheckoutDiscount(
         name: 'Custom Reward',
         onTap: () {
-          Navigator.pop(context);
           Future.delayed(const Duration(milliseconds: 100), () {
             if (mounted) {
               AppDialog.showCustom(
@@ -119,14 +122,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
           (e) => CheckoutButton(
             text: e.name,
             isSelected: selectedDiscount == e.name,
-            onTap: () {
-              setState(() {
-                selectedDiscount = e.name;
-                _cachedDiscountButtons =
-                    null; // Clear cache to rebuild with new selection
-              });
-              e.onTap();
-            },
+            onTap: e.onTap,
           ),
         )
         .toList();
@@ -206,19 +202,19 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
                 children: [
                   _buildSection(
                     title: 'Delivery',
-                    buttons: _cachedDeliveryButtons!,
+                    buttons: _buildDeliveryButtons(),
                     columns: 2,
                   ),
                   const SizedBox(height: 16),
                   _buildSection(
                     title: 'Discounts',
-                    buttons: _cachedDiscountButtons!,
+                    buttons: _buildDiscountButtons(),
                     columns: 3,
                   ),
                   const SizedBox(height: 16),
                   _buildSection(
                     title: 'Payment',
-                    buttons: _cachedPaymentButtons!,
+                    buttons: _buildPaymentButtons(),
                     columns: 2,
                   ),
                   const SizedBox(height: 16),

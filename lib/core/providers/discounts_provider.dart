@@ -24,3 +24,9 @@ final discountsProvider = FutureProvider<List<DiscountModel>>((ref) {
 final selectedDiscountsProvider = StateProvider<List<DiscountModel>>(
   (ref) => [],
 );
+
+final tempSelectedDiscountsProvider =
+    StateProvider.autoDispose<List<DiscountModel>>((ref) {
+      final currentSelected = ref.watch(selectedDiscountsProvider);
+      return List<DiscountModel>.from(currentSelected);
+    });
