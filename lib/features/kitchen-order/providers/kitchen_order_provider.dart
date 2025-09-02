@@ -2,8 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/kitchen_order.dart';
 import 'package:rebill_flutter/core/middleware/kitchen_order_middleware.dart';
 
-// ==================== Kitchen Order State ====================
-
 class KitchenOrderState {
   final List<KitchenOrder> orders;
   final bool isLoading;
@@ -23,8 +21,6 @@ class KitchenOrderState {
     );
   }
 }
-
-// ==================== Kitchen Order Notifier ====================
 
 class KitchenOrderNotifier extends StateNotifier<KitchenOrderState> {
   KitchenOrderNotifier() : super(KitchenOrderState(orders: []));
@@ -49,16 +45,10 @@ class KitchenOrderNotifier extends StateNotifier<KitchenOrderState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      // This is a placeholder for actual implementation
-      // In a real app, you would call an API to update the status
-
-      // For now, we'll just update the local state
       final updatedOrders =
           state.orders.map((order) {
             if (order.ordersId == orderId) {
-              // In a real implementation, we would create a new KitchenOrder with the updated status
-              // For now, we're just pretending the status was updated
-              return order;
+              return order.copyWith(states: newStatus);
             }
             return order;
           }).toList();
@@ -79,7 +69,6 @@ class KitchenOrderNotifier extends StateNotifier<KitchenOrderState> {
 }
 
 // ==================== Providers ====================
-
 // Main kitchen order notifier provider
 final kitchenOrderNotifierProvider =
     StateNotifierProvider<KitchenOrderNotifier, KitchenOrderState>((ref) {
@@ -88,11 +77,7 @@ final kitchenOrderNotifierProvider =
 
 // Provider to get all kitchen orders
 final kitchenOrdersProvider = Provider<List<KitchenOrder>>((ref) {
-  try {
-    return KitchenOrderMiddleware.instance.getAllKitchenOrders();
-  } catch (e) {
-    return [];
-  }
+  return ref.watch(kitchenOrderNotifierProvider).orders;
 });
 
 // Provider to get submitted kitchen orders
@@ -152,7 +137,6 @@ final kitchenOrderByIdProvider = Provider.family<KitchenOrder?, int>((
 final kitchenOrdersLoadingProvider = StateProvider<bool>((ref) => false);
 
 // ==================== Helper Functions ====================
-
 // Function to initialize kitchen orders data
 Future<void> initializeKitchenOrders() async {
   if (!KitchenOrderMiddleware.instance.isInitialized) {

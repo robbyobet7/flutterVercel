@@ -45,6 +45,7 @@ class FinishedOrder extends ConsumerWidget {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    const SizedBox(height: 12),
                     AppCheckbox(size: 20),
                   ],
                 ),

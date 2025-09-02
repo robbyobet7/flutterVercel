@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/kitchen_order.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
@@ -6,10 +7,11 @@ import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_material.dart';
 import 'package:rebill_flutter/core/widgets/header_column.dart';
 import 'package:rebill_flutter/core/widgets/list_header.dart';
+import 'package:rebill_flutter/features/kitchen-order/providers/kitchen_order_provider.dart';
 
 enum KitchenOrderType { submitted, processing, finished }
 
-class KitchenOrderContainer extends StatefulWidget {
+class KitchenOrderContainer extends ConsumerStatefulWidget {
   final KitchenOrder order;
   final KitchenOrderType type;
   const KitchenOrderContainer({
@@ -19,10 +21,11 @@ class KitchenOrderContainer extends StatefulWidget {
   });
 
   @override
-  State<KitchenOrderContainer> createState() => _KitchenOrderContainerState();
+  ConsumerState<KitchenOrderContainer> createState() =>
+      _KitchenOrderContainerState();
 }
 
-class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
+class _KitchenOrderContainerState extends ConsumerState<KitchenOrderContainer> {
   bool isExpanded = false;
 
   String _getTimeAgo(DateTime orderTime) {
@@ -79,13 +82,13 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
                 type == KitchenOrderType.finished
                     ? isExpanded
                         ? BorderRadius.only(
-                          topLeft: Radius.circular(12),
-                          topRight: Radius.circular(12),
+                          topLeft: Radius.circular(11),
+                          topRight: Radius.circular(11),
                         )
-                        : BorderRadius.circular(12)
+                        : BorderRadius.circular(11)
                     : BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
+                      topLeft: Radius.circular(11),
+                      topRight: Radius.circular(11),
                     ),
             onTap: () {
               setState(() {
@@ -281,7 +284,8 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
                     : SizedBox.shrink(),
           ),
 
-          if (type != KitchenOrderType.finished)
+          if (type == KitchenOrderType.submitted ||
+              type == KitchenOrderType.processing)
             Container(
               padding: EdgeInsets.only(
                 left: 12,
@@ -291,12 +295,18 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
               ),
               width: double.infinity,
               child: Row(
-                spacing: 12,
                 children: [
                   if (type == KitchenOrderType.processing)
                     Expanded(
                       child: AppButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          ref
+                              .read(kitchenOrderNotifierProvider.notifier)
+                              .updateKitchenOrderStatus(
+                                order.ordersId,
+                                'submitted',
+                              );
+                        },
                         text: 'Cancel',
                         backgroundColor: theme.colorScheme.errorContainer,
                         textStyle: theme.textTheme.bodyMedium?.copyWith(
@@ -304,11 +314,27 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
                         ),
                       ),
                     ),
-
+                  if (type == KitchenOrderType.processing)
+                    const SizedBox(width: 12),
                   Expanded(
                     child: AppButton(
-                      onPressed: () {},
-                      text: 'Process',
+                      onPressed: () {
+                        final nextStatus =
+                            type == KitchenOrderType.submitted
+                                ? 'processing'
+                                : 'finished';
+
+                        ref
+                            .read(kitchenOrderNotifierProvider.notifier)
+                            .updateKitchenOrderStatus(
+                              order.ordersId,
+                              nextStatus,
+                            );
+                      },
+                      text:
+                          type == KitchenOrderType.submitted
+                              ? 'Process'
+                              : 'Finish',
                       backgroundColor: theme.colorScheme.primary,
                       textStyle: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onPrimary,
@@ -316,6 +342,24 @@ class _KitchenOrderContainerState extends State<KitchenOrderContainer> {
                     ),
                   ),
                 ],
+              ),
+            )
+          else if (type == KitchenOrderType.finished)
+            Container(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+              width: double.infinity,
+              child: AppButton(
+                onPressed: () {
+                  ref
+                      .read(kitchenOrderNotifierProvider.notifier)
+                      .updateKitchenOrderStatus(order.ordersId, 'processing');
+                },
+                text: 'Re-Process',
+                backgroundColor: theme.colorScheme.primary,
+                textStyle: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
         ],

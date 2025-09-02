@@ -4,6 +4,7 @@ import 'package:rebill_flutter/core/providers/orientation_provider.dart';
 import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/finished_order.dart';
 import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/processed_order.dart';
 import 'package:rebill_flutter/features/kitchen-order/presentations/widgets/submitted_order.dart';
+import 'package:rebill_flutter/features/kitchen-order/providers/kitchen_order_provider.dart';
 
 class KitchenOrderPage extends ConsumerStatefulWidget {
   const KitchenOrderPage({super.key});
@@ -16,6 +17,9 @@ class _KitchenOrderPageState extends ConsumerState<KitchenOrderPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(kitchenOrderNotifierProvider.notifier).loadKitchenOrders();
+    });
   }
 
   @override

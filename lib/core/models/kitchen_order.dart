@@ -95,6 +95,48 @@ class KitchenOrder {
     this.bill,
   });
 
+  KitchenOrder copyWith({
+    int? ordersId,
+    int? billId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deletedAt,
+    List<ListOrder>? listorders,
+    String? states,
+    int? outletId,
+    String? notes,
+    String? staff,
+    String? date,
+    String? update,
+    DateTime? reldate,
+    DateTime? upreldate,
+    String? customer,
+    String? table,
+    String? cBillId,
+    BillModel? bill,
+  }) {
+    return KitchenOrder(
+      ordersId: ordersId ?? this.ordersId,
+      billId: billId ?? this.billId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      listorders: listorders ?? this.listorders,
+      states: states ?? this.states,
+      outletId: outletId ?? this.outletId,
+      notes: notes ?? this.notes,
+      staff: staff ?? this.staff,
+      date: date ?? this.date,
+      update: update ?? this.update,
+      reldate: reldate ?? this.reldate,
+      upreldate: upreldate ?? this.upreldate,
+      customer: customer ?? this.customer,
+      table: table ?? this.table,
+      cBillId: cBillId ?? this.cBillId,
+      bill: bill ?? this.bill,
+    );
+  }
+
   factory KitchenOrder.fromJson(Map<String, dynamic> json) {
     // Parse list orders
     List<ListOrder> parsedListOrders = [];
