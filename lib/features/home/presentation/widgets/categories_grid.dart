@@ -132,7 +132,7 @@ class CategoriesGrid extends ConsumerWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           boxShadow: AppTheme.kBoxShadow,
-          color: color.withOpacity(0.8),
+          color: color.withAlpha(204),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),

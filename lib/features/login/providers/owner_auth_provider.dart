@@ -15,11 +15,6 @@ class AuthProvider extends StateNotifier<AuthState> {
     authMiddleware = AuthMiddleware(ref);
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   // Login Owner
   Future<void> login(String identity, String password) async {
     try {

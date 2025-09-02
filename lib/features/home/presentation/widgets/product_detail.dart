@@ -321,23 +321,24 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
   Widget build(BuildContext context) {
     final mainBillComponent = ref.watch(mainBillProvider);
     final theme = Theme.of(context);
-    final isClosed = ref.watch(billProvider.notifier).billStatus == 'closed';
+    final isClosed =
+        ref.watch(billProvider.select((state) => state.selectedBill?.states)) ==
+        'closed';
     final isLandscape = ref.watch(orientationProvider);
     return Expanded(
       child: Column(
-        spacing: 12,
         children: [
           Expanded(
             child: Row(
-              spacing: 12,
               children: [
                 Expanded(flex: 2, child: _buildProductImage()),
+                const SizedBox(width: 12),
                 ProductOption(product: widget.product),
               ],
             ),
           ),
+          const SizedBox(height: 12),
           Container(
-            height: 40,
             child:
                 (mainBillComponent == MainBillComponent.defaultComponent) ||
                         isClosed
@@ -367,6 +368,7 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
                             labelText: 'Notes',
                           ),
                         ),
+                        const SizedBox(width: 12),
                         Expanded(
                           flex: 3,
                           child: Row(

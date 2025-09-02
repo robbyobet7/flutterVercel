@@ -197,9 +197,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainer.withOpacity(
-                        0.5,
-                      ),
+                      color: theme.colorScheme.surfaceContainer.withAlpha(127),
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(8),
                         topRight: Radius.circular(8),
@@ -325,7 +323,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
               dayData.date,
               textAlign: TextAlign.start,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withAlpha(127),
               ),
             ),
           ),

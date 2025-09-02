@@ -44,7 +44,7 @@ class AppButton extends StatelessWidget {
         animationDuration: const Duration(milliseconds: 200),
         backgroundColor:
             disabled == true
-                ? theme.colorScheme.onSurface.withOpacity(0.05)
+                ? theme.colorScheme.onSurface.withAlpha(127)
                 : backgroundColor ?? theme.colorScheme.surfaceContainer,
         elevation: elevation,
         fixedSize: Size(width ?? double.infinity, height ?? double.infinity),

@@ -66,7 +66,7 @@ class AppTheme {
       secondary: const Color(0xFF5258FF),
       surface: const Color(0xFF1F1F2C),
       error: const Color(0xFFE53935),
-      surfaceContainer: Colors.black.withOpacity(0.2),
+      surfaceContainer: Colors.black.withAlpha(51),
       errorContainer: const Color(0xFFFDEEED),
       onPrimary: Colors.white,
       scrim: Colors.black,

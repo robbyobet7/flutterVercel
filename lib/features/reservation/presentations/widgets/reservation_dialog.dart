@@ -168,7 +168,7 @@ class _ReservationDialogState extends ConsumerState<ReservationDialog> {
                 dateHeader,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  color: theme.colorScheme.onSurface.withAlpha(127),
                 ),
               ),
             ),

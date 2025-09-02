@@ -62,7 +62,7 @@ class KnownIndividualNotifier extends StateNotifier<CustomerModel?> {
 
     // If not in state, fetch from the middleware
     try {
-      final customer = await _middleware.getCustomerById(customerId);
+      final customer = _middleware.getCustomerById(customerId);
       if (customer != null) {
         // Update the state with the found customer
         state = customer;

@@ -148,7 +148,7 @@ class BillNotifier extends StateNotifier<BillState> {
     );
 
     try {
-      final filteredBills = await _billMiddleware.getBillsByStatus(status);
+      final filteredBills = _billMiddleware.getBillsByStatus(status);
       state = state.copyWith(bills: filteredBills, isLoading: false);
     } catch (e) {
       state = state.copyWith(

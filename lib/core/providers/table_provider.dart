@@ -76,7 +76,7 @@ class TableNotifier extends StateNotifier<TableState> {
 
   // Get table by ID
   Future<TableModel?> getTableById(int id) async {
-    return await _middleware.getTableById(id);
+    return _middleware.getTableById(id);
   }
 
   // Save changes

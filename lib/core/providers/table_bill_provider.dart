@@ -169,11 +169,6 @@ class TableBillNotifier extends StateNotifier<TableBillState> {
   }
 }
 
-// Provider for the repository
-final TableBillMiddlewareProvider = Provider<TableBillMiddleware>((ref) {
-  return TableBillMiddleware();
-});
-
 // Provider for the middleware
 final tableBillMiddlewareProvider = Provider<TableBillMiddleware>((ref) {
   return TableBillMiddleware();

@@ -205,9 +205,9 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
       context.go(AppConstants.homeRoute);
     } catch (e) {
       if (!mounted) return;
-
-      FocusScope.of(context).unfocus();
       await Future.delayed(const Duration(seconds: 3));
+      if (!mounted) return;
+
       AppSnackbar.showError(
         context,
         message: e.toString(),
@@ -270,7 +270,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: theme.colorScheme.primary.withOpacity(0.4),
+                        color: theme.colorScheme.primary.withAlpha(102),
                         width: 1.5,
                       ),
                     ),
@@ -313,9 +313,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                               color:
                                   selectedOutlet != null
                                       ? theme.colorScheme.primary
-                                      : theme.colorScheme.scrim.withOpacity(
-                                        0.2,
-                                      ),
+                                      : theme.colorScheme.scrim.withAlpha(51),
                               size: 22,
                             ),
                             const SizedBox(width: 12),
@@ -353,7 +351,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: theme.colorScheme.primary.withOpacity(0.4),
+                        color: theme.colorScheme.primary.withAlpha(102),
                         width: 1.5,
                       ),
                     ),
@@ -397,9 +395,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                               color:
                                   selectedStaff != null
                                       ? theme.colorScheme.primary
-                                      : theme.colorScheme.scrim.withOpacity(
-                                        0.2,
-                                      ),
+                                      : theme.colorScheme.scrim.withAlpha(51),
                               size: 22,
                             ),
                             const SizedBox(width: 12),
@@ -435,7 +431,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                   Text(
                     'Input your pin',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.scrim.withOpacity(0.5),
+                      color: theme.colorScheme.scrim.withAlpha(130),
                     ),
                   ),
 
@@ -462,7 +458,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border.all(
-                          color: theme.colorScheme.scrim.withOpacity(0.2),
+                          color: theme.colorScheme.scrim.withAlpha(51),
                           width: 1.5,
                         ),
                         borderRadius: BorderRadius.circular(10),
@@ -479,7 +475,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                       decoration: BoxDecoration(
                         color: theme.colorScheme.onPrimary,
                         border: Border.all(
-                          color: theme.colorScheme.primary.withOpacity(0.3),
+                          color: theme.colorScheme.primary.withAlpha(77),
                           width: 2,
                         ),
                         borderRadius: BorderRadius.circular(8),

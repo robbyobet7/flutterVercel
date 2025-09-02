@@ -398,13 +398,11 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                     decoration: BoxDecoration(
                       color:
                           hasSelectedProduct
-                              ? theme.colorScheme.primaryContainer.withOpacity(
-                                0.3,
-                              )
+                              ? theme.colorScheme.primaryContainer.withAlpha(77)
                               : theme.colorScheme.surfaceContainer,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: theme.colorScheme.primary.withOpacity(0.5),
+                        color: theme.colorScheme.primary.withAlpha(127),
                         width: 1,
                       ),
                     ),

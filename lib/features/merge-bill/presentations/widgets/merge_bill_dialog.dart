@@ -171,7 +171,7 @@ class MergeBillDialog extends ConsumerWidget {
                                           : index % 2 == 0
                                           ? Colors.transparent
                                           : theme.colorScheme.onSurface
-                                              .withOpacity(0.05),
+                                              .withAlpha(127),
                                 ),
                               ),
                               child: Row(

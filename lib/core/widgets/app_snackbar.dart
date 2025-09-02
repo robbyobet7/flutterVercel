@@ -156,31 +156,31 @@ class AppSnackbar {
     );
   }
 
-  static _SnackbarColorData _getColorData(AppSnackbarType type) {
+  static SnackbarColorData _getColorData(AppSnackbarType type) {
     switch (type) {
       case AppSnackbarType.success:
-        return const _SnackbarColorData(
+        return const SnackbarColorData(
           backgroundColor: AppTheme.success,
           iconColor: Colors.white,
           textColor: Colors.white,
           icon: Icons.check_circle,
         );
       case AppSnackbarType.error:
-        return _SnackbarColorData(
+        return SnackbarColorData(
           backgroundColor: AppTheme.lightTheme.colorScheme.error,
           iconColor: Colors.white,
           textColor: Colors.white,
           icon: Icons.error,
         );
       case AppSnackbarType.warning:
-        return _SnackbarColorData(
+        return SnackbarColorData(
           backgroundColor: AppTheme.warning,
           iconColor: Colors.white,
           textColor: Colors.white,
           icon: Icons.warning,
         );
       case AppSnackbarType.info:
-        return const _SnackbarColorData(
+        return const SnackbarColorData(
           backgroundColor: AppTheme.warning, // Info blue color
           iconColor: Colors.white,
           textColor: Colors.white,
@@ -206,7 +206,7 @@ class AppSnackbarContent extends StatelessWidget {
   final String message;
   final String? title;
   final AppSnackbarType type;
-  final _SnackbarColorData colorData;
+  final SnackbarColorData colorData;
   final bool isDark;
   final String? actionLabel;
   final VoidCallback? onAction;
@@ -283,8 +283,8 @@ class AppSnackbarContent extends StatelessWidget {
   }
 }
 
-class _SnackbarColorData {
-  const _SnackbarColorData({
+class SnackbarColorData {
+  const SnackbarColorData({
     required this.backgroundColor,
     required this.iconColor,
     required this.textColor,

@@ -157,7 +157,7 @@ class ProductCard extends ConsumerWidget {
                         children: [
                           Icon(
                             Icons.inventory_2_outlined,
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            color: theme.colorScheme.onSurface.withAlpha(179),
                             size: 12,
                           ),
                           const SizedBox(width: 4),
@@ -165,9 +165,7 @@ class ProductCard extends ConsumerWidget {
                             stock,
                             textAlign: TextAlign.start,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.7,
-                              ),
+                              color: theme.colorScheme.onSurface.withAlpha(179),
                               fontSize: 10,
                             ),
                           ),

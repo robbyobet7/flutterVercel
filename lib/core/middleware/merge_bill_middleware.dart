@@ -36,15 +36,6 @@ class MergeBillMiddleware {
     }
   }
 
-  // Load bills from JSON
-  Future<void> _loadBillsFromJson() async {
-    try {
-      await _billMiddleware.initialize();
-    } catch (e) {
-      _billErrorController.add('Failed to load bills from JSON: $e');
-    }
-  }
-
   // Load and broadcast all bills
   Future<void> refreshBills() async {
     try {

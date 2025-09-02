@@ -374,9 +374,7 @@ class Bill extends ConsumerWidget {
                   // Summary section
                   Container(
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainer.withOpacity(
-                        0.3,
-                      ),
+                      color: theme.colorScheme.surfaceContainer.withAlpha(77),
                     ),
                     padding: const EdgeInsets.all(12),
                     child: Column(

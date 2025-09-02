@@ -125,7 +125,7 @@ class BillFilterDropdown extends ConsumerWidget {
             Icon(
               Icons.expand_more,
               size: 18,
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              color: theme.colorScheme.onSurface.withAlpha(179),
             ),
           ],
         ),
@@ -246,7 +246,7 @@ class CustomerBillsDropdown extends ConsumerWidget {
             Icon(
               Icons.expand_more,
               size: 18,
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              color: theme.colorScheme.onSurface.withAlpha(179),
             ),
           ],
         ),

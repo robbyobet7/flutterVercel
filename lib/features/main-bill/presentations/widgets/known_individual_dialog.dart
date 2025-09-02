@@ -220,8 +220,9 @@ class _KnownIndividualDialogState extends ConsumerState<KnownIndividualDialog> {
                                 borderColor =
                                     index % 2 == 0
                                         ? Colors.transparent
-                                        : theme.colorScheme.onSurface
-                                            .withOpacity(0.05);
+                                        : theme.colorScheme.onSurface.withAlpha(
+                                          127,
+                                        );
                               }
 
                               return Column(

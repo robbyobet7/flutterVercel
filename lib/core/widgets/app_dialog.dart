@@ -74,12 +74,11 @@ class AppDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, dynamic _) {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
-
         if (onClose != null) onClose!();
-        return true;
       },
       child: Dialog(
         insetPadding: EdgeInsets.all(24),

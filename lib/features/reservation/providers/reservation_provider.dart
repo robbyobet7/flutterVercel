@@ -28,7 +28,7 @@ class ReservationState {
 }
 
 // Repository provider
-final ReservationMiddlewareProvider = Provider<ReservationMiddleware>((ref) {
+final reservationMiddlewareProvider = Provider<ReservationMiddleware>((ref) {
   return ReservationMiddleware();
 });
 
@@ -46,7 +46,7 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
       // Initialize the middleware first
       await reservationMiddleware.initialize();
 
-      final reservations = await reservationMiddleware.getAllReservations();
+      final reservations = reservationMiddleware.getAllReservations();
       state = state.copyWith(reservations: reservations, isLoading: false);
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
@@ -57,6 +57,6 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
 // Provider for the reservation state
 final reservationProvider =
     StateNotifierProvider<ReservationNotifier, ReservationState>((ref) {
-      final repository = ref.watch(ReservationMiddlewareProvider);
+      final repository = ref.watch(reservationMiddlewareProvider);
       return ReservationNotifier(repository);
     });

@@ -94,14 +94,14 @@ class _AddReservationContentState extends ConsumerState<AddReservationContent> {
       lastDate: DateTime(2101),
     );
 
-    if (pickedDate == null || !mounted) return;
+    if (pickedDate == null || !context.mounted) return;
 
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_selectedDateTime ?? DateTime.now()),
     );
 
-    if (pickedTime == null) return;
+    if (pickedTime == null || !mounted) return;
 
     setState(() {
       _selectedDateTime = DateTime(

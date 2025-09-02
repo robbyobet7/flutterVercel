@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -58,9 +60,9 @@ class _OrientationChangeObserver extends WidgetsBindingObserver {
 
   @override
   void didChangeMetrics() {
-    final window = WidgetsBinding.instance.window;
+    final view = PlatformDispatcher.instance.views.first;
     final orientation =
-        window.physicalSize.width > window.physicalSize.height
+        view.physicalSize.width > view.physicalSize.height
             ? Orientation.landscape
             : Orientation.portrait;
     onOrientationChanged(orientation);
