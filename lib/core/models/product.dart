@@ -177,6 +177,25 @@ class Product {
     final List<dynamic> products = jsonData['products'];
     return products.map((product) => Product.fromJson(product)).toList();
   }
+
+  bool get hasOptions {
+    if (option == null || option!.trim().isEmpty) {
+      return false;
+    }
+    if (!option!.trim().startsWith('[') || !option!.trim().endsWith(']')) {
+      return false;
+    }
+    try {
+      final List<dynamic> optionList = json.decode(option!);
+      return optionList.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  bool get hasMultipleDiscounts {
+    return multipleDiscounts != null && multipleDiscounts!.isNotEmpty;
+  }
 }
 
 // Add a class for the multiple discounts

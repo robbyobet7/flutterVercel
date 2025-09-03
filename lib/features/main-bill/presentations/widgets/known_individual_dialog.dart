@@ -221,7 +221,7 @@ class _KnownIndividualDialogState extends ConsumerState<KnownIndividualDialog> {
                                     index % 2 == 0
                                         ? Colors.transparent
                                         : theme.colorScheme.onSurface.withAlpha(
-                                          127,
+                                          20,
                                         );
                               }
 

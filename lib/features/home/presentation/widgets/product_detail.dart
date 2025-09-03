@@ -343,23 +343,25 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
                 (mainBillComponent == MainBillComponent.defaultComponent) ||
                         isClosed
                     ? Center(
-                      child: Text(
-                        'Create new bill to add items',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          'Create new bill to add items',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     )
                     : Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      spacing: 12,
                       children: [
                         Expanded(
                           flex: 2,
                           child: AppTextField(
                             showLabel: false,
-                            constraints: BoxConstraints(maxHeight: 40),
-                            contentPadding: EdgeInsets.symmetric(
+                            constraints: const BoxConstraints(maxHeight: 40),
+                            contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 0,
                             ),
@@ -372,93 +374,117 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
                         Expanded(
                           flex: 3,
                           child: Row(
-                            spacing: 12,
                             crossAxisAlignment: CrossAxisAlignment.center,
-
                             children: [
-                              Row(
-                                spacing: 12,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: theme.colorScheme.surfaceContainer,
-                                      borderRadius: BorderRadius.circular(9999),
-                                    ),
-                                    child: IconButton(
-                                      onPressed: _decrementQuantity,
-                                      icon: const Icon(Icons.remove),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 70,
-                                    height: 40,
-                                    child: AppTextField(
-                                      showLabel: false,
-                                      textAlign: TextAlign.center,
-                                      controller: _quantityController,
-                                      onChanged:
-                                          (_) => _updateQuantityFromField(),
-                                      keyboardType: TextInputType.number,
-                                      hintText: 'Qty',
-                                      labelText: 'Qty',
-                                      constraints: BoxConstraints(
-                                        maxWidth: 70,
-                                        maxHeight: 40,
+                              Flexible(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            theme.colorScheme.surfaceContainer,
+                                        borderRadius: BorderRadius.circular(
+                                          9999,
+                                        ),
                                       ),
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 0,
+                                      child: IconButton(
+                                        onPressed: _decrementQuantity,
+                                        icon: const Icon(Icons.remove),
                                       ),
                                     ),
-                                  ),
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: theme.colorScheme.surfaceContainer,
-                                      borderRadius: BorderRadius.circular(9999),
+                                    const SizedBox(width: 12),
+                                    SizedBox(
+                                      width: 50,
+                                      height: 40,
+                                      child: AppTextField(
+                                        showLabel: false,
+                                        textAlign: TextAlign.center,
+                                        controller: _quantityController,
+                                        onChanged:
+                                            (_) => _updateQuantityFromField(),
+                                        keyboardType: TextInputType.number,
+                                        hintText: 'Qty',
+                                        labelText: 'Qty',
+                                        constraints: const BoxConstraints(
+                                          maxWidth: 50,
+                                          maxHeight: 40,
+                                        ),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 0,
+                                            ),
+                                      ),
                                     ),
-                                    child: IconButton(
-                                      onPressed: _incrementQuantity,
-                                      icon: const Icon(Icons.add),
+                                    const SizedBox(width: 12),
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            theme.colorScheme.surfaceContainer,
+                                        borderRadius: BorderRadius.circular(
+                                          9999,
+                                        ),
+                                      ),
+                                      child: IconButton(
+                                        onPressed: _incrementQuantity,
+                                        icon: const Icon(Icons.add),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                              Expanded(
-                                child: AppButton(
-                                  height: 50,
-                                  backgroundColor: theme.colorScheme.primary,
-                                  textStyle: theme.textTheme.bodyMedium
-                                      ?.copyWith(
-                                        color: theme.colorScheme.onPrimary,
-                                      ),
-                                  onPressed: _addToCart,
-                                  text: '',
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    spacing: 6,
-                                    children: [
-                                      Icon(
-                                        Icons.add_shopping_cart,
-                                        color: theme.colorScheme.onPrimary,
-                                      ),
-                                      if (isLandscape)
-                                        Text(
-                                          'Add to Cart',
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
+                              const SizedBox(width: 12),
+                              Builder(
+                                builder: (context) {
+                                  final buttonChild =
+                                      isLandscape
+                                          ? Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.add_shopping_cart,
                                                 color:
                                                     theme.colorScheme.onPrimary,
-                                                fontWeight: FontWeight.w600,
                                               ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                'Add to Cart',
+                                                style: theme
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      color:
+                                                          theme
+                                                              .colorScheme
+                                                              .onPrimary,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                              ),
+                                            ],
+                                          )
+                                          : Icon(
+                                            Icons.add_shopping_cart,
+                                            color: theme.colorScheme.onPrimary,
+                                          );
+
+                                  final cartButton = AppButton(
+                                    backgroundColor: theme.colorScheme.primary,
+                                    onPressed: _addToCart,
+                                    text: '',
+                                    child: buttonChild,
+                                  );
+
+                                  return isLandscape
+                                      ? Expanded(child: cartButton)
+                                      : cartButton;
+                                },
                               ),
                             ],
                           ),

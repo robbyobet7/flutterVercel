@@ -3,6 +3,7 @@ import 'package:rebill_flutter/core/models/cart_item.dart';
 import 'dart:convert';
 import 'package:rebill_flutter/core/models/product.dart';
 import 'package:rebill_flutter/core/models/bill.dart';
+import 'package:rebill_flutter/core/providers/product_provider.dart';
 
 /// Class representing the full state of a cart
 class CartState {
@@ -98,6 +99,57 @@ class CartState {
 /// Notifier that manages the cart state
 class CartNotifier extends StateNotifier<CartState> {
   CartNotifier() : super(const CartState());
+
+  void addSimpleProduct(Product product, WidgetRef ref, {int quantity = 1}) {
+    final productNotifier = ref.read(productProvider.notifier);
+
+    if (product.id != null) {
+      productNotifier.selectProduct(product.id!);
+    }
+
+    final basePrice = product.productsPrice ?? 0;
+    final finalPrice = productNotifier.getTotalPrice(product);
+
+    double discountAmount = 0;
+    String? discountType;
+    dynamic discountValue;
+    String? discountName;
+
+    final activeDiscount = productNotifier.getActiveDiscount(product.id!);
+    if (activeDiscount != null) {
+      discountAmount = basePrice - productNotifier.getDiscountedPrice(product);
+      discountType = activeDiscount.discountType ?? 'percentage';
+      discountValue =
+          discountType == 'percentage'
+              ? activeDiscount.amount
+              : activeDiscount.total;
+      discountName = activeDiscount.discountName;
+    } else if (product.productsDiscount != null &&
+        product.productsDiscount! > 0) {
+      discountAmount = basePrice - productNotifier.getDiscountedPrice(product);
+      discountType = product.discountType2 ?? 'percentage';
+      discountValue = product.productsDiscount;
+      discountName = product.productsDiscountName;
+    }
+
+    addProduct(
+      id: product.id ?? 0,
+      name: product.productsName ?? 'Unknown',
+      price: finalPrice, // <-- Price after discount
+      quantity: quantity.toDouble(),
+      type: product.type,
+      purchprice: product.purchPrice ?? 0,
+      includedtax: product.tax ?? 0,
+      options: null, // No option for simpleProduct
+      category: product.productsType ?? 'Unknown',
+      productNotes: null,
+      originalPrice: basePrice, // Real price before discount
+      discount: discountAmount,
+      discountType: discountType,
+      discountValue: discountValue,
+      discountName: discountName,
+    );
+  }
 
   // Add an item to the cart
   void addItem(CartItem item) {
@@ -402,8 +454,6 @@ class CartNotifier extends StateNotifier<CartState> {
       // If bill only has order collection string, parse and add items
       addItemsFromBill(bill.orderCollection);
     }
-
-    // Check final cart state
 
     // Check individual items
     for (int i = 0; i < state.items.length; i++) {

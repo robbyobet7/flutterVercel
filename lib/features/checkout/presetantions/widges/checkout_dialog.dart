@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/providers/discounts_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/label_text.dart';
@@ -21,7 +22,6 @@ class CheckoutDialog extends ConsumerStatefulWidget {
 
 class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
   String? selectedDelivery;
-  String? selectedDiscount;
   PaymentType? selectedPayment;
 
   // Static data - created once
@@ -35,7 +35,6 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
 
   // Cached widget lists
   List<Widget>? _cachedDeliveryButtons;
-  List<Widget>? _cachedDiscountButtons;
   List<Widget>? _cachedPaymentButtons;
 
   @override
@@ -46,23 +45,13 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     _discounts = [
       CheckoutDiscount(
         name: 'Show Available Discount',
-        onTap: () async {
-          setState(() {
-            selectedDiscount = 'Show Available Discount';
-          });
-          final result = await AppDialog.showCustom(
+        onTap: () {
+          AppDialog.showCustom(
             context,
             content: const AvailableDiscountsDialog(),
             dialogType: DialogType.large,
             title: 'Available Discounts',
           );
-          if (result == null || result == false) {
-            if (mounted) {
-              setState(() {
-                selectedDiscount = null;
-              });
-            }
-          }
         },
       ),
       CheckoutDiscount(
@@ -116,12 +105,15 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
         .toList();
   }
 
-  List<Widget> _buildDiscountButtons() {
+  List<Widget> _buildDiscountButtons(List<DiscountModel> appliedDiscounts) {
+    final isDiscountApplied = appliedDiscounts.isNotEmpty;
+
     return _discounts
         .map(
           (e) => CheckoutButton(
             text: e.name,
-            isSelected: selectedDiscount == e.name,
+            isSelected:
+                e.name == 'Show Available Discount' ? isDiscountApplied : false,
             onTap: e.onTap,
           ),
         )
@@ -182,9 +174,10 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
   @override
   Widget build(BuildContext context) {
     // Cache buttons if not already cached or if selection changed
+    final appliedDiscounts = ref.watch(selectedDiscountsProvider);
     _cachedDeliveryButtons ??= _buildDeliveryButtons();
-    _cachedDiscountButtons ??= _buildDiscountButtons();
     _cachedPaymentButtons ??= _buildPaymentButtons();
+    final discountButtons = _buildDiscountButtons(appliedDiscounts);
 
     // Intentionally left for future keyboard-aware adjustments if needed.
 
@@ -202,19 +195,19 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
                 children: [
                   _buildSection(
                     title: 'Delivery',
-                    buttons: _buildDeliveryButtons(),
+                    buttons: _cachedDeliveryButtons!,
                     columns: 2,
                   ),
                   const SizedBox(height: 16),
                   _buildSection(
                     title: 'Discounts',
-                    buttons: _buildDiscountButtons(),
+                    buttons: discountButtons,
                     columns: 3,
                   ),
                   const SizedBox(height: 16),
                   _buildSection(
                     title: 'Payment',
-                    buttons: _buildPaymentButtons(),
+                    buttons: _cachedPaymentButtons!,
                     columns: 2,
                   ),
                   const SizedBox(height: 16),

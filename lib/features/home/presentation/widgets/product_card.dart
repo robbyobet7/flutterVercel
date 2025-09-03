@@ -38,15 +38,33 @@ class ProductCard extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () {
-        AppDialog.showCustom(
-          context,
-          content: ProductDetail(product: product),
-          dialogType:
-              (product.productsDiscount == null && product.option == null)
-                  ? DialogType.small
-                  : DialogType.large,
-          padding: const EdgeInsets.all(12),
-        );
+        final bool isComplexProduct =
+            product.hasOptions || product.hasMultipleDiscounts;
+
+        if (isComplexProduct) {
+          AppDialog.showCustom(
+            context,
+            content: ProductDetail(product: product),
+            dialogType: DialogType.large,
+            padding: const EdgeInsets.all(12),
+          );
+        } else {
+          ref.read(cartProvider.notifier).addSimpleProduct(product, ref);
+
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${product.productsName ?? "Product"} added to bill.',
+              ),
+              duration: const Duration(milliseconds: 1500),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+          );
+        }
       },
       child: Container(
         decoration: BoxDecoration(
@@ -68,17 +86,14 @@ class ProductCard extends ConsumerWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // --- PERUBAHAN DIMULAI DI SINI ---
                     product.productImage != null &&
                             product.productImage!.isNotEmpty
                         ? CachedNetworkImage(
                           imageUrl: product.productImage!,
                           fit: BoxFit.cover,
-                          // Tampilkan ini saat gambar sedang di-download
                           placeholder:
                               (context, url) =>
                                   Container(color: Colors.grey[200]),
-                          // Tampilkan ini jika gagal memuat gambar
                           errorWidget:
                               (context, url, error) => Image.asset(
                                 'assets/images/product_placeholder.webp',
@@ -89,10 +104,9 @@ class ProductCard extends ConsumerWidget {
                           'assets/images/product_placeholder.webp',
                           fit: BoxFit.cover,
                         ),
-                    // --- PERUBAHAN SELESAI DI SINI ---
 
                     // Check if the product is in the cart
-                    if (isInCart) // Cara penulisan if yang lebih ringkas
+                    if (isInCart)
                       Positioned(
                         top: 8,
                         right: 8,

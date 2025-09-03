@@ -54,6 +54,7 @@ class TotalPriceCard extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   Icons.receipt_long,
@@ -76,30 +77,40 @@ class TotalPriceCard extends ConsumerWidget {
                 ),
               ],
             ),
-            Text.rich(
-              TextSpan(
-                children: [
+            const SizedBox(width: 8),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+
+                child: Text.rich(
                   TextSpan(
-                    text: 'IDR ',
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      color:
-                          isClosed || isEmpty
-                              ? theme.colorScheme.onSurface
-                              : theme.colorScheme.onPrimary,
-                      fontWeight: FontWeight.w400,
-                    ),
+                    children: [
+                      TextSpan(
+                        text: 'IDR ',
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          color:
+                              isClosed || isEmpty
+                                  ? theme.colorScheme.onSurface
+                                  : theme.colorScheme.onPrimary,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      TextSpan(
+                        text: numberFormat.format(totalRounded),
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color:
+                              isClosed || isEmpty
+                                  ? theme.colorScheme.onSurface
+                                  : theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                    ],
                   ),
-                  TextSpan(
-                    text: numberFormat.format(totalRounded),
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color:
-                          isClosed || isEmpty
-                              ? theme.colorScheme.onSurface
-                              : theme.colorScheme.onPrimary,
-                    ),
-                  ),
-                ],
+                  maxLines: 1,
+                  softWrap: false,
+                ),
               ),
             ),
           ],
