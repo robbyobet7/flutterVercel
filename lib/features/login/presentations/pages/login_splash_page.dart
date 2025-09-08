@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
-import 'package:rebill_flutter/core/widgets/app_snackbar.dart';
 import 'package:rebill_flutter/features/login/providers/staff_auth_provider.dart';
 
 class OwnerLoginSplashPage extends ConsumerStatefulWidget {
@@ -22,6 +21,30 @@ class _OwnerLoginSplashPageState extends ConsumerState<OwnerLoginSplashPage> {
     });
   }
 
+  Future<void> _showErrorDialogAndNavigate(String errorMessage) async {
+    if (!mounted) return;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Connection Error'),
+            content: Text('Failed to load data: $errorMessage'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Kembali ke Login'),
+              ),
+            ],
+          ),
+    );
+
+    if (mounted) {
+      context.go(AppConstants.loginPage);
+    }
+  }
+
   Future<void> _loadDataAndProceed() async {
     try {
       final fecthDataFuture =
@@ -34,14 +57,7 @@ class _OwnerLoginSplashPageState extends ConsumerState<OwnerLoginSplashPage> {
         context.go(AppConstants.loginStaffPage);
       }
     } catch (e) {
-      if (mounted) {
-        AppSnackbar.showError(
-          context,
-          message: 'Failed to load data: ${e.toString()}',
-          ttile: 'Connection Error',
-        );
-        context.go(AppConstants.loginPage);
-      }
+      await _showErrorDialogAndNavigate(e.toString());
     }
   }
 

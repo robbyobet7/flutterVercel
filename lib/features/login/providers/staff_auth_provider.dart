@@ -254,7 +254,6 @@ class StaffAuthProvider extends StateNotifier<StaffAuthState> {
     await secureStorage.delete(key: AppConstants.authTokenStaffKey);
     await secureStorage.delete(key: AppConstants.refreshTokenStaffKey);
     await secureStorage.delete(key: AppConstants.userDataKey);
-    // await secureStorage.delete(key: AppConstants.loggedInStaffname)
 
     state = const StaffAuthState();
 

@@ -18,6 +18,7 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
+  bool _didPrecache = false;
   @override
   void initState() {
     super.initState();
@@ -26,6 +27,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_didPrecache) {
+      precacheImage(
+        const AssetImage('assets/images/login_background.webp'),
+        context,
+      );
+      _didPrecache = true;
+    }
   }
 
   @override
@@ -58,7 +71,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 width: double.infinity,
                 height: double.infinity,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                  color: theme.colorScheme.primary.withAlpha(204),
                 ),
                 child: Flex(
                   direction: isLandscape ? Axis.horizontal : Axis.vertical,
@@ -76,44 +89,77 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 }
 
-class LoginComponent extends ConsumerWidget {
+enum LoginType { dashboard, pos }
+
+class LoginComponent extends ConsumerStatefulWidget {
   const LoginComponent({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LoginComponent> createState() => _LoginComponentState();
+}
+
+class _LoginComponentState extends ConsumerState<LoginComponent> {
+  // State lokal untuk melacak tombol yang sedang loading
+  LoginType? _loadingButton;
+
+  // Fungsi generik untuk menangani proses login
+  Future<void> _performLogin(LoginType type) async {
+    if (_loadingButton != null) return; // Mencegah klik ganda
+
+    FocusScope.of(context).unfocus();
+
+    try {
+      // Set state untuk menunjukkan tombol mana yang loading
+      setState(() {
+        _loadingButton = type;
+      });
+
+      // Panggil provider untuk melakukan login
+      await ref
+          .read(authProvider.notifier)
+          .login(
+            ref.read(identityControllerProvider).text,
+            ref.read(passwordControllerProvider).text,
+          );
+
+      // Jeda singkat untuk UX
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (!mounted) return;
+      context.go(AppConstants.ownerLoginSplashRoute);
+    } catch (e) {
+      if (!mounted) return;
+      AppSnackbar.showError(context, message: e.toString());
+    } finally {
+      // Selalu reset state loading setelah selesai
+      if (mounted) {
+        setState(() {
+          _loadingButton = null;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isLandscape = ref.watch(orientationProvider);
     final isObscure = ref.watch(obscureProvider);
     final identityController = ref.watch(identityControllerProvider);
     final passwordController = ref.watch(passwordControllerProvider);
+    final isDashboardLoading = _loadingButton == LoginType.dashboard;
+    final isPosLoading = _loadingButton == LoginType.pos;
+    final primaryColor = theme.colorScheme.primary;
+
     double? boxWidth = isLandscape ? null : double.infinity;
     double? boxHeight = isLandscape ? double.infinity : null;
-
-    Future<void> login() async {
-      try {
-        // Close Keyboard
-        FocusScope.of(context).unfocus();
-
-        await ref
-            .read(authProvider.notifier)
-            .login(identityController.text, passwordController.text);
-
-        await Future.delayed(Duration.zero);
-        if (!context.mounted) return;
-        context.go(AppConstants.ownerLoginSplashRoute);
-      } catch (e) {
-        if (!context.mounted) return;
-
-        AppSnackbar.showError(context, message: e.toString());
-      }
-    }
 
     return Expanded(
       child: Container(
         width: boxWidth,
         height: boxHeight,
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F4FD),
+          color: const Color(0xFFF4F4F4),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(35),
             topRight: isLandscape ? Radius.circular(0) : Radius.circular(40),
@@ -121,21 +167,22 @@ class LoginComponent extends ConsumerWidget {
           ),
         ),
         child: Column(
-          spacing: 24,
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SvgPicture.asset('assets/icons/rebill_logo.svg', height: 70),
+            const SizedBox(height: 24),
             Text(
               'Login to your account',
               style: theme.textTheme.displayLarge?.copyWith(
                 color: Colors.black,
               ),
             ),
+            const SizedBox(height: 24),
             Container(
               decoration: BoxDecoration(
                 boxShadow: AppTheme.kBoxShadow,
-                color: theme.colorScheme.onPrimaryContainer,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
               ),
               constraints: BoxConstraints(
@@ -146,7 +193,6 @@ class LoginComponent extends ConsumerWidget {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 35),
               child: Column(
-                spacing: 15,
                 children: [
                   AppTextField(
                     controller: identityController,
@@ -157,6 +203,7 @@ class LoginComponent extends ConsumerWidget {
                     ),
                     hintText: 'Email Address or Username',
                   ),
+                  const SizedBox(height: 14),
                   AppTextField(
                     obscureText: isObscure,
                     controller: passwordController,
@@ -174,36 +221,77 @@ class LoginComponent extends ConsumerWidget {
                     ),
                     hintText: 'Password',
                   ),
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    spacing: 8,
                     children: [
-                      AppButton(
-                        onPressed: login,
-                        text: 'Login Dashboard',
-                        backgroundColor: theme.colorScheme.primary,
-                        textStyle: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Expanded(
+                        child:
+                            isDashboardLoading
+                                ? AppButton(
+                                  onPressed: null,
+                                  backgroundColor: Colors.white,
+                                  text: '',
+                                  child: SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                )
+                                : AppButton(
+                                  onPressed:
+                                      () => _performLogin(LoginType.dashboard),
+                                  backgroundColor: primaryColor,
+                                  text: 'Login Dashboard',
+                                  textStyle: theme.textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
                       ),
-                      Text(
-                        'or',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.surfaceContainer.withValues(
-                            alpha: 0.5,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 12.0,
+                        ),
+                        child: Text(
+                          'or',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade500,
                           ),
                         ),
                       ),
-                      AppButton(
-                        onPressed: login,
-                        text: 'Login POS',
-                        backgroundColor: theme.colorScheme.primary,
-                        textStyle: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Expanded(
+                        child:
+                            isPosLoading
+                                ? AppButton(
+                                  onPressed: null,
+                                  backgroundColor: Colors.white,
+                                  text: '',
+                                  child: SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                )
+                                : AppButton(
+                                  onPressed: () => _performLogin(LoginType.pos),
+                                  backgroundColor: primaryColor,
+                                  text: 'Login POS',
+                                  textStyle: theme.textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
                       ),
                     ],
                   ),

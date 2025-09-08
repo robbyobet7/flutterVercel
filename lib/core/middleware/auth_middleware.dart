@@ -76,7 +76,7 @@ class AuthMiddleware {
     String password,
   ) async {
     try {
-      final dio = Dio();
+      final dio = ref.read(dioProvider);
       final storage = FlutterSecureStorage();
       final tokenOwner = await storage.read(key: AppConstants.authTokenKey);
       if (tokenOwner == null) {

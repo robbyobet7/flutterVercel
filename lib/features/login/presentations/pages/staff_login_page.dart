@@ -11,27 +11,16 @@ import 'package:rebill_flutter/core/constants/app_constants.dart';
 import 'package:pinput/pinput.dart';
 import 'package:flutter/services.dart';
 
-class LoginStaffPage extends ConsumerStatefulWidget {
+class LoginStaffPage extends ConsumerWidget {
   const LoginStaffPage({super.key});
 
   @override
-  ConsumerState<LoginStaffPage> createState() => _LoginStaffPageState();
-}
-
-class _LoginStaffPageState extends ConsumerState<LoginStaffPage> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = ref.watch(orientationProvider);
     final staffState = ref.watch(staffAuthProvider);
-    final isLoggingIn = staffState.isLoading;
 
     double boxWidth = isLandscape ? screenWidth * 0.3 : double.infinity;
     double boxHeight = isLandscape ? double.infinity : screenWidth * 0.5;
@@ -56,25 +45,35 @@ class _LoginStaffPageState extends ConsumerState<LoginStaffPage> {
                 width: double.infinity,
                 height: double.infinity,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                  color: theme.colorScheme.primary.withAlpha(204),
                 ),
                 child: Flex(
                   direction: isLandscape ? Axis.horizontal : Axis.vertical,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     SizedBox(width: boxWidth, height: boxHeight),
-                    LoginStaffComponent(outlets: staffState.outlets),
+                    if (staffState.accountsLoading)
+                      const Expanded(
+                        child: Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      )
+                    else if (staffState.accountsError != null)
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'Error: ${staffState.accountsError}',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      )
+                    else
+                      LoginStaffComponent(outlets: staffState.outlets),
                   ],
                 ),
               ),
             ),
           ),
-          if (isLoggingIn)
-            Container(
-              width: screenWidth,
-              height: screenHeight,
-              color: Colors.black.withValues(alpha: 0.5),
-              child: const Center(child: CircularProgressIndicator()),
-            ),
         ],
       ),
     );
@@ -83,7 +82,6 @@ class _LoginStaffPageState extends ConsumerState<LoginStaffPage> {
 
 class LoginStaffComponent extends ConsumerStatefulWidget {
   final List<StaffAccount> outlets;
-
   const LoginStaffComponent({super.key, required this.outlets});
 
   @override
@@ -92,127 +90,68 @@ class LoginStaffComponent extends ConsumerStatefulWidget {
 }
 
 class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
-  StaffAccount? selectedOutlet;
-  Staff? selectedStaff;
-  final TextEditingController pinController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    // Ensure no field is focused when entering this page
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        FocusManager.instance.primaryFocus?.unfocus();
-      }
-    });
-  }
+  StaffAccount? _selectedOutlet;
+  Staff? _selectedStaff;
+  bool _isLoggingIn = false;
+  final TextEditingController _pinController = TextEditingController();
 
   @override
   void dispose() {
-    pinController.dispose();
+    _pinController.dispose();
     super.dispose();
   }
 
-  Future<void> validateAndLogin() async {
+  // Staff Login
+  Future<void> _submitLogin() async {
+    if (_isLoggingIn) return;
+    FocusScope.of(context).unfocus();
+
     try {
-      // Validasi input
-      if (selectedOutlet == null) {
-        FocusScope.of(context).unfocus();
+      setState(() => _isLoggingIn = true);
+
+      // Validation
+      if (_selectedOutlet == null) {
+        AppSnackbar.showError(context, message: 'Please Select an outlet.');
+        return;
+      }
+      if (_selectedStaff == null) {
         AppSnackbar.showError(
           context,
-          ttile: 'Outlet not selected',
-          message: 'Select the outlet first',
+          message: 'Please select a staff member.',
         );
-        pinController.clear();
+        return;
+      }
+      if (_pinController.text.length < 6) {
+        AppSnackbar.showError(context, message: 'Please enter a 6-digit PIN.');
         return;
       }
 
-      if (selectedStaff == null) {
-        FocusScope.of(context).unfocus();
-
-        AppSnackbar.showError(
-          context,
-          ttile: 'Staff not yet selected',
-          message: 'Select staff first',
-        );
-        pinController.clear();
-        return;
-      }
-
-      // Proses login staff
       await ref
           .read(staffAuthProvider.notifier)
-          .loginStaff(selectedOutlet!, selectedStaff!, pinController.text);
+          .loginStaff(_selectedOutlet!, _selectedStaff!, _pinController.text);
 
-      if (!mounted) return;
-
-      FocusScope.of(context).unfocus();
-
-      ref.read(staffAuthProvider.notifier).setIsLoading(true);
-      await Future.delayed(const Duration(milliseconds: 3000));
-
-      if (!mounted) return;
-      context.go(AppConstants.ownerLoginSplashRoute);
-    } catch (e) {
-      if (!mounted) return;
-
-      // Close Keyboard and pin error
-      FocusScope.of(context).unfocus();
-      pinController.clear();
-
-      AppSnackbar.showError(context, message: 'Wrong pin, try again');
-    }
-  }
-
-  Future<void> loginStaff() async {
-    try {
-      FocusScope.of(context).unfocus();
-
-      // Validate Input
-      if (selectedOutlet == null) {
-        FocusScope.of(context).unfocus();
-
-        AppSnackbar.showError(
-          context,
-          message: 'Select the outlet first',
-          ttile: 'Outlet not selected',
-        );
-        return;
+      if (mounted) {
+        precacheImage(const AssetImage('assets/images/ReBillPro.png'), context);
       }
 
-      if (selectedStaff == null) {
-        FocusScope.of(context).unfocus();
+      await Future.delayed(const Duration(milliseconds: 500));
 
+      if (mounted) {
+        context.go(AppConstants.staffLoginSplashRoute);
+      }
+    } catch (e) {
+      if (mounted) {
         AppSnackbar.showError(
           context,
-          message: 'Select staff first',
-          ttile: 'Staff not yet selected',
+          message: e.toString(),
+          ttile: 'Login Failed',
         );
-        return;
       }
-
-      // Staff Login Process
-      await ref
-          .read(staffAuthProvider.notifier)
-          .loginStaff(selectedOutlet!, selectedStaff!, pinController.text);
-
-      if (!mounted) return;
-
-      ref.read(staffAuthProvider.notifier).setIsLoading(true);
-      await Future.delayed(const Duration(milliseconds: 1000));
-
-      if (!mounted) return;
-      context.go(AppConstants.homeRoute);
-    } catch (e) {
-      if (!mounted) return;
-      await Future.delayed(const Duration(seconds: 3));
-      if (!mounted) return;
-
-      AppSnackbar.showError(
-        context,
-        message: e.toString(),
-        ttile: 'Login Failed',
-      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoggingIn = false);
+        _pinController.clear();
+      }
     }
   }
 
@@ -220,14 +159,22 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isLandscape = ref.watch(orientationProvider);
+    final primaryColor = theme.colorScheme.primary;
 
-    double? boxWidth = isLandscape ? null : double.infinity;
-    double? boxHeight = isLandscape ? double.infinity : null;
+    // Default theme for Pinput
+    final defaultPinTheme = PinTheme(
+      width: 44,
+      height: 44,
+      textStyle: theme.textTheme.headlineSmall?.copyWith(color: Colors.black87),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade300, width: 1.5),
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
 
     return Expanded(
       child: Container(
-        width: boxWidth,
-        height: boxHeight,
         decoration: BoxDecoration(
           color: const Color(0xFFF1F4FD),
           borderRadius: BorderRadius.only(
@@ -237,22 +184,22 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
           ),
         ),
         child: Column(
-          spacing: 24,
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SvgPicture.asset('assets/icons/rebill_logo.svg', height: 70),
+            const SizedBox(height: 14),
             Text(
               'Login Staff',
               style: theme.textTheme.displayLarge?.copyWith(
                 color: Colors.black,
               ),
             ),
+            const SizedBox(height: 24),
             Container(
               margin: EdgeInsets.only(top: 12),
               decoration: BoxDecoration(
                 boxShadow: AppTheme.kBoxShadow,
-                color: theme.colorScheme.onPrimaryContainer,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
               ),
               constraints: BoxConstraints(
@@ -261,249 +208,292 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                         ? MediaQuery.of(context).size.width * 0.4
                         : MediaQuery.of(context).size.width * 0.7,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-              child: Column(
-                spacing: 15,
-                children: [
-                  // Outlet Dropdown
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: theme.colorScheme.primary.withAlpha(102),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: PopupMenuButton<StaffAccount>(
-                      offset: const Offset(0, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 200,
-                        maxWidth: 300,
-                        maxHeight: 3.5 * 50,
-                      ),
-                      color: Colors.white,
-                      itemBuilder: (BuildContext context) {
-                        return widget.outlets.map<PopupMenuEntry<StaffAccount>>(
-                          (outlet) {
-                            return PopupMenuItem<StaffAccount>(
-                              value: outlet,
-                              height: 48,
-                              child: Text(
-                                outlet.name,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.black,
-                                ),
-                              ),
-                            );
-                          },
-                        ).toList();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 16,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.store_outlined,
-                              color:
-                                  selectedOutlet != null
-                                      ? theme.colorScheme.primary
-                                      : theme.colorScheme.scrim.withAlpha(51),
-                              size: 22,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                selectedOutlet?.name ?? 'Select Outlet',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color:
-                                      selectedOutlet != null
-                                          ? Colors.black87
-                                          : Colors.grey[600],
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Icon(
-                              Icons.arrow_drop_down_rounded,
-                              color: theme.colorScheme.primary,
-                            ),
-                          ],
-                        ),
-                      ),
-                      onSelected: (StaffAccount outlet) {
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 30,
+                ),
+                child: Column(
+                  children: [
+                    _AdvancedDropdown<StaffAccount>(
+                      label: _selectedOutlet?.name ?? 'Select Outlet',
+                      icon: Icons.store_outlined,
+                      items: widget.outlets,
+                      itemBuilder: (outlet) => outlet.name,
+                      onSelected: (selected) {
                         setState(() {
-                          selectedOutlet = outlet;
-                          // Reset staff selection when outlet changes
-                          selectedStaff = null;
+                          _selectedOutlet = selected;
+                          _selectedStaff = null;
                         });
                       },
                     ),
-                  ),
-
-                  // Staff Dropdown
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: theme.colorScheme.primary.withAlpha(102),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: PopupMenuButton<Staff>(
-                      offset: const Offset(0, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      enabled: selectedOutlet != null,
-                      constraints: const BoxConstraints(
-                        minWidth: 200,
-                        maxWidth: 300,
-                        maxHeight: 3.5 * 50,
-                      ),
-                      color: Colors.white,
-                      itemBuilder: (BuildContext context) {
-                        final staffList =
-                            selectedOutlet == null ? [] : selectedOutlet!.staff;
-                        return staffList.map<PopupMenuEntry<Staff>>((staff) {
-                          return PopupMenuItem<Staff>(
-                            value: staff,
-                            height: 48,
-                            child: Text(
-                              staff.name,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: Colors.black,
-                              ),
-                            ),
-                          );
-                        }).toList();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 16,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.person_outline_rounded,
-                              color:
-                                  selectedStaff != null
-                                      ? theme.colorScheme.primary
-                                      : theme.colorScheme.scrim.withAlpha(51),
-                              size: 22,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                selectedStaff?.name ?? 'Select Staff',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color:
-                                      selectedStaff != null
-                                          ? Colors.black87
-                                          : Colors.grey[600],
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Icon(
-                              Icons.arrow_drop_down_rounded,
-                              color:
-                                  selectedStaff != null
-                                      ? theme.colorScheme.primary
-                                      : Colors.grey[400],
-                            ),
-                          ],
-                        ),
-                      ),
-                      onSelected: (Staff staff) {
+                    const SizedBox(height: 15),
+                    _AdvancedDropdown<Staff>(
+                      label: _selectedStaff?.name ?? 'Select Staff',
+                      icon: Icons.person_outline_rounded,
+                      items: _selectedOutlet?.staff ?? [],
+                      isEnabled: _selectedOutlet != null,
+                      itemBuilder: (staff) => staff.name,
+                      onSelected: (selected) {
                         setState(() {
-                          selectedStaff = staff;
+                          _selectedStaff = selected;
                         });
                       },
                     ),
-                  ),
-                  Text(
-                    'Input your pin',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.scrim.withAlpha(130),
-                    ),
-                  ),
-
-                  // Input PIN with Pinput
-                  Pinput(
-                    length: 6,
-                    controller: pinController,
-                    obscureText: true,
-                    obscuringCharacter: '●',
-                    autofocus: false,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    onCompleted: (pin) {
-                      validateAndLogin();
-                    },
-                    defaultPinTheme: PinTheme(
-                      width: 44,
-                      height: 44,
-                      textStyle:
-                          theme.textTheme.headlineSmall?.copyWith(
-                            color: theme.colorScheme.surfaceContainer,
-                          ) ??
-                          const TextStyle(color: Colors.grey),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(
-                          color: theme.colorScheme.scrim.withAlpha(51),
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 15),
+                    Text(
+                      'Input your pin',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey.shade600,
                       ),
                     ),
-                    focusedPinTheme: PinTheme(
-                      width: 44,
-                      height: 44,
-                      textStyle:
-                          theme.textTheme.headlineSmall?.copyWith(
-                            color: theme.colorScheme.surfaceContainer,
-                          ) ??
-                          const TextStyle(color: Colors.grey),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.onPrimary,
-                        border: Border.all(
-                          color: theme.colorScheme.primary.withAlpha(77),
-                          width: 2,
+                    const SizedBox(height: 15),
+                    // Input PIN with Pinput
+                    Pinput(
+                      length: 6,
+                      controller: _pinController,
+                      obscureText: true,
+                      obscuringCharacter: '●',
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      onCompleted: (pin) => _submitLogin(),
+                      hapticFeedbackType: HapticFeedbackType.lightImpact,
+                      defaultPinTheme: defaultPinTheme,
+                      focusedPinTheme: defaultPinTheme.copyWith(
+                        decoration: defaultPinTheme.decoration!.copyWith(
+                          border: Border.all(color: primaryColor, width: 1),
                         ),
-                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ),
-                    submittedPinTheme: PinTheme(
-                      width: 44,
-                      height: 44,
-                      textStyle:
-                          theme.textTheme.headlineSmall?.copyWith(
-                            color: theme.colorScheme.scrim,
-                          ) ??
-                          const TextStyle(color: Colors.grey, fontSize: 18),
-
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.onPrimary,
-                        border: Border.all(
-                          color: theme.colorScheme.primary,
-                          width: 2,
+                      submittedPinTheme: defaultPinTheme.copyWith(
+                        decoration: defaultPinTheme.decoration!.copyWith(
+                          border: Border.all(color: primaryColor, width: 2),
                         ),
-                        borderRadius: BorderRadius.circular(10),
                       ),
+                      showCursor: !_isLoggingIn,
+                      preFilledWidget:
+                          _isLoggingIn
+                              ? Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: primaryColor,
+                                  ),
+                                ),
+                              )
+                              : null,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AdvancedDropdown<T> extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final List<T> items;
+  final void Function(T) onSelected;
+  final String Function(T) itemBuilder;
+  final bool isEnabled;
+
+  const _AdvancedDropdown({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.items,
+    required this.onSelected,
+    required this.itemBuilder,
+    this.isEnabled = true,
+  });
+
+  @override
+  State<_AdvancedDropdown<T>> createState() => _AdvancedDropdownState<T>();
+}
+
+class _AdvancedDropdownState<T> extends State<_AdvancedDropdown<T>>
+    with SingleTickerProviderStateMixin {
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+  bool _isMenuOpen = false;
+  final double _menuWidth = 220.0;
+  final double _itemHeight = 48.0;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _hideMenu();
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _showMenu() {
+    _overlayEntry = _createOverlayEntry();
+    Overlay.of(context).insert(_overlayEntry!);
+    setState(() => _isMenuOpen = true);
+    _animationController.forward();
+  }
+
+  void _hideMenu() {
+    if (_isMenuOpen) {
+      _animationController.reverse().then((value) {
+        if (_overlayEntry != null) {
+          _overlayEntry!.remove();
+          _overlayEntry = null;
+        }
+        if (mounted) {
+          setState(() => _isMenuOpen = false);
+        }
+      });
+    }
+  }
+
+  void _toggleMenu() {
+    if (_isMenuOpen) {
+      _hideMenu();
+    } else {
+      _showMenu();
+    }
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    return OverlayEntry(
+      builder: (context) {
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _hideMenu,
+                behavior: HitTestBehavior.translucent,
+              ),
+            ),
+            CompositedTransformFollower(
+              link: _layerLink,
+              showWhenUnlinked: false,
+              targetAnchor: Alignment.bottomRight,
+              followerAnchor: Alignment.topRight,
+              offset: const Offset(0, 8),
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Material(
+                  elevation: 8,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: _menuWidth,
+                    height:
+                        widget.items.length > 3.7
+                            ? _itemHeight * 3.7
+                            : (widget.items.length * _itemHeight) + 12,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: widget.items.length,
+                      itemExtent: _itemHeight,
+                      cacheExtent: _itemHeight * 5,
+                      physics: const BouncingScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        final item = widget.items[index];
+                        return RepaintBoundary(
+                          child: InkWell(
+                            onTap: () {
+                              widget.onSelected(item);
+                              _hideMenu();
+                            },
+                            child: Container(
+                              height: _itemHeight,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                widget.itemBuilder(item),
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Colors.black),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+    final disabledColor = Colors.grey.shade400;
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: widget.isEnabled ? _toggleMenu : null,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color:
+                  widget.isEnabled
+                      ? primaryColor.withAlpha(102)
+                      : disabledColor.withAlpha(102),
+              width: 1.5,
+            ),
+            color: widget.isEnabled ? Colors.transparent : Colors.grey.shade100,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                widget.icon,
+                color: widget.isEnabled ? primaryColor : disabledColor,
+                size: 22,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: widget.isEnabled ? Colors.black87 : disabledColor,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Icon(
+                Icons.arrow_drop_down_rounded,
+                color: widget.isEnabled ? primaryColor : disabledColor,
+              ),
+            ],
+          ),
         ),
       ),
     );

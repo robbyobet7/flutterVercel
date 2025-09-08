@@ -17,10 +17,13 @@ class AuthProvider extends StateNotifier<AuthState> {
 
   // Login Owner
   Future<void> login(String identity, String password) async {
+    state = state.copyWith(isLoading: true);
     try {
       await authMiddleware.login(identity, password);
     } catch (e) {
       rethrow;
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
