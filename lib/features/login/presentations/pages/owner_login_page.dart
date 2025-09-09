@@ -47,9 +47,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = ref.watch(orientationProvider);
+    final Alignment backgroundImageAlignment;
 
     double boxWidth = isLandscape ? screenWidth * 0.3 : double.infinity;
     double boxHeight = isLandscape ? double.infinity : screenWidth * 0.5;
+
+    if (isLandscape) {
+      backgroundImageAlignment =
+          screenWidth >= 1200
+              ? Alignment(-3, 0)
+              : screenWidth >= 800
+              ? Alignment(-7, 0)
+              : Alignment(-2, 0);
+    } else {
+      backgroundImageAlignment = Alignment(0, -1.2);
+    }
 
     return Scaffold(
       body: Stack(
@@ -63,8 +75,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               decoration: BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage('assets/images/login_background.webp'),
-                  alignment:
-                      isLandscape ? Alignment(-7, 0) : Alignment(0.0, -1.2),
+                  alignment: backgroundImageAlignment,
                 ),
               ),
               child: Container(
@@ -147,7 +158,6 @@ class _LoginComponentState extends ConsumerState<LoginComponent> {
     final isObscure = ref.watch(obscureProvider);
     final identityController = ref.watch(identityControllerProvider);
     final passwordController = ref.watch(passwordControllerProvider);
-    final isDashboardLoading = _loadingButton == LoginType.dashboard;
     final isPosLoading = _loadingButton == LoginType.pos;
     final primaryColor = theme.colorScheme.primary;
 
@@ -221,79 +231,39 @@ class _LoginComponentState extends ConsumerState<LoginComponent> {
                     ),
                     hintText: 'Password',
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child:
-                            isDashboardLoading
-                                ? AppButton(
-                                  onPressed: null,
-                                  backgroundColor: Colors.white,
-                                  text: '',
-                                  child: SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      color: primaryColor,
-                                    ),
+                  const SizedBox(height: 18),
+                  Align(
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                      width:
+                          isLandscape
+                              ? MediaQuery.of(context).size.width * 0.15
+                              : MediaQuery.of(context).size.width * 0.25,
+                      child:
+                          isPosLoading
+                              ? AppButton(
+                                onPressed: null,
+                                backgroundColor: Colors.white,
+                                text: '',
+                                child: SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: primaryColor,
                                   ),
-                                )
-                                : AppButton(
-                                  onPressed:
-                                      () => _performLogin(LoginType.dashboard),
-                                  backgroundColor: primaryColor,
-                                  text: 'Login Dashboard',
-                                  textStyle: theme.textTheme.bodyMedium
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
                                 ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 12.0,
-                        ),
-                        child: Text(
-                          'or',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child:
-                            isPosLoading
-                                ? AppButton(
-                                  onPressed: null,
-                                  backgroundColor: Colors.white,
-                                  text: '',
-                                  child: SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                )
-                                : AppButton(
-                                  onPressed: () => _performLogin(LoginType.pos),
-                                  backgroundColor: primaryColor,
-                                  text: 'Login POS',
-                                  textStyle: theme.textTheme.bodyMedium
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                              )
+                              : AppButton(
+                                onPressed: () => _performLogin(LoginType.pos),
+                                backgroundColor: primaryColor,
+                                text: 'Login POS',
+                                textStyle: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                      ),
-                    ],
+                              ),
+                    ),
                   ),
                 ],
               ),

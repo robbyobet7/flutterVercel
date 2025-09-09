@@ -1,6 +1,4 @@
-// product_card.dart (Versi Final dengan Optimasi Gambar)
-
-import 'package:cached_network_image/cached_network_image.dart'; // <-- IMPORT BARU
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/product.dart';
@@ -8,6 +6,8 @@ import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/product_detail.dart';
+import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
+import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 
 class ProductCard extends ConsumerWidget {
   const ProductCard({
@@ -40,6 +40,7 @@ class ProductCard extends ConsumerWidget {
       onTap: () {
         final bool isComplexProduct =
             product.hasOptions || product.hasMultipleDiscounts;
+        final mainBillComponent = ref.read(mainBillProvider);
 
         if (isComplexProduct) {
           AppDialog.showCustom(
@@ -49,6 +50,17 @@ class ProductCard extends ConsumerWidget {
             padding: const EdgeInsets.all(12),
           );
         } else {
+          if (mainBillComponent == MainBillComponent.defaultComponent) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('There is no active bill.'),
+                duration: Duration(milliseconds: 1500),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
           ref.read(cartProvider.notifier).addSimpleProduct(product, ref);
 
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -57,7 +69,7 @@ class ProductCard extends ConsumerWidget {
               content: Text(
                 '${product.productsName ?? "Product"} added to bill.',
               ),
-              duration: const Duration(milliseconds: 1500),
+              duration: const Duration(milliseconds: 1000),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.0),

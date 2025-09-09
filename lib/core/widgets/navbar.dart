@@ -288,12 +288,9 @@ class Navbar extends ConsumerWidget {
                           !ref.read(hideNavbarProvider.notifier).state;
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       width: double.infinity,
-                      child: Icon(Icons.unfold_more),
+                      child: Icon(Icons.arrow_drop_down),
                     ),
                   )
                   : Padding(
@@ -339,6 +336,7 @@ class Navbar extends ConsumerWidget {
                                   color: theme.colorScheme.onSurface,
                                 ),
                               ),
+                            const SizedBox(width: 8),
                             if (isWeb)
                               IconButton(
                                 onPressed: () {},
@@ -347,6 +345,7 @@ class Navbar extends ConsumerWidget {
                                   color: theme.colorScheme.onSurface,
                                 ),
                               ),
+                            const SizedBox(width: 12),
                             PopupMenuButton<String>(
                               tooltip: 'Options',
                               elevation: 2,
