@@ -24,8 +24,7 @@ class HomeBill extends ConsumerStatefulWidget {
 class _HomeBillState extends ConsumerState<HomeBill> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-
-  // Add a color cache to avoid recalculating colors
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -65,6 +64,82 @@ class _HomeBillState extends ConsumerState<HomeBill> {
     final theme = Theme.of(context);
     final allBills = ref.watch(allBillsProvider);
     final isLoading = ref.watch(billLoadingProvider);
+    final customerType = ref.watch(customerTypeProvider);
+    final knownIndividual = ref.watch(knownIndividualProvider);
+    final cart = ref.watch(cartProvider);
+    final mainBillComponent = ref.watch(mainBillProvider);
+    final selectedBill = ref.watch(selectedBillProvider);
+    int roundUpToThousand(double value) => ((value / 1000).ceil()) * 1000;
+
+    BillItem? activeBill;
+    if (mainBillComponent != MainBillComponent.defaultComponent &&
+        selectedBill == null) {
+      activeBill = BillItem(
+        billId: 9999,
+        name:
+            customerType == CustomerType.knownIndividual &&
+                    knownIndividual != null
+                ? knownIndividual.customerName
+                : 'Guest',
+        total: roundUpToThousand(cart.total).toDouble(),
+        finalTotal: roundUpToThousand(cart.total).toDouble(),
+        status: 'open',
+      );
+    }
+
+    // Combine activeBill with first billsByDate (or create new if empty)
+    List<BillsByDate> displayBills = List.from(allBills);
+    if (activeBill != null) {
+      if (displayBills.isEmpty) {
+        displayBills.add(BillsByDate(date: 'Today', bills: [activeBill]));
+      } else {
+        displayBills[0] = BillsByDate(
+          date: displayBills[0].date,
+          bills: [
+            activeBill,
+            ...displayBills[0].bills.where((b) => b.billId != 9999),
+          ],
+        );
+      }
+    }
+
+    final totalBillItems = displayBills.fold<int>(
+      0,
+      (sum, b) => sum + b.bills.length,
+    );
+    final totalOpenItems = displayBills.fold<int>(
+      0,
+      (sum, b) =>
+          sum +
+          b.bills.where((bill) => bill.status.toLowerCase() == 'open').length,
+    );
+    final totalClosedItems = displayBills.fold<int>(
+      0,
+      (sum, b) =>
+          sum +
+          b.bills.where((bill) => bill.status.toLowerCase() == 'closed').length,
+    );
+
+    final List<BillsByDate> filteredBills;
+    if (_searchQuery.isEmpty) {
+      filteredBills = displayBills;
+    } else {
+      filteredBills = [];
+      for (var billsByDate in displayBills) {
+        final matchingBills =
+            billsByDate.bills.where((bill) {
+              return bill.name.toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              );
+            }).toList();
+
+        if (matchingBills.isNotEmpty) {
+          filteredBills.add(
+            BillsByDate(date: billsByDate.date, bills: matchingBills),
+          );
+        }
+      }
+    }
 
     return GestureDetector(
       // Dismiss keyboard when tapping outside
@@ -115,7 +190,13 @@ class _HomeBillState extends ConsumerState<HomeBill> {
               padding: EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
-                  Expanded(child: BillFilterDropdown()),
+                  Expanded(
+                    child: BillFilterDropdown(
+                      allBillsCount: totalBillItems,
+                      openBillsCount: totalOpenItems,
+                      closedBillsCount: totalClosedItems,
+                    ),
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Container(
@@ -149,7 +230,11 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                                 isDense: true,
                               ),
                               style: theme.textTheme.bodyMedium,
-                              onChanged: (value) {},
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchQuery = value;
+                                });
+                              },
                               // Handle tap on the text field explicitly
                               onTap: () {
                                 // Only handle focus if explicitly tapped
@@ -157,19 +242,19 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                               },
                             ),
                           ),
-                          // if (searchQuery.isNotEmpty)
-                          //   GestureDetector(
-                          //     // Stop the parent gesture detector from receiving this tap
-                          //     behavior: HitTestBehavior.opaque,
-                          //     onTap: () {
-                          //       // Also unfocus to hide keyboard
-                          //       _searchFocusNode.unfocus();
-                          //     },
-                          //     child: const Padding(
-                          //       padding: EdgeInsets.only(right: 4),
-                          //       child: Icon(Icons.clear, size: 16),
-                          //     ),
-                          //   ),
+                          if (_searchQuery.isNotEmpty)
+                            GestureDetector(
+                              // Stop the parent gesture detector from receiving this tap
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                // Also unfocus to hide keyboard
+                                _searchFocusNode.unfocus();
+                              },
+                              child: const Padding(
+                                padding: EdgeInsets.only(right: 4),
+                                child: Icon(Icons.clear, size: 16),
+                              ),
+                            ),
                           GestureDetector(
                             // Stop the parent gesture detector from receiving this tap
                             behavior: HitTestBehavior.opaque,
@@ -257,7 +342,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                             )
                             : RepaintBoundary(
                               child:
-                                  allBills.isEmpty
+                                  filteredBills.isEmpty
                                       ? Center(
                                         child: Text(
                                           'No bills found',
@@ -272,7 +357,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 12,
                                         ),
-                                        itemCount: allBills.length,
+                                        itemCount: filteredBills.length,
                                         // Add these performance optimization parameters
                                         addAutomaticKeepAlives: false,
                                         addRepaintBoundaries: true,
@@ -280,7 +365,8 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                                         // Use cacheExtent to pre-render items outside the visible area
                                         cacheExtent: 100,
                                         itemBuilder: (context, index) {
-                                          final billsByDate = allBills[index];
+                                          final billsByDate =
+                                              filteredBills[index];
                                           // Use KeyedSubtree to maintain state when items move
                                           return KeyedSubtree(
                                             key: ValueKey(
@@ -327,10 +413,10 @@ class _HomeBillState extends ConsumerState<HomeBill> {
               ),
             ),
           ),
+
           // Bills container
           Container(
             clipBehavior: Clip.hardEdge,
-
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: theme.colorScheme.surfaceContainer),
@@ -345,15 +431,13 @@ class _HomeBillState extends ConsumerState<HomeBill> {
   // Extract bill items building to a separate method
   List<Widget> _buildBillItems(List<BillItem> bills) {
     final selectedBill = ref.watch(selectedBillProvider);
-
     final theme = Theme.of(context);
-    // Using List.generate is more efficient than .map() with spread operator
+    final int activeBillId = selectedBill != null ? selectedBill.billId : 9999;
+
     return List.generate(bills.length, (index) {
       final bill = bills[index];
-      // Cache the status color to avoid recalculating it
       final statusColor = _calculateStatusColor(bill.status);
       final isFirstItem = index == 0;
-      // Use finalTotal instead of total
       final billTotal = bill.finalTotal;
 
       // Format currency once and cache it
@@ -369,6 +453,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
               ? theme.colorScheme.onPrimary
               : theme.colorScheme.error;
 
+      final bool isActive = bill.billId == activeBillId;
       return AppMaterial(
         borderRadius: BorderRadius.circular(0),
         onTap: () async {
@@ -400,7 +485,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color:
-                selectedBill?.billId == bill.billId
+                isActive
                     ? theme.colorScheme.primaryContainer
                     : theme.colorScheme.surface,
             border: Border(
@@ -412,14 +497,21 @@ class _HomeBillState extends ConsumerState<HomeBill> {
           ),
           child: Row(
             children: [
-              // Bill name
               Expanded(flex: 4, child: Text(bill.name)),
-              // Bill amount
               Expanded(
                 flex: 3,
-                child: Text(formattedTotal, style: theme.textTheme.labelLarge),
+                child: FittedBox(
+                  fit:
+                      BoxFit
+                          .scaleDown, // Hanya mengecilkan jika teks terlalu besar
+                  alignment: Alignment.centerLeft, // Rata kiri agar rapi
+                  child: Text(
+                    formattedTotal,
+                    style: theme.textTheme.labelLarge,
+                  ),
+                ),
               ),
-              // Status indicator
+              const SizedBox(width: 8),
               Expanded(
                 flex: 2,
                 child: Container(

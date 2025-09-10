@@ -114,10 +114,10 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
           // Responsive font size for labels
           final double labelFontSize =
               constraints.maxWidth >= 1200
-                  ? 10
+                  ? 12
                   : constraints.maxWidth >= 900
-                  ? 9
-                  : 8;
+                  ? 10
+                  : 10;
 
           if (needsScrolling) {
             // Original scrollable implementation with arrows

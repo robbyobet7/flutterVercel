@@ -21,9 +21,21 @@ class LoginStaffPage extends ConsumerWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final isLandscape = ref.watch(orientationProvider);
     final staffState = ref.watch(staffAuthProvider);
+    final Alignment backgroundImageAlignment;
 
     double boxWidth = isLandscape ? screenWidth * 0.3 : double.infinity;
     double boxHeight = isLandscape ? double.infinity : screenWidth * 0.5;
+
+    if (isLandscape) {
+      backgroundImageAlignment =
+          screenWidth >= 1200
+              ? Alignment(-3, 0)
+              : screenWidth >= 800
+              ? Alignment(-7, 0)
+              : Alignment(-2, 0);
+    } else {
+      backgroundImageAlignment = Alignment(0, -1.2);
+    }
 
     return Scaffold(
       body: Stack(
@@ -37,8 +49,7 @@ class LoginStaffPage extends ConsumerWidget {
               decoration: BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage('assets/images/login_background.webp'),
-                  alignment:
-                      isLandscape ? Alignment(-7, 0) : Alignment(0.0, -1.2),
+                  alignment: backgroundImageAlignment,
                 ),
               ),
               child: Container(
@@ -94,10 +105,12 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
   Staff? _selectedStaff;
   bool _isLoggingIn = false;
   final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
 
   @override
   void dispose() {
     _pinController.dispose();
+    _pinFocusNode.dispose();
     super.dispose();
   }
 
@@ -238,6 +251,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                         setState(() {
                           _selectedStaff = selected;
                         });
+                        _pinFocusNode.requestFocus();
                       },
                     ),
                     const SizedBox(height: 15),
@@ -251,6 +265,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
                     // Input PIN with Pinput
                     Pinput(
                       length: 6,
+                      focusNode: _pinFocusNode,
                       controller: _pinController,
                       obscureText: true,
                       obscuringCharacter: '●',

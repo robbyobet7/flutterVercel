@@ -29,12 +29,18 @@ class BillFilterDropdown extends ConsumerWidget {
 
   /// Optional height for the dropdown button
   final double height;
+  final int allBillsCount;
+  final int openBillsCount;
+  final int closedBillsCount;
 
   const BillFilterDropdown({
     super.key,
     this.onFilterSelected,
     this.decoration,
     this.height = 40,
+    required this.allBillsCount,
+    required this.openBillsCount,
+    required this.closedBillsCount,
   });
 
   @override
@@ -42,12 +48,6 @@ class BillFilterDropdown extends ConsumerWidget {
     final theme = Theme.of(context);
     final selectedFilter = ref.watch(selectedBillFilterProvider);
     final billNotifier = ref.read(billProvider.notifier);
-
-    // Get bill counts
-    final billState = ref.watch(billProvider);
-    final allBillsCount = billState.bills.length;
-    final openBillsCount = billState.openBills.length;
-    final closedBillsCount = billState.closedBills.length;
 
     return AppPopupMenu<BillFilterType>(
       items:

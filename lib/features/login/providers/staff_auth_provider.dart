@@ -7,9 +7,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
 import 'package:rebill_flutter/core/middleware/auth_middleware.dart';
 import 'package:rebill_flutter/core/middleware/rewards_middleware.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
+import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/product_provider.dart';
 import 'package:rebill_flutter/core/providers/products_providers.dart';
 import 'package:rebill_flutter/features/login/models/staff_account.dart';
+import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
+import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
 class StaffAuthState {
   final String? token;
@@ -257,6 +261,13 @@ class StaffAuthProvider extends StateNotifier<StaffAuthState> {
 
     state = const StaffAuthState();
 
+    ref
+        .read(mainBillProvider.notifier)
+        .setMainBill(MainBillComponent.defaultComponent);
+    ref.read(cartProvider.notifier).clearCart();
+    ref.read(billProvider.notifier).clearSelectedBill();
+    ref.read(customerTypeProvider.notifier).setCustomerType(CustomerType.guest);
+    ref.read(knownIndividualProvider.notifier).setKnownIndividual(null);
     ref.invalidate(productMiddlewareProvider);
     await ref.read(paginatedProductsProvider.notifier).refresh();
     ref.invalidate(availableCategoriesProvider);

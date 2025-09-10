@@ -6,7 +6,8 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // Base URL
-  static const String baseUrl = '';
+  static const String baseUrl =
+      'https://marathon-av-vessel-inspection.trycloudflare.com';
 
   // Service URL
   static const String service = '/pos/';
