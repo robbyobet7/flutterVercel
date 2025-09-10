@@ -497,7 +497,14 @@ class _HomeBillState extends ConsumerState<HomeBill> {
               Expanded(flex: 4, child: Text(bill.name)),
               Expanded(
                 flex: 3,
-                child: Text(formattedTotal, style: theme.textTheme.labelLarge),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    formattedTotal,
+                    style: theme.textTheme.labelLarge,
+                  ),
+                ),
               ),
               Expanded(
                 flex: 2,
