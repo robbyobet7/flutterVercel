@@ -63,19 +63,18 @@ class _OwnerLoginSplashPageState extends ConsumerState<OwnerLoginSplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        color: theme.colorScheme.primary,
+        color: Colors.white,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset(
-                'assets/images/rLogo.png',
-                height: 96,
+                'assets/images/R-Logo_dark.png',
+                height: 124,
                 fit: BoxFit.contain,
               ),
               const SizedBox(height: 24),

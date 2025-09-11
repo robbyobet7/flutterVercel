@@ -413,10 +413,10 @@ class _HomeBillState extends ConsumerState<HomeBill> {
               ),
             ),
           ),
-
           // Bills container
           Container(
             clipBehavior: Clip.hardEdge,
+
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: theme.colorScheme.surfaceContainer),
@@ -431,13 +431,15 @@ class _HomeBillState extends ConsumerState<HomeBill> {
   // Extract bill items building to a separate method
   List<Widget> _buildBillItems(List<BillItem> bills) {
     final selectedBill = ref.watch(selectedBillProvider);
-    final theme = Theme.of(context);
-    final int activeBillId = selectedBill != null ? selectedBill.billId : 9999;
 
+    final theme = Theme.of(context);
+    // Using List.generate is more efficient than .map() with spread operator
     return List.generate(bills.length, (index) {
       final bill = bills[index];
+      // Cache the status color to avoid recalculating it
       final statusColor = _calculateStatusColor(bill.status);
       final isFirstItem = index == 0;
+      // Use finalTotal instead of total
       final billTotal = bill.finalTotal;
 
       // Format currency once and cache it
@@ -453,7 +455,6 @@ class _HomeBillState extends ConsumerState<HomeBill> {
               ? theme.colorScheme.onPrimary
               : theme.colorScheme.error;
 
-      final bool isActive = bill.billId == activeBillId;
       return AppMaterial(
         borderRadius: BorderRadius.circular(0),
         onTap: () async {
@@ -485,7 +486,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color:
-                isActive
+                selectedBill?.billId == bill.billId
                     ? theme.colorScheme.primaryContainer
                     : theme.colorScheme.surface,
             border: Border(
@@ -497,14 +498,14 @@ class _HomeBillState extends ConsumerState<HomeBill> {
           ),
           child: Row(
             children: [
+              // Bill name
               Expanded(flex: 4, child: Text(bill.name)),
+              // Bill amount
               Expanded(
                 flex: 3,
                 child: FittedBox(
-                  fit:
-                      BoxFit
-                          .scaleDown, // Hanya mengecilkan jika teks terlalu besar
-                  alignment: Alignment.centerLeft, // Rata kiri agar rapi
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
                   child: Text(
                     formattedTotal,
                     style: theme.textTheme.labelLarge,
@@ -512,6 +513,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                 ),
               ),
               const SizedBox(width: 8),
+              // Status indicator
               Expanded(
                 flex: 2,
                 child: Container(

@@ -8,22 +8,34 @@ import 'package:rebill_flutter/features/login/providers/owner_auth_provider.dart
 import 'package:rebill_flutter/features/login/providers/staff_auth_provider.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../constants/app_constants.dart';
-import '../../features/login/presentations/pages/login_splash_page.dart';
+import '../widgets/login_splash_page.dart';
+
+CustomTransitionPage<T> buildPageWithFadeTransition<T>({
+  required BuildContext context,
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      // Fade Transition
+      return FadeTransition(opacity: animation, child: child);
+    },
+    // Duration
+    transitionDuration: const Duration(milliseconds: 500),
+  );
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // Only listen to token changes to avoid unnecessary router rebuilds
   // Consider either owner or staff authenticated
-  final isOwnerAuthenticated = ref.watch(
-    authProvider.select(
-      (state) => state.token != null && state.token!.isNotEmpty,
-    ),
-  );
   final isStaffAuthenticated = ref.watch(
     staffAuthProvider.select(
       (state) => state.token != null && state.token!.isNotEmpty,
     ),
   );
-  final isAuthenticated = isOwnerAuthenticated || isStaffAuthenticated;
+
+  final isAuthenticated = isStaffAuthenticated;
 
   return GoRouter(
     initialLocation: AppConstants.loginPage,
@@ -31,24 +43,48 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: AppConstants.homeRoute,
-        builder: (context, state) => const HomePage(),
+        pageBuilder:
+            (context, state) => buildPageWithFadeTransition(
+              context: context,
+              state: state,
+              child: const HomePage(),
+            ),
       ),
-
       GoRoute(
         path: AppConstants.loginPage,
-        builder: (context, state) => const LoginPage(),
+        pageBuilder:
+            (context, state) => buildPageWithFadeTransition(
+              context: context,
+              state: state,
+              child: const LoginPage(),
+            ),
       ),
       GoRoute(
         path: AppConstants.loginStaffPage,
-        builder: (context, state) => const LoginStaffPage(),
+        pageBuilder:
+            (context, state) => buildPageWithFadeTransition(
+              context: context,
+              state: state,
+              child: const LoginStaffPage(),
+            ),
       ),
       GoRoute(
         path: AppConstants.ownerLoginSplashRoute,
-        builder: (context, state) => const OwnerLoginSplashPage(),
+        pageBuilder:
+            (context, state) => buildPageWithFadeTransition(
+              context: context,
+              state: state,
+              child: const OwnerLoginSplashPage(),
+            ),
       ),
       GoRoute(
         path: AppConstants.staffLoginSplashRoute,
-        builder: (context, state) => const StaffLoginSplashPage(),
+        pageBuilder:
+            (context, state) => buildPageWithFadeTransition(
+              context: context,
+              state: state,
+              child: const StaffLoginSplashPage(),
+            ),
       ),
     ],
 
@@ -68,13 +104,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (!isAuthenticated && !isGoingToUnprotectedRoute) {
         return AppConstants.loginPage;
       }
-
       if (isAuthenticated &&
           (destination == AppConstants.loginPage ||
               destination == AppConstants.loginStaffPage)) {
         return AppConstants.staffLoginSplashRoute;
       }
-
       return null;
     },
 

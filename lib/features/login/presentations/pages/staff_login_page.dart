@@ -144,7 +144,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
           .loginStaff(_selectedOutlet!, _selectedStaff!, _pinController.text);
 
       if (mounted) {
-        precacheImage(const AssetImage('assets/images/ReBillPro.png'), context);
+        precacheImage(const AssetImage('assets/images/R-Logo3.png'), context);
       }
 
       await Future.delayed(const Duration(milliseconds: 500));

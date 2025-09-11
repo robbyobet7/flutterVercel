@@ -9,8 +9,6 @@ import 'package:rebill_flutter/core/providers/table_provider.dart';
 import 'package:rebill_flutter/features/reservation/providers/reservation_provider.dart';
 
 final initialDataPreloaderProvider = FutureProvider<void>((ref) async {
-  // SOLUSI: Tunggu sesaat (satu event-loop tick) untuk memastikan semua provider
-  // telah selesai diinisialisasi sebelum kita memodifikasinya.
   await Future.delayed(Duration.zero);
 
   // Sekarang aman untuk memanggil notifier dan mengubah state provider lain.
