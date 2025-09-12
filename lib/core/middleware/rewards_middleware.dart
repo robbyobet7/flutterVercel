@@ -4,13 +4,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
 import 'package:rebill_flutter/features/checkout/models/checkout_rewards.dart';
 
-// Provider untuk instance Dio, agar bisa di-mock untuk testing
+// Provider for Dio instance, so it can be mocked in tests
 final dioProvider = Provider<Dio>((ref) => Dio());
 final secureStorageProvider = Provider<FlutterSecureStorage>(
   (ref) => const FlutterSecureStorage(),
 );
 
-// Provider untuk RewardsRepository
+// Provider for RewardsRepository
 final rewardsRepositoryProvider = Provider<RewardsRepository>((ref) {
   final dio = ref.watch(dioProvider);
   final storage = ref.watch(secureStorageProvider);

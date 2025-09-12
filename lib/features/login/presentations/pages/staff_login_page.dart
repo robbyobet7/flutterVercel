@@ -156,7 +156,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
       if (mounted) {
         AppSnackbar.showError(
           context,
-          message: e.toString(),
+          message: 'Wrong pin, authentication failed.',
           ttile: 'Login Failed',
         );
       }

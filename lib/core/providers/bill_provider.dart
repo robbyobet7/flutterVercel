@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/models/bill.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/middleware/bill_middleware.dart';
@@ -78,6 +79,16 @@ class BillNotifier extends StateNotifier<BillState> {
     });
   }
 
+  // Delete bill DUMMY
+  void deleteBill(int billId) {
+    _billMiddleware.deleteBill(billId);
+  }
+
+  // Add Dummy Bill
+  void addBill(BillModel bill) {
+    _billMiddleware.addBill(bill);
+  }
+
   String? get createdAt {
     final String? dateTime = state.selectedBill?.posPaidBillDate;
     if (dateTime == null) return null;
@@ -116,7 +127,6 @@ class BillNotifier extends StateNotifier<BillState> {
   // Load bills from repository via middleware
   Future<void> loadBills() async {
     state = state.copyWith(isLoading: true, error: null);
-
     try {
       await _billMiddleware.initialize();
       await _billMiddleware.refreshBills();
@@ -146,7 +156,6 @@ class BillNotifier extends StateNotifier<BillState> {
       clearSearch: true,
       clearDateRange: true,
     );
-
     try {
       final filteredBills = _billMiddleware.getBillsByStatus(status);
       state = state.copyWith(bills: filteredBills, isLoading: false);
@@ -251,39 +260,68 @@ final billProvider = StateNotifierProvider<BillNotifier, BillState>((ref) {
 // Provider for all bills
 final allBillsProvider = Provider<List<BillsByDate>>((ref) {
   final billState = ref.watch(billProvider);
+  final bills = List.from(billState.bills);
+
+  // List bill from the newest to the oldest
+  bills.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+  // DateFormat for display
+  final DateFormat dayFormatter = DateFormat('EEEE, dd MMMM yyyy');
 
   // Group bills by date
-  final Map<String, List<BillItem>> billsByDate = {};
+  final Map<DateTime, List<BillItem>> billsByDateMap = {};
 
-  for (final bill in billState.bills) {
+  for (final bill in bills) {
     // Format date as readable string (e.g., "Monday, Jan 1, 2023")
-    final dateKey = bill.createdAt.toString().split(' ')[0];
-    final dateString = dateKey;
-
-    // Convert bill to simplified BillItem
+    final dateKey = DateTime(
+      bill.createdAt.year,
+      bill.createdAt.month,
+      bill.createdAt.day,
+    );
     final billItem = BillItem(
       billId: bill.billId,
       name: bill.customerName,
       total: bill.total.toDouble(),
       finalTotal: bill.finalTotal,
       status: bill.states,
+      createdAt: bill.createdAt,
     );
 
-    if (billsByDate.containsKey(dateString)) {
-      billsByDate[dateString]!.add(billItem);
+    if (billsByDateMap.containsKey(dateKey)) {
+      billsByDateMap[dateKey]!.add(billItem);
     } else {
-      billsByDate[dateString] = [billItem];
+      billsByDateMap[dateKey] = [billItem];
     }
   }
 
-  // Convert map to list and sort by date (most recent first)
-  final result =
-      billsByDate.entries
-          .map((entry) => BillsByDate(date: entry.key, bills: entry.value))
-          .toList();
+  final sortedDateKeys =
+      billsByDateMap.keys.toList()..sort((a, b) => b.compareTo(a));
 
-  // Sort by date (most recent first)
-  result.sort((a, b) => b.date.compareTo(a.date));
+  // Prepare today and yesterday for comparison
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final yesterday = DateTime(now.year, now.month, now.day - 1);
+
+  final List<BillsByDate> result = [];
+  // Convert bill to simplified BillItem
+  for (final dateKey in sortedDateKeys) {
+    String dateString;
+    // Format nama grup tanggal menjadi "Today", "Yesterday", atau format lengkap
+    if (dateKey == today) {
+      dateString = 'Today';
+    } else if (dateKey == yesterday) {
+      dateString = 'Yesterday';
+    } else {
+      dateString = dayFormatter.format(dateKey);
+    }
+
+    // Urutkan juga item di dalam setiap grup berdasarkan waktu (paling baru di atas)
+    final dailyBills =
+        billsByDateMap[dateKey]!
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    result.add(BillsByDate(date: dateString, bills: dailyBills));
+  }
 
   return result;
 });
@@ -322,6 +360,7 @@ class BillItem {
   final double total;
   final double finalTotal;
   final String status;
+  final DateTime createdAt;
 
   BillItem({
     required this.billId,
@@ -329,5 +368,6 @@ class BillItem {
     required this.total,
     required this.finalTotal,
     required this.status,
+    required this.createdAt,
   });
 }

@@ -325,14 +325,29 @@ class _KnownIndividualDialogState extends ConsumerState<KnownIndividualDialog> {
                 Row(
                   children: [
                     AppButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        AppDialog.showCustom(
+                      onPressed: () async {
+                        final navigator = Navigator.of(context);
+
+                        final newCustomer = await AppDialog.showCustom(
                           context,
-                          content: AddCustomerDialog(),
+                          content: const AddCustomerDialog(),
                           title: 'Add New Customer',
                           dialogType: DialogType.medium,
                         );
+
+                        if (newCustomer != null &&
+                            newCustomer is CustomerModel) {
+                          ref
+                              .read(knownIndividualProvider.notifier)
+                              .setKnownIndividual(newCustomer);
+                          ref
+                              .read(customerTypeProvider.notifier)
+                              .setCustomerType(CustomerType.knownIndividual);
+                          ref.read(customerExpandableProvider.notifier).state =
+                              false;
+
+                          navigator.pop();
+                        }
                       },
                       text: 'Add New Customer',
                       backgroundColor: theme.colorScheme.surface,

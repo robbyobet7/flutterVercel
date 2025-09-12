@@ -3,7 +3,8 @@ import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 
 class CheckoutActionRow extends StatelessWidget {
-  const CheckoutActionRow({super.key});
+  final VoidCallback? onCheckout;
+  const CheckoutActionRow({super.key, this.onCheckout});
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +42,9 @@ class CheckoutActionRow extends StatelessWidget {
                     ),
                   ),
                   AppButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      if (onCheckout != null) onCheckout!();
+                    },
                     text: 'Checkout',
                     backgroundColor: theme.colorScheme.primary,
                     textStyle: theme.textTheme.bodyMedium?.copyWith(

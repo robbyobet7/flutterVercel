@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/customers.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
+import 'package:rebill_flutter/core/providers/cart_provider.dart';
+import 'package:rebill_flutter/core/providers/discounts_provider.dart';
 import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/core/middleware/customer_middleware.dart';
 
@@ -9,6 +12,28 @@ class MainBillNotifier extends StateNotifier<MainBillComponent> {
   void setMainBill(MainBillComponent component) {
     state = component;
   }
+}
+
+void resetMainBill(WidgetRef ref) {
+  // Clear the shopping cart
+  ref.read(cartProvider.notifier).clearCart();
+
+  // Clear the currently selected bill
+  ref.read(billProvider.notifier).clearSelectedBill();
+
+  // Clear all applied discounts
+  ref.invalidate(selectedDiscountsProvider);
+
+  // Clear the currently selected customer
+  ref.read(knownIndividualProvider.notifier).setKnownIndividual(null);
+
+  // Reset customer type to 'Guest'
+  ref.read(customerTypeProvider.notifier).setCustomerType(CustomerType.guest);
+
+  // Return the view to the default component
+  ref
+      .read(mainBillProvider.notifier)
+      .setMainBill(MainBillComponent.defaultComponent);
 }
 
 final mainBillProvider =

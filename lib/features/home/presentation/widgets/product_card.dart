@@ -1,211 +1,169 @@
-// product_card.dart (Versi Final dengan Optimasi Gambar)
-
-import 'package:cached_network_image/cached_network_image.dart'; // <-- IMPORT BARU
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/models/product.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
-import 'package:rebill_flutter/core/theme/app_theme.dart';
-import 'package:rebill_flutter/core/widgets/app_dialog.dart';
-import 'package:rebill_flutter/features/home/presentation/widgets/product_detail.dart';
+import 'package:rebill_flutter/core/widgets/app_material.dart';
 import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
 class ProductCard extends ConsumerWidget {
-  const ProductCard({
-    super.key,
-    required this.price,
-    required this.stock,
-    required this.product,
-  });
-
-  final String price;
-  final String stock;
   final Product product;
+
+  const ProductCard({super.key, required this.product});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final items = ref.watch(cartProvider);
-    final bool isInCart = items.items.any(
+
+    final cartItems = ref.watch(cartProvider).items;
+    final itemInCart = cartItems.firstWhereOrNull(
       (item) => item.id == product.productsId,
     );
-    final int count =
-        items.items
-            .where((item) => item.id == product.productsId)
-            .firstOrNull
-            ?.quantity
-            .toInt() ??
-        0;
+    final bool isInCart = itemInCart != null;
+    final int count = itemInCart?.quantity.toInt() ?? 0;
 
-    return GestureDetector(
+    final price = NumberFormat.decimalPattern(
+      'id_ID',
+    ).format(product.productsPrice ?? 0);
+    final stock =
+        product.hasInfiniteStock
+            ? 'Stock: ∞'
+            : 'Stock: ${product.availableStock}';
+
+    return AppMaterial(
       onTap: () {
-        final bool isComplexProduct =
-            product.hasOptions || product.hasMultipleDiscounts;
-        final mainBillComponent = ref.read(mainBillProvider);
+        final selectedBill = ref.read(selectedBillProvider);
+        final isBillClosed = selectedBill?.states.toLowerCase() == 'closed';
 
-        if (isComplexProduct) {
-          AppDialog.showCustom(
-            context,
-            content: ProductDetail(product: product),
-            dialogType: DialogType.large,
-            padding: const EdgeInsets.all(12),
-          );
-        } else {
-          if (mainBillComponent == MainBillComponent.defaultComponent) {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('There is no active bill.'),
-                duration: Duration(milliseconds: 1500),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            return;
-          }
-          ref.read(cartProvider.notifier).addSimpleProduct(product, ref);
-
+        // Notification can't add product while it's closed
+        if (isBillClosed) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '${product.productsName ?? "Product"} added to bill.',
-              ),
-              duration: const Duration(milliseconds: 1000),
+            const SnackBar(
+              content: Text('This bill is closed and cannot be modified.'),
+              backgroundColor: Colors.orange,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
             ),
           );
+          return;
         }
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: AppTheme.kBoxShadow,
-          color: theme.colorScheme.surface,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                clipBehavior: Clip.hardEdge,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    product.productImage != null &&
-                            product.productImage!.isNotEmpty
-                        ? CachedNetworkImage(
-                          imageUrl: product.productImage!,
-                          fit: BoxFit.cover,
-                          placeholder:
-                              (context, url) =>
-                                  Container(color: Colors.grey[200]),
-                          errorWidget:
-                              (context, url, error) => Image.asset(
-                                'assets/images/product_placeholder.webp',
-                                fit: BoxFit.cover,
-                              ),
-                        )
-                        : Image.asset(
-                          'assets/images/product_placeholder.webp',
-                          fit: BoxFit.cover,
-                        ),
 
-                    // Check if the product is in the cart
-                    if (isInCart)
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: CircleAvatar(
-                          radius: 12,
-                          backgroundColor: theme.colorScheme.primary,
-                          child: Text(
-                            count.toString(),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onPrimary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
+        final mainBillComponent = ref.read(mainBillProvider);
+        if (mainBillComponent == MainBillComponent.defaultComponent) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select or create a bill first.'),
+              duration: Duration(milliseconds: 1500),
+              behavior: SnackBarBehavior.floating,
             ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          );
+          return;
+        }
+
+        ref.read(cartProvider.notifier).addSimpleProduct(product, ref);
+
+        // Succes add product
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${product.productsName ?? "Product"} added to bill.',
+            ),
+            duration: const Duration(milliseconds: 1000),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Gambar Produk
+          Expanded(
+            child: Container(
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8.0),
+                color: theme.colorScheme.surfaceContainer,
+              ),
+              child: Stack(
+                fit: StackFit.expand,
                 children: [
-                  Text(
-                    product.productsName ?? 'Unnamed Product',
-                    textAlign: TextAlign.start,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text.rich(
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'IDR ',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                              ),
+                  product.productImage != null &&
+                          product.productImage!.isNotEmpty
+                      ? CachedNetworkImage(
+                        imageUrl: product.productImage!,
+                        fit: BoxFit.cover,
+                        placeholder:
+                            (context, url) =>
+                                Container(color: Colors.grey[200]),
+                        errorWidget:
+                            (context, url, error) => Image.asset(
+                              'assets/images/product_placeholder.webp',
+                              fit: BoxFit.cover,
                             ),
-                            TextSpan(
-                              text: price,
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                          ],
+                      )
+                      : Image.asset(
+                        'assets/images/product_placeholder.webp',
+                        fit: BoxFit.cover,
+                      ),
+                  if (isInCart)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: CircleAvatar(
+                        radius: 12,
+                        backgroundColor: theme.colorScheme.primary,
+                        child: Text(
+                          count.toString(),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.inventory_2_outlined,
-                            color: theme.colorScheme.onSurface.withAlpha(179),
-                            size: 12,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            stock,
-                            textAlign: TextAlign.start,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withAlpha(179),
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          // Detail Produk
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.productsName ?? 'No Name',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'Rp $price',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  stock,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[600],
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

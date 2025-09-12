@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
-import 'package:rebill_flutter/core/providers/discounts_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
@@ -20,31 +19,16 @@ class MainBillPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     void cancelBill() {
-      //clear cart
-      ref.read(cartProvider.notifier).clearCart();
-      ref.read(billProvider.notifier).clearSelectedBill();
-      ref.invalidate(selectedDiscountsProvider);
-
-      //set main bill to default component
-      ref
-          .watch(mainBillProvider.notifier)
-          .setMainBill(MainBillComponent.defaultComponent);
-
-      //set known individual to null
-      ref.read(knownIndividualProvider.notifier).setKnownIndividual(null);
-
-      //set customer type to guest
-      ref
-          .read(customerTypeProvider.notifier)
-          .setCustomerType(CustomerType.guest);
+      resetMainBill(ref);
     }
 
     final billType = ref.watch(billTypeProvider);
     final theme = Theme.of(context);
     final cart = ref.watch(cartProvider);
     final mainBillComponent = ref.watch(mainBillProvider);
-    final bill = ref.watch(billProvider.notifier);
-    final isClosed = bill.billStatus == 'closed';
+
+    final billState = ref.watch(billProvider);
+    final isClosed = billState.selectedBill?.states.toLowerCase() == 'closed';
     final customerTypes = [
       {
         'icon': Icons.person_rounded,
@@ -116,17 +100,6 @@ class MainBillPage extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                          if (!isClosed)
-                            Tooltip(
-                              message: 'Delete Bill',
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: Icon(
-                                  Icons.delete_forever_outlined,
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                              ),
-                            ),
                           Tooltip(
                             message: 'Share',
                             child: GestureDetector(
@@ -137,6 +110,121 @@ class MainBillPage extends ConsumerWidget {
                               ),
                             ),
                           ),
+                          if (isClosed)
+                            Tooltip(
+                              message: 'Delete Bill',
+                              child: GestureDetector(
+                                onTap: () async {
+                                  final selectedBill =
+                                      ref.read(billProvider).selectedBill;
+                                  if (selectedBill == null) return;
+                                  final theme = Theme.of(context);
+                                  final bool?
+                                  isConfirmed = await AppDialog.showCustom(
+                                    context,
+                                    title: 'Delete Bill',
+                                    dialogType: DialogType.small,
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.warning_amber_rounded,
+                                          color: theme.colorScheme.error,
+                                          size: 80,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'Are you sure you want to permanently delete this bill (${selectedBill.cBillId})?',
+                                          style: theme.textTheme.bodyLarge,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'This action cannot be undone.',
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                color:
+                                                    theme
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
+                                              ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 16),
+
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Expanded(
+                                              child: AppButton(
+                                                onPressed:
+                                                    () => Navigator.pop(
+                                                      context,
+                                                      false,
+                                                    ),
+                                                text: 'Cancel',
+                                                backgroundColor:
+                                                    theme
+                                                        .colorScheme
+                                                        .surfaceContainer,
+                                                textStyle: theme
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      color:
+                                                          theme
+                                                              .colorScheme
+                                                              .onSurface,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: AppButton(
+                                                onPressed:
+                                                    () => Navigator.pop(
+                                                      context,
+                                                      true,
+                                                    ),
+                                                text: 'Delete',
+                                                backgroundColor:
+                                                    theme.colorScheme.error,
+                                                textStyle: theme
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      color:
+                                                          theme
+                                                              .colorScheme
+                                                              .onError,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+
+                                  // Delete bill logic
+                                  if (isConfirmed == true && context.mounted) {
+                                    ref
+                                        .read(billProvider.notifier)
+                                        .deleteBill(selectedBill.billId);
+                                    cancelBill();
+                                  }
+                                },
+                                child: Icon(
+                                  Icons.delete_forever_outlined,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
                           Tooltip(
                             message: 'Cancel',
                             child: GestureDetector(
@@ -153,12 +241,11 @@ class MainBillPage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                billType != BillType.merchantBill
-                    ? CustomerExpandable(
-                      customerTypes: customerTypes,
-                      disabled: isClosed,
-                    )
-                    : const SizedBox.shrink(),
+                if (!isClosed && billType != BillType.merchantBill)
+                  CustomerExpandable(
+                    customerTypes: customerTypes,
+                    disabled: false,
+                  ),
                 cart.items.isEmpty ? EmptyCart() : Bill(),
               ],
             ),

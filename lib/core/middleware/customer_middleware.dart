@@ -13,6 +13,7 @@ class CustomerMiddleware {
   // State & Dependencies
   List<CustomerModel> _customers = [];
   bool _isInitialized = false;
+  int _nextLocalCustomerId = -1;
   final Dio dio = Dio();
   final FlutterSecureStorage storage = FlutterSecureStorage();
 
@@ -71,7 +72,7 @@ class CustomerMiddleware {
   }
 
   Future<void> refreshCustomers() async {
-    // Memastikan data selalu diambil ulang dari API saat di-refresh
+    // Ensures data is always refetched from the API when refreshed
     await fetchCustomersFromApi();
   }
 
@@ -97,28 +98,29 @@ class CustomerMiddleware {
         .toList();
   }
 
+  // DUMMY ADD CUSTOMER
   // Add a new customer
   CustomerModel addCustomer(CustomerModel customer) {
     if (!_isInitialized) {
-      throw Exception('Customer middleware not initialized');
+      customerErrorController.add('Customer middleware not initialized');
+      return customer; // Exit if not ready
     }
-    // Assign a new ID if none provided
-    final newCustomer =
-        customer.customerId == null
-            ? customer.copyWith(
-              customerId: _getNextCustomerId(),
-              key: _getNextCustomerId(),
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-            )
-            : customer;
+    //  Create a new customer object with a unique (negative) local ID and local time information.
+    final newLocalCustomer = customer.copyWith(
+      customerId:
+          _nextLocalCustomerId--, // Use local ID then subtract for next ID
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      point: customer.point ?? 0, // Give default value if null
+    );
 
-    _customers.add(newCustomer);
+    // Add this new customer to the existing list in memory.
+    _customers.add(newLocalCustomer);
 
-    //Notify listeners
-    fetchCustomersFromApi();
-
-    return newCustomer;
+    // Notify all listeners (such as the UI) that there is new data by
+    // sending the updated list to the stream.
+    customerStreamController.add(List.unmodifiable(_customers));
+    return newLocalCustomer;
   }
 
   // Update an existing customer

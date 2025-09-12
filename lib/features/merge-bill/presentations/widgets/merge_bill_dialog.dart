@@ -112,7 +112,7 @@ class MergeBillDialog extends ConsumerWidget {
                       parent: AlwaysScrollableScrollPhysics(),
                     ),
                     cacheExtent: 100,
-                    itemCount: 10,
+                    itemCount: mergeBills.bills.length,
                     itemBuilder: (context, index) {
                       // Get customer data
                       final bill = mergeBills.bills[index];
@@ -313,7 +313,7 @@ class MergeBillProductList extends StatelessWidget {
       child: AppPopupMenu(
         borderRadius: 8,
         items:
-            bill.items != null || bill.items!.isNotEmpty
+            bill.items?.isNotEmpty == true
                 ? bill.items!
                     .map(
                       (e) => AppPopupMenuItem(

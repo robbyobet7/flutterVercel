@@ -11,7 +11,7 @@ import 'package:rebill_flutter/features/reservation/providers/reservation_provid
 final initialDataPreloaderProvider = FutureProvider<void>((ref) async {
   await Future.delayed(Duration.zero);
 
-  // Sekarang aman untuk memanggil notifier dan mengubah state provider lain.
+  // It's now safe to call notifiers and modify other providers' state
   final dataFutures = [
     ref.read(paginatedProductsProvider.notifier).refresh(),
     ref.read(customerProvider.notifier).refreshCustomers(),
@@ -22,9 +22,9 @@ final initialDataPreloaderProvider = FutureProvider<void>((ref) async {
     ref.read(merchantProvider.notifier).refresh(),
   ];
 
-  // Jalankan semua future secara paralel dan tunggu hingga selesai
+  // Run all futures in parallel and wait until all complete
   await Future.wait(dataFutures);
 
-  // Invalidate provider yang tidak memiliki metode refresh eksplisit jika perlu
+  // Invalidate providers that don't have explicit refresh methods if needed
   ref.invalidate(availableCategoriesProvider);
 });

@@ -33,7 +33,7 @@ class ProductMiddleware {
     loadProductsFromJson();
   }
 
-  // Setter untuk cache produk
+  // Setter for product cache
   void setProducts(List<Product> products) {
     cachedProducts = products;
   }
@@ -140,7 +140,7 @@ class ProductMiddleware {
   //Override the getProductsByType method to use the fetch API
   Future<List<Product>> getProductsByType(String type) async {
     try {
-      // Coba fetch dari API
+      // Try fetching from the API
       final products = await fetchProductsFromAPI();
       return products
           .where((p) => p.productsType == type || p.type == type)

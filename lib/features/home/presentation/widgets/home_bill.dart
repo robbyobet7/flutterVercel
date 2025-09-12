@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -84,22 +85,21 @@ class _HomeBillState extends ConsumerState<HomeBill> {
         total: roundUpToThousand(cart.total).toDouble(),
         finalTotal: roundUpToThousand(cart.total).toDouble(),
         status: 'open',
+        createdAt: DateTime.now(),
       );
     }
 
-    // Combine activeBill with first billsByDate (or create new if empty)
+    // Combine activeBill with the first billsByDate group (or create a new one if empty)
     List<BillsByDate> displayBills = List.from(allBills);
     if (activeBill != null) {
-      if (displayBills.isEmpty) {
-        displayBills.add(BillsByDate(date: 'Today', bills: [activeBill]));
+      if (displayBills.isNotEmpty && displayBills[0].date == 'Today') {
+        final todayBills = displayBills[0].bills;
+        // Remove the previous activeBill if any to avoid duplicates
+        todayBills.removeWhere((b) => b.billId == 9999);
+        todayBills.insert(0, activeBill);
       } else {
-        displayBills[0] = BillsByDate(
-          date: displayBills[0].date,
-          bills: [
-            activeBill,
-            ...displayBills[0].bills.where((b) => b.billId != 9999),
-          ],
-        );
+        // If there is no "Today" group, create a new one and put it at the top
+        displayBills.insert(0, BillsByDate(date: 'Today', bills: [activeBill]));
       }
     }
 
@@ -457,28 +457,42 @@ class _HomeBillState extends ConsumerState<HomeBill> {
 
       return AppMaterial(
         borderRadius: BorderRadius.circular(0),
-        onTap: () async {
-          try {
+        onTap: () {
+          // Get the FULL BillModel from state using billId from BillItem
+          final fullBillModel = ref
+              .read(billProvider)
+              .bills
+              .firstWhereOrNull((model) => model.billId == bill.billId);
+
+          if (fullBillModel == null) {
+            // If for some reason the complete bill is not found, do nothing.
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: Could not find bill details.')),
+            );
+            return;
+          }
+
+          // Check the status of the complete bill that we found
+          if (fullBillModel.states.toLowerCase() == 'closed') {
+            // Logic for closed bill
+            ref.read(billProvider.notifier).selectBill(fullBillModel);
+            ref.read(cartProvider.notifier).loadCartFromBill(fullBillModel);
+            ref
+                .read(mainBillProvider.notifier)
+                .setMainBill(MainBillComponent.billsComponent);
+          } else {
+            // Logic for open bill
             ref
                 .read(billProvider.notifier)
                 .loadBillIntoCart(
-                  bill.billId,
+                  fullBillModel.billId,
                   ref.read(cartProvider.notifier),
                   ref.read(knownIndividualProvider.notifier),
                   ref.read(customerTypeProvider.notifier),
                 );
-
             ref
                 .read(mainBillProvider.notifier)
                 .setMainBill(MainBillComponent.billsComponent);
-          } catch (e) {
-            // Show a snackbar with the error
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Error loading bill: $e'),
-                backgroundColor: Colors.red,
-              ),
-            );
           }
         },
         child: AnimatedContainer(

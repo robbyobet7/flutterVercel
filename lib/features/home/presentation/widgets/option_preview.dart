@@ -31,7 +31,7 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Gunakan ref.read di dalam initState untuk sebuah aksi.
+      // Use ref.read inside initState to perform an action
       ref
           .read(productProvider.notifier)
           .initializeProductOptions(widget.productId);
@@ -43,10 +43,10 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
     final theme = Theme.of(context);
     List<dynamic> options = [];
 
-    // 1. PISAHKAN antara Notifier (untuk aksi) dan State (untuk UI)
-    // Gunakan .read untuk mengambil notifier, karena instance-nya tidak perlu ditonton.
+    // Separate Notifier (for actions) and State (for UI)
+    // Use .read to get the notifier; it doesn't need to be watched
     final productNotifier = ref.read(productProvider.notifier);
-    // Gunakan .watch untuk menonton state, karena datanya bisa berubah dan UI perlu update.
+    // Use .watch to observe state; data may change and UI needs updates
     final productState = ref.watch(productProvider);
 
     try {
@@ -117,7 +117,7 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                           final choiceName = choice['name'] ?? 'Option';
                           final choicePrice = choice['price'] ?? 0;
 
-                          // 2. AMBIL DATA dari 'productState', bukan panggil method dari notifier
+                          // Use data from 'productState', not methods from the notifier
                           final selectedValue =
                               productState
                                   .productOptions[widget.productId]?[optionId]
@@ -129,7 +129,7 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
 
                           return GestureDetector(
                             onTap: () {
-                              // AKSI tetap menggunakan notifier
+                              // Actions still use the notifier
                               productNotifier.toggleOption(
                                 widget.productId,
                                 optionId,
@@ -200,7 +200,7 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
             // Handle extras (checkboxes or toggles)
             else if (optionType == 'extra') {
               final price = opt['price'] ?? 0;
-              // 3. GUNAKAN STATE untuk mengecek, bukan notifier
+              // Use state to check, not the notifier
               final isSelected =
                   productState.productOptions[widget.productId]?.containsKey(
                     optionId,
@@ -211,7 +211,7 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: GestureDetector(
                   onTap: () {
-                    // AKSI tetap menggunakan notifier
+                    // Actions still use the notifier
                     productNotifier.toggleProductExtra(
                       widget.productId,
                       optionId,
@@ -260,7 +260,7 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
             }
             // Handle complimentary items
             else if (optionType == 'complimentary') {
-              // 4. GUNAKAN STATE untuk mendapatkan data, bukan notifier
+              // Use state to get data, not the notifier
               final selectedOption =
                   productState
                       .productOptions[widget.productId]?[optionId]
@@ -271,7 +271,7 @@ class _OptionPreviewState extends ConsumerState<OptionPreview> {
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: GestureDetector(
                   onTap: () {
-                    // Reset search provider saat dialog dibuka
+                    // Reset search provider when the dialog is opened
                     ref.invalidate(complimentarySearchProvider);
                     AppDialog.showCustom(
                       context,

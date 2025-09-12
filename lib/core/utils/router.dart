@@ -23,11 +23,12 @@ CustomTransitionPage<T> buildPageWithFadeTransition<T>({
       return FadeTransition(opacity: animation, child: child);
     },
     // Duration
-    transitionDuration: const Duration(milliseconds: 500),
+    transitionDuration: const Duration(milliseconds: 300),
   );
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
+  // Only listen to token changes to avoid unnecessary router rebuilds
   // Consider either owner or staff authenticated
   final isStaffAuthenticated = ref.watch(
     staffAuthProvider.select(

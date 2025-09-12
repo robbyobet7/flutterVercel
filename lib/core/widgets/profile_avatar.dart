@@ -8,7 +8,7 @@ class ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Ambil inisial dari nama, atau 'A' jika nama tidak ada
+    // Get initials from the name, or use 'A' if name is missing
     final initials =
         (name?.isNotEmpty ?? false)
             ? name!
@@ -39,7 +39,7 @@ class ProfileAvatar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              name ?? 'Admin', // <-- TAMPILKAN NAMA DI SINI
+              name ?? 'Admin', // Display the name here
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),

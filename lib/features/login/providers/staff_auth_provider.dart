@@ -94,9 +94,8 @@ class StaffAuthProvider extends StateNotifier<StaffAuthState> {
 
       // Refresh products after login
       try {
-        ref.read(productMiddlewareProvider).refreshProducts();
+        await ref.read(paginatedProductsProvider.notifier).refresh();
       } catch (_) {}
-      await ref.read(paginatedProductsProvider.notifier).refresh();
       ref.invalidate(availableCategoriesProvider);
     } catch (e) {
       rethrow;
@@ -271,14 +270,6 @@ class StaffAuthProvider extends StateNotifier<StaffAuthState> {
     ref.invalidate(productMiddlewareProvider);
     await ref.read(paginatedProductsProvider.notifier).refresh();
     ref.invalidate(availableCategoriesProvider);
-  }
-
-  bool isValidPinFormat(String pin) {
-    return RegExp(r'^[0-9]{6}$').hasMatch(pin);
-  }
-
-  bool shouldAutoLogin(String pin) {
-    return pin.length == 6 && isValidPinFormat(pin);
   }
 }
 

@@ -78,8 +78,8 @@ class CustomerNotifier extends StateNotifier<CustomerState> {
   }
 
   // Add a new customer
-  void addCustomer(CustomerModel customer) {
-    _middleware.addCustomer(customer);
+  CustomerModel addCustomer(CustomerModel customer) {
+    return _middleware.addCustomer(customer);
   }
 
   // Update an existing customer

@@ -39,12 +39,10 @@ class StaffLoginSplashPage extends ConsumerWidget {
                 ],
               ),
             ),
-
         data: (_) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             context.go(AppConstants.homeRoute);
           });
-
           return Center(
             child: Image.asset('assets/images/R-Logo3.png', height: 120),
           );
