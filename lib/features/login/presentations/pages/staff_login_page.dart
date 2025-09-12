@@ -144,7 +144,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
           .loginStaff(_selectedOutlet!, _selectedStaff!, _pinController.text);
 
       if (mounted) {
-        precacheImage(const AssetImage('assets/images/ReBillPro.png'), context);
+        precacheImage(const AssetImage('assets/images/R-Logo3.png'), context);
       }
 
       await Future.delayed(const Duration(milliseconds: 500));
@@ -156,7 +156,7 @@ class _LoginStaffComponentState extends ConsumerState<LoginStaffComponent> {
       if (mounted) {
         AppSnackbar.showError(
           context,
-          message: e.toString(),
+          message: 'Wrong pin, authentication failed.',
           ttile: 'Login Failed',
         );
       }

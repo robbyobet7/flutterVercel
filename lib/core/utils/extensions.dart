@@ -95,3 +95,13 @@ extension DynamicExtension on dynamic {
     return '';
   }
 }
+
+// PIN validation helpers
+bool isValidPinFormat(String pin) {
+  // Regex for 6 number pin
+  return RegExp(r'^[0-9]{6}$').hasMatch(pin);
+}
+
+bool shouldAutoLogin(String pin) {
+  return isValidPinFormat(pin);
+}

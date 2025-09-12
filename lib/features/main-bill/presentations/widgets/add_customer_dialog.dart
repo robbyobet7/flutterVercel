@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/customers.dart';
+import 'package:rebill_flutter/core/providers/customer_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
@@ -39,24 +40,35 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
     super.dispose();
   }
 
+  // DUMMY SAVE CUSTOMERS
   void _saveCustomer() {
     if (_formKey.currentState!.validate()) {
-      // Create a new customer object
-      // Note: address, city, and postCode aren't in the Customer model
-      // We're storing address in email field temporarily for demonstration
-      final customer = CustomerModel(
-        customerId: 0,
+      final newCustomer = CustomerModel(
+        // Get ALL data from controller
         customerName: _nameController.text,
-        emailSocial: _emailController.text,
-        phone: _phoneController.text,
-        affiliate: _affiliateController.text,
+        emailSocial:
+            _emailController.text.isNotEmpty ? _emailController.text : null,
+        phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
+        affiliate:
+            _affiliateController.text.isNotEmpty
+                ? _affiliateController.text
+                : null,
+        address:
+            _addressController.text.isNotEmpty ? _addressController.text : null,
+        city: _cityController.text.isNotEmpty ? _cityController.text : null,
+        postCode:
+            _postCodeController.text.isNotEmpty
+                ? _postCodeController.text
+                : null,
       );
 
-      // Store additional fields in user metadata or extended profile
-      // (This would be implemented in a real application)
+      // Call the action to add the customer AND save the result
+      final newCustomerWithId = ref
+          .read(customerProvider.notifier)
+          .addCustomer(newCustomer);
 
-      // For now, we'll just close the dialog and pass back the customer
-      Navigator.pop(context, customer);
+      // Close the dialog AND send the newly created customer as a result
+      Navigator.pop(context, newCustomerWithId);
     }
   }
 
@@ -80,7 +92,7 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
                 child: Column(
                   spacing: 16,
                   children: [
-                    SizedBox.shrink(), //spacer only
+                    SizedBox.shrink(),
                     Row(
                       children: [
                         Expanded(

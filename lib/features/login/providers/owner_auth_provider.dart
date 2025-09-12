@@ -47,15 +47,6 @@ class AuthProvider extends StateNotifier<AuthState> {
     ref.invalidate(availableCategoriesProvider);
   }
 
-  // Validate PIN format
-  bool isValidPinFormat(String pin) {
-    return RegExp(r'^[0-9]{6}$').hasMatch(pin);
-  }
-
-  bool shouldAutoLogin(String pin) {
-    return pin.length == 6 && isValidPinFormat(pin);
-  }
-
   // Refresh Token Owner
   Future<void> refreshTokenOwner() async {
     try {

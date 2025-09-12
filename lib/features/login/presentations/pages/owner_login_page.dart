@@ -110,22 +110,22 @@ class LoginComponent extends ConsumerStatefulWidget {
 }
 
 class _LoginComponentState extends ConsumerState<LoginComponent> {
-  // State lokal untuk melacak tombol yang sedang loading
+  // Local state to track the button that is loading
   LoginType? _loadingButton;
 
-  // Fungsi generik untuk menangani proses login
+  // Generic function to handle login process
   Future<void> _performLogin(LoginType type) async {
-    if (_loadingButton != null) return; // Mencegah klik ganda
+    if (_loadingButton != null) return; // Block spamming click
 
     FocusScope.of(context).unfocus();
 
     try {
-      // Set state untuk menunjukkan tombol mana yang loading
+      // Set state to indicate which button is loading
       setState(() {
         _loadingButton = type;
       });
 
-      // Panggil provider untuk melakukan login
+      // Call a provider to login
       await ref
           .read(authProvider.notifier)
           .login(
@@ -133,16 +133,21 @@ class _LoginComponentState extends ConsumerState<LoginComponent> {
             ref.read(passwordControllerProvider).text,
           );
 
-      // Jeda singkat untuk UX
+      // Short break for UX
       await Future.delayed(const Duration(milliseconds: 500));
 
       if (!mounted) return;
       context.go(AppConstants.ownerLoginSplashRoute);
     } catch (e) {
       if (!mounted) return;
-      AppSnackbar.showError(context, message: e.toString());
+      AppSnackbar.showError(
+        context,
+        message:
+            'Invalid credentials. Please check your details and try again.',
+        ttile: 'Login Failed',
+      );
     } finally {
-      // Selalu reset state loading setelah selesai
+      // Always reset state after loading finished
       if (mounted) {
         setState(() {
           _loadingButton = null;
@@ -263,7 +268,6 @@ class _LoginComponentState extends ConsumerState<LoginComponent> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                      //Hi
                     ),
                   ),
                 ],

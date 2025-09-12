@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/formatters/currency_input_formatter.dart';
 import 'package:rebill_flutter/core/providers/payment_method_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 import 'package:rebill_flutter/core/widgets/label_text.dart';
-import '../../models/payment_method.dart';
-import 'checkout_button.dart';
+import 'package:rebill_flutter/features/checkout/models/payment_method.dart';
+import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_button.dart';
 import 'checkout_dialog.dart';
 
 class PaymentAmount extends ConsumerStatefulWidget {
-  const PaymentAmount({super.key, required this.paymentType});
+  const PaymentAmount({
+    super.key,
+    required this.paymentType,
+    required this.receivedAmountController,
+    required this.receivedAmount2Controller,
+  });
 
   final PaymentType paymentType;
+  final TextEditingController receivedAmountController;
+  final TextEditingController receivedAmount2Controller;
 
   @override
   ConsumerState<PaymentAmount> createState() => _PaymentAmountState();
@@ -20,23 +29,7 @@ class _PaymentAmountState extends ConsumerState<PaymentAmount> {
   PaymentMethod? selectedPaymentMethod;
   PaymentMethod? selectedPaymentMethod2;
 
-  late final TextEditingController _receivedAmountController;
-  late final TextEditingController _receivedAmount2Controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _receivedAmountController = TextEditingController();
-    _receivedAmount2Controller = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _receivedAmountController.dispose();
-    _receivedAmount2Controller.dispose();
-    super.dispose();
-  }
-
+  // Payment Method
   List<Widget> _buildPaymentMethodButtons(
     List<PaymentMethod> methods, {
     bool isSecondary = false,
@@ -77,17 +70,22 @@ class _PaymentAmountState extends ConsumerState<PaymentAmount> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).toString();
     final paymentState = ref.watch(paymentMethodProvider);
     final theme = Theme.of(context);
 
     return Column(
       children: [
         AppTextField(
-          controller: _receivedAmountController,
-          labelText: 'Received Amount/Down Payment',
+          controller: widget.receivedAmountController,
+          labelText: 'Received Amount / Down Payment',
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            CurrencyInputFormatter(locale: locale),
+          ],
         ),
         const SizedBox(height: 16),
-        // Handle state di sini
         paymentState.isLoading
             ? const CircularProgressIndicator()
             : paymentState.errorMessage != null
@@ -102,15 +100,19 @@ class _PaymentAmountState extends ConsumerState<PaymentAmount> {
         if (widget.paymentType == PaymentType.split) ...[
           const SizedBox(height: 16),
           AppTextField(
-            controller: _receivedAmount2Controller,
+            controller: widget.receivedAmount2Controller,
             labelText: 'Received Amount 2',
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              CurrencyInputFormatter(locale: locale),
+            ],
           ),
           const SizedBox(height: 16),
-          // Handle state juga untuk bagian kedua
           paymentState.isLoading
-              ? const SizedBox.shrink() // Tidak perlu loading 2x
+              ? const SizedBox.shrink()
               : paymentState.errorMessage != null
-              ? const SizedBox.shrink() // Tidak perlu error 2x
+              ? const SizedBox.shrink()
               : _PaymentMethodSection(
                 title: 'Payment Method 2',
                 buttons: _buildPaymentMethodButtons(

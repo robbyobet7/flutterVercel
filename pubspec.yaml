@@ -48,6 +48,7 @@ dependencies:
   loading_icon_button: ^1.0.2
   cached_network_image: ^3.4.1
   flutter_native_splash: ^2.4.6
+  collection: ^1.19.1
 
 dev_dependencies:
   flutter_test:
@@ -111,10 +112,10 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#ffffff"
-  image: assets/images/ReBillPro.png
+  image: assets/images/R-Logo3.png
   android: true
   ios: false
   web: true
   android_12:
-    image: assets/images/ReBillPro.png
+    image: assets/images/R-Logo3.png
   fullscreen: true

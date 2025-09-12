@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:rebill_flutter/core/constants/app_constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -7,6 +8,7 @@ import '../models/bill.dart';
 class BillMiddleware {
   List<BillModel> _bills = [];
   bool _isInitialized = false;
+  int _nextLocalBillId = -1;
 
   // Stream controllers for bill events
   final _billStreamController = StreamController<List<BillModel>>.broadcast();
@@ -22,6 +24,19 @@ class BillMiddleware {
   final Dio dio = Dio();
   final FlutterSecureStorage storage = FlutterSecureStorage();
 
+  // ADD BILL DUMMY
+  void addBill(BillModel bill) {
+    // Create a copy of the incoming bill and assign a unique negative ID
+    final newBillWithId = bill.copyWith(billId: _nextLocalBillId--);
+
+    // Insert this new bill at the top of the list
+    _bills.insert(0, newBillWithId);
+
+    // Send updates to the UI via the stream
+    _billStreamController.add(List.unmodifiable(_bills));
+  }
+
+  //Bills API
   Future<List<BillModel>> fetchBillsFromAPI() async {
     try {
       final token = await storage.read(key: AppConstants.authTokenStaffKey);
@@ -93,6 +108,15 @@ class BillMiddleware {
     _isInitialized = true;
   }
 
+  // Delete bill DUMMY
+  void deleteBill(int billId) {
+    // Delete bill from local
+    _bills.removeWhere((bill) => bill.billId == billId);
+
+    // Send the updated list to the stream to keep the UI updated.
+    _billStreamController.add(List.unmodifiable(_bills));
+  }
+
   // Check if initialized
   bool get isInitialized => _isInitialized;
 
@@ -107,12 +131,10 @@ class BillMiddleware {
   // Get a single bill by ID
   BillModel? getBillById(int id) {
     if (!_isInitialized) {
-      throw Exception('Bill middleware not initialized');
+      print('Bill middleware not initialized');
+      return null;
     }
-    return _bills.firstWhere(
-      (bill) => bill.billId == id,
-      orElse: () => throw Exception('Bill not found with ID: $id'),
-    );
+    return _bills.firstWhereOrNull((bill) => bill.billId == id);
   }
 
   // Get bills by customer ID

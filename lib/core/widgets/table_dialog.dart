@@ -54,8 +54,8 @@ class TableDialog extends ConsumerWidget {
                         : isLandscape
                         ? 5
                         : 3,
-                crossAxisSpacing: 12.0,
-                mainAxisSpacing: 12.0,
+                crossAxisSpacing: 18.0,
+                mainAxisSpacing: 16.0,
               ),
               cacheExtent: 100,
               itemCount: tables.length,

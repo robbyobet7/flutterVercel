@@ -319,7 +319,6 @@ class Bill extends ConsumerWidget {
                                             ),
                                       ),
                                     ),
-
                                     if (!isClosed)
                                       // Increment button
                                       InkWell(
@@ -348,12 +347,13 @@ class Bill extends ConsumerWidget {
                                   ],
                                 ),
                               ),
+                              const SizedBox(width: 6),
                               Expanded(
                                 flex: 2,
-                                child: Text(
-                                  item.totalPrice.toCurrency(),
-                                  style: theme.textTheme.bodyMedium,
-                                  textAlign: TextAlign.right,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerRight,
+                                  child: Text(item.totalPrice.toCurrency()),
                                 ),
                               ),
                             ],

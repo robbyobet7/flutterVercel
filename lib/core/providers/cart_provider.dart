@@ -394,6 +394,13 @@ class CartNotifier extends StateNotifier<CartState> {
     state = state.copyWith(gratuityPercentage: percentage);
   }
 
+  //Load cart from Bill
+  void loadCartFromBill(BillModel bill) {
+    clearCart();
+
+    state = CartState(items: List.from(bill.items ?? []));
+  }
+
   // Clear all items from the cart
   void clearCart() {
     state = const CartState();
