@@ -7,7 +7,7 @@ class AppConstants {
 
   // Base URL
   static const String baseUrl =
-      'https://permissions-their-missions-explanation.trycloudflare.com';
+      'https://divx-employers-c-brain.trycloudflare.com';
 
   // Service URL
   static const String service = '/pos/';
