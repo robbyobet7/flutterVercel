@@ -1,6 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/providers/discounts_provider.dart';
+import 'package:rebill_flutter/core/providers/payment_amount_provider.dart';
+import 'package:rebill_flutter/core/providers/checkout_discount_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/label_text.dart';
@@ -70,7 +75,10 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
             content: const AvailableDiscountsDialog(),
             dialogType: DialogType.large,
             title: 'Available Discounts',
-          );
+          ).then((_) {
+            // Update checkout discount when dialog is closed
+            _updateCheckoutDiscount();
+          });
         },
       ),
       CheckoutDiscount(
@@ -140,6 +148,11 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
   }
 
   List<Widget> _buildPaymentButtons() {
+    final numberFormat = NumberFormat.currency(
+      locale: 'id',
+      symbol: '',
+      decimalDigits: 0,
+    );
     return _payment
         .map(
           (e) => CheckoutButton(
@@ -150,6 +163,51 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
                 selectedPayment = e;
                 _cachedPaymentButtons =
                     null; // Clear cache to rebuild with new selection
+
+                // Auto-fill received amount when Full Payment is selected
+                if (e == PaymentType.full) {
+                  final cart = ref.read(cartProvider);
+                  final checkoutDiscount = ref.read(checkoutDiscountProvider);
+                  final total =
+                      checkoutDiscount.appliedDiscounts.isNotEmpty
+                          ? cart.getTotalWithCheckoutDiscount(
+                            checkoutDiscount.totalDiscountAmount,
+                          )
+                          : cart.total;
+                  final roundedTotal = roundUpToThousand(total);
+                  _receivedAmountController.text = numberFormat.format(
+                    roundedTotal,
+                  );
+                  ref
+                      .read(paymentAmountProvider.notifier)
+                      .setReceivedAmount(roundedTotal.toDouble());
+                  _receivedAmount2Controller.clear();
+                } else if (e == PaymentType.split) {
+                  final cart = ref.read(cartProvider);
+                  final checkoutDiscount = ref.read(checkoutDiscountProvider);
+                  final total =
+                      checkoutDiscount.appliedDiscounts.isNotEmpty
+                          ? cart.getTotalWithCheckoutDiscount(
+                            checkoutDiscount.totalDiscountAmount,
+                          )
+                          : cart.total;
+                  final roundedTotal = roundUpToThousand(total);
+                  final splitAmount = roundedTotal / 2;
+
+                  _receivedAmountController.text = numberFormat.format(
+                    splitAmount,
+                  );
+                  _receivedAmount2Controller.text = numberFormat.format(
+                    splitAmount,
+                  );
+
+                  ref
+                      .read(paymentAmountProvider.notifier)
+                      .setReceivedAmount(splitAmount);
+                  ref
+                      .read(paymentAmountProvider.notifier)
+                      .setReceivedAmount2(splitAmount);
+                }
               });
             },
           ),
@@ -157,8 +215,125 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
         .toList();
   }
 
+  // Build discount info widget
+  Widget _buildDiscountInfo(CheckoutDiscountState checkoutDiscount) {
+    final theme = Theme.of(context);
+    final numberFormat = NumberFormat.currency(
+      locale: 'id',
+      symbol: '',
+      decimalDigits: 0,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Applied Discounts',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...checkoutDiscount.appliedDiscounts.map(
+            (discount) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(discount.name, style: theme.textTheme.bodyMedium),
+                  Text(
+                    discount.type == 'percentage'
+                        ? '${discount.amount.toInt()}%'
+                        : numberFormat.format(discount.amount),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const Divider(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Total Discount',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '-${numberFormat.format(checkoutDiscount.totalDiscountAmount)}',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Update checkout discount
+  void _updateCheckoutDiscount() {
+    final selectedDiscounts = ref.read(selectedDiscountsProvider);
+    final cart = ref.read(cartProvider);
+    final subtotal = cart.subtotal;
+
+    ref
+        .read(checkoutDiscountProvider.notifier)
+        .applyDiscounts(selectedDiscounts, subtotal);
+  }
+
+  // Validation method
+  bool _validateCheckout() {
+    // Check if delivery is selected
+    if (selectedDelivery == null) {
+      _showValidationErrorDialog('Please chose an option for delivery.');
+      return false;
+    }
+
+    // Check if payment type is selected
+    if (selectedPayment == null) {
+      _showValidationErrorDialog('Please chose an option for payment.');
+      return false;
+    }
+
+    // Check if payment method is selected
+    final paymentAmount = ref.read(paymentAmountProvider);
+    if (paymentAmount.selectedPaymentMethod == null) {
+      _showValidationErrorDialog('Please chose an option for payment method.');
+      return false;
+    }
+
+    // Check if received amount is filled
+    if (_receivedAmountController.text.trim().isEmpty) {
+      _showValidationErrorDialog('Please enter the amount received.');
+      return false;
+    }
+
+    return true;
+  }
+
   // DUMMY CHECKOUT
   void _handleCheckout() async {
+    // Validate required fields
+    if (!_validateCheckout()) {
+      return;
+    }
+
     final navigator = Navigator.of(context);
     // Loading dialog
     showDialog(
@@ -189,10 +364,40 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     final int? finalCustomerId = selectedCustomer?.customerId;
 
     final cartNotifier = ref.read(cartProvider.notifier);
+    final checkoutDiscount = ref.read(checkoutDiscountProvider);
     var bill = cartNotifier.createBill(
       customerName: customerName ?? finalCustomerName,
       delivery: selectedDelivery ?? 'Direct',
     );
+
+    // Apply checkout discount to bill
+    if (checkoutDiscount.appliedDiscounts.isNotEmpty) {
+      final cart = ref.read(cartProvider);
+      final discountedTotal = cart.getTotalWithCheckoutDiscount(
+        checkoutDiscount.totalDiscountAmount,
+      );
+      final roundedTotal = roundUpToThousand(discountedTotal);
+
+      bill = bill.copyWith(
+        total: cart.total, // Original total before discount
+        finalTotal: roundedTotal.toDouble(),
+        totalafterrounding: roundedTotal.toDouble(),
+        totalDiscount: checkoutDiscount.totalDiscountAmount.toInt(),
+        totalafterdiscount: checkoutDiscount.subtotalAfterDiscount,
+        discountList: jsonEncode(
+          checkoutDiscount.appliedDiscounts.map((d) => d.toJson()).toList(),
+        ),
+      );
+    } else {
+      final cart = ref.read(cartProvider);
+      final roundedTotal = roundUpToThousand(cart.total);
+
+      bill = bill.copyWith(
+        total: cart.total,
+        finalTotal: roundedTotal.toDouble(),
+        totalafterrounding: roundedTotal.toDouble(),
+      );
+    }
 
     final roundedTotal = roundUpToThousand(bill.finalTotal);
     bill = BillModel(
@@ -267,6 +472,12 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     // Reset Bill
     resetMainBill(ref);
 
+    // Clear checkout discount
+    ref.read(checkoutDiscountProvider.notifier).clearDiscounts();
+
+    //Clear checkout payment
+    ref.read(paymentAmountProvider.notifier).reset();
+
     // Close loading dialog
     navigator.pop();
 
@@ -280,6 +491,23 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
           (ctx) => AlertDialog(
             title: const Text('Checkout Success'),
             content: const Text('Order successfully checked out and saved.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showValidationErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Chose an option'),
+            content: Text(message),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
@@ -327,6 +555,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
   Widget build(BuildContext context) {
     // Cache buttons if not already cached or if selection changed
     final appliedDiscounts = ref.watch(selectedDiscountsProvider);
+    final checkoutDiscount = ref.watch(checkoutDiscountProvider);
     _cachedDeliveryButtons ??= _buildDeliveryButtons();
     _cachedPaymentButtons ??= _buildPaymentButtons();
     final discountButtons = _buildDiscountButtons(appliedDiscounts);
@@ -356,6 +585,11 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
                     buttons: discountButtons,
                     columns: 3,
                   ),
+                  // Show applied discount information
+                  if (checkoutDiscount.appliedDiscounts.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _buildDiscountInfo(checkoutDiscount),
+                  ],
                   const SizedBox(height: 16),
                   _buildSection(
                     title: 'Payment',

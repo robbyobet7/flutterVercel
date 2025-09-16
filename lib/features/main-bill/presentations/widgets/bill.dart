@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:rebill_flutter/core/models/bill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
-import 'package:rebill_flutter/core/providers/device_provider.dart';
+import 'package:rebill_flutter/core/providers/checkout_discount_provider.dart';
 import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
@@ -15,24 +17,37 @@ class Bill extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(cartProvider);
+    final checkoutDiscount = ref.watch(checkoutDiscountProvider);
     final theme = Theme.of(context);
-    final isWeb = ref.watch(isWebProvider);
-    // Round up to nearest thousand (Indonesian common practice)
+
     int roundUpToThousand(double value) {
       return ((value / 1000).ceil()) * 1000;
     }
 
-    final bill = ref.watch(billProvider.notifier);
-    final isClosed = bill.billStatus == 'closed';
+    final billState = ref.watch(billProvider);
+    final selectedBill = billState.selectedBill;
+    final isClosed = billState.selectedBill?.states.toLowerCase() == 'closed';
 
+    // Calculate basic values
     final subtotal = cart.subtotal;
     final serviceFee = cart.serviceFee;
     final tax = cart.taxTotal;
     final gratuity = cart.gratuity;
-    final totalBeforeRounding = subtotal + serviceFee + tax + gratuity;
-    final roundingAmount =
-        roundUpToThousand(totalBeforeRounding) - totalBeforeRounding;
-    final total = totalBeforeRounding + roundingAmount;
+
+    // Calculate totals based on bill status
+    final double totalBeforeRounding;
+    final double finalTotal;
+
+    if (isClosed && selectedBill != null) {
+      totalBeforeRounding = selectedBill.totalaftertax;
+      finalTotal = selectedBill.finalTotal;
+    } else {
+      final discountAmount = checkoutDiscount.totalDiscountAmount;
+      totalBeforeRounding = cart.getTotalWithCheckoutDiscount(discountAmount);
+      final roundingAmount =
+          roundUpToThousand(totalBeforeRounding) - totalBeforeRounding;
+      finalTotal = totalBeforeRounding + roundingAmount;
+    }
 
     return Expanded(
       child: SingleChildScrollView(
@@ -47,21 +62,23 @@ class Bill extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: Text('Created at')),
-                      Text(': '),
+                      const Expanded(child: Text('Created at')),
+                      const Text(': '),
                       Expanded(
                         flex: 2,
-                        child: Text(bill.createdAt ?? 'Today, 14.24'),
+                        child: Text(
+                          selectedBill?.createdAt.toString() ?? 'Today, 14.24',
+                        ),
                       ),
                     ],
                   ),
                   Row(
                     children: [
-                      Expanded(child: Text('Bill No.')),
-                      Text(': '),
+                      const Expanded(child: Text('Bill No.')),
+                      const Text(': '),
                       Expanded(
                         flex: 2,
-                        child: Text(bill.billNumber ?? '1234-467890'),
+                        child: Text(selectedBill?.cBillId ?? '1234-467890'),
                       ),
                     ],
                   ),
@@ -70,21 +87,25 @@ class Bill extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            Expanded(child: Text('Paid at')),
-                            Text(': '),
+                            const Expanded(child: Text('Paid at')),
+                            const Text(': '),
                             Expanded(
                               flex: 2,
-                              child: Text(bill.paidAt ?? '1234-467890'),
+                              child: Text(
+                                selectedBill?.posPaidBillDate ?? '1234-467890',
+                              ),
                             ),
                           ],
                         ),
                         Row(
                           children: [
-                            Expanded(child: Text('Cashier')),
-                            Text(': '),
+                            const Expanded(child: Text('Cashier')),
+                            const Text(': '),
                             Expanded(
                               flex: 2,
-                              child: Text(bill.cashier ?? '1234-467890'),
+                              child: Text(
+                                selectedBill?.cashier ?? '1234-467890',
+                              ),
                             ),
                           ],
                         ),
@@ -94,7 +115,6 @@ class Bill extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-            // Cart table
             Container(
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
@@ -102,7 +122,6 @@ class Bill extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  // Table header
                   Container(
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
@@ -180,7 +199,6 @@ class Bill extends ConsumerWidget {
                                         SizedBox(
                                           width: double.infinity,
                                           child: Row(
-                                            spacing: 2,
                                             children: [
                                               Expanded(
                                                 child: Text(
@@ -197,11 +215,10 @@ class Bill extends ConsumerWidget {
                                             ],
                                           ),
                                         ),
-
                                       if (item.options != null &&
                                           item.options!.isNotEmpty)
                                         Container(
-                                          constraints: BoxConstraints(
+                                          constraints: const BoxConstraints(
                                             maxWidth: double.infinity,
                                           ),
                                           child: Column(
@@ -212,7 +229,6 @@ class Bill extends ConsumerWidget {
                                                   final isComplimentary =
                                                       option.type ==
                                                       'complimentary';
-
                                                   return Row(
                                                     children: [
                                                       Expanded(
@@ -243,11 +259,10 @@ class Bill extends ConsumerWidget {
                                                 }).toList(),
                                           ),
                                         ),
-
                                       if (item.productNotes != null &&
                                           item.productNotes!.isNotEmpty)
                                         Container(
-                                          constraints: BoxConstraints(
+                                          constraints: const BoxConstraints(
                                             maxWidth: double.infinity,
                                           ),
                                           child: Text(
@@ -297,8 +312,6 @@ class Bill extends ConsumerWidget {
                                           ),
                                         ),
                                       ),
-
-                                    // Quantity display
                                     Container(
                                       margin: const EdgeInsets.symmetric(
                                         horizontal: 6,
@@ -320,7 +333,6 @@ class Bill extends ConsumerWidget {
                                       ),
                                     ),
                                     if (!isClosed)
-                                      // Increment button
                                       InkWell(
                                         onTap: () {
                                           ref
@@ -347,7 +359,6 @@ class Bill extends ConsumerWidget {
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 6),
                               Expanded(
                                 flex: 2,
                                 child: FittedBox(
@@ -370,17 +381,13 @@ class Bill extends ConsumerWidget {
                       ],
                     );
                   }),
-
-                  // Summary section
                   Container(
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surfaceContainer.withAlpha(77),
                     ),
                     padding: const EdgeInsets.all(12),
                     child: Column(
-                      spacing: 8,
                       children: [
-                        // Product Discounts row
                         if (cart.totalProductDiscount > 0)
                           Row(
                             children: [
@@ -397,8 +404,6 @@ class Bill extends ConsumerWidget {
                               ),
                             ],
                           ),
-
-                        // Subtotal row
                         Row(
                           children: [
                             Expanded(
@@ -414,8 +419,10 @@ class Bill extends ConsumerWidget {
                             ),
                           ],
                         ),
-
-                        // Service fee row
+                        if (isClosed && selectedBill?.discountList != null)
+                          ..._buildClosedBillDiscounts(selectedBill!, theme)
+                        else if (checkoutDiscount.appliedDiscounts.isNotEmpty)
+                          ..._buildOpenBillDiscounts(checkoutDiscount, theme),
                         Row(
                           children: [
                             Expanded(
@@ -431,8 +438,6 @@ class Bill extends ConsumerWidget {
                             ),
                           ],
                         ),
-
-                        // Gratuity row
                         if (gratuity > 0)
                           Row(
                             children: [
@@ -449,8 +454,6 @@ class Bill extends ConsumerWidget {
                               ),
                             ],
                           ),
-
-                        // Tax row
                         if (tax > 0)
                           Row(
                             children: [
@@ -467,28 +470,7 @@ class Bill extends ConsumerWidget {
                               ),
                             ],
                           ),
-
-                        // Rounding row
-                        if (roundingAmount != 0)
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Rounding',
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ),
-                              Text(
-                                roundingAmount.toCurrency(),
-                                style: theme.textTheme.bodyMedium,
-                                textAlign: TextAlign.right,
-                              ),
-                            ],
-                          ),
-
                         const Divider(),
-
-                        // Total row
                         Row(
                           children: [
                             Expanded(
@@ -500,7 +482,7 @@ class Bill extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              total.toCurrency(),
+                              finalTotal.toCurrency(),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: theme.colorScheme.primary,
@@ -509,12 +491,9 @@ class Bill extends ConsumerWidget {
                             ),
                           ],
                         ),
-
                         const Divider(),
-
                         if (isClosed)
                           Column(
-                            spacing: isWeb ? 8 : 0,
                             children: [
                               SizedBox(
                                 width: double.infinity,
@@ -565,7 +544,7 @@ class Bill extends ConsumerWidget {
                                       context,
                                       dialogType: DialogType.small,
                                       title: 'Debit/Credit Card Info',
-                                      content: CardInfo(),
+                                      content: const CardInfo(),
                                     );
                                   },
                                   text: 'Debit/Credit Card Info',
@@ -585,10 +564,10 @@ class Bill extends ConsumerWidget {
                                       context,
                                       dialogType: DialogType.medium,
                                       title:
-                                          'Refund / Retour Bill - ${bill.billNumber ?? '0'}',
+                                          'Refund / Retour Bill - ${selectedBill?.cBillId ?? '0'}',
                                       content: RefundDialog(
                                         items: cart.items,
-                                        totalPrice: total,
+                                        totalPrice: finalTotal,
                                       ),
                                     );
                                   },
@@ -611,5 +590,69 @@ class Bill extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildClosedBillDiscounts(
+    BillModel selectedBill,
+    ThemeData theme,
+  ) {
+    try {
+      final List<dynamic> discounts = jsonDecode(
+        selectedBill.discountList ?? '[]',
+      );
+      if (discounts.isEmpty) return [];
+
+      return discounts.map<Widget>((discount) {
+        final Map<String, dynamic> d = discount as Map<String, dynamic>;
+        return Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Discount (${d['name']})',
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+            Text(
+              d['type'] == 'percentage'
+                  ? '${d['amount']}%'
+                  : '-${d['amount'].toDouble().toCurrency()}',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ],
+        );
+      }).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  List<Widget> _buildOpenBillDiscounts(
+    CheckoutDiscountState checkoutDiscount,
+    ThemeData theme,
+  ) {
+    return checkoutDiscount.appliedDiscounts.map((discount) {
+      return Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Discount (${discount.name})',
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
+          Text(
+            discount.type == 'percentage'
+                ? '${discount.amount.toInt()}%'
+                : '-${discount.amount.toCurrency()}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+            textAlign: TextAlign.right,
+          ),
+        ],
+      );
+    }).toList();
   }
 }

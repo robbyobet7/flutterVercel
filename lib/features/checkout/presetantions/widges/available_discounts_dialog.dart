@@ -121,18 +121,9 @@ class AvailableDiscountsDialog extends ConsumerWidget {
                                       tempSelectedDiscountsProvider.notifier,
                                     );
                                     if (isSelected) {
-                                      notifier.state =
-                                          notifier.state
-                                              .where(
-                                                (item) =>
-                                                    item.id != discount.id,
-                                              )
-                                              .toList();
+                                      notifier.state = [];
                                     } else {
-                                      notifier.state = [
-                                        ...notifier.state,
-                                        discount,
-                                      ];
+                                      notifier.state = [discount];
                                     }
                                   },
                                   child: AnimatedContainer(
@@ -230,6 +221,7 @@ class AvailableDiscountsDialog extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 const SizedBox(width: 12),
                 AppButton(

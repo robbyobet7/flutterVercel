@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/formatters/currency_input_formatter.dart';
 import 'package:rebill_flutter/core/providers/payment_method_provider.dart';
+import 'package:rebill_flutter/core/providers/payment_amount_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_text_field.dart';
 import 'package:rebill_flutter/core/widgets/label_text.dart';
 import 'package:rebill_flutter/features/checkout/models/payment_method.dart';
@@ -26,32 +27,50 @@ class PaymentAmount extends ConsumerStatefulWidget {
 }
 
 class _PaymentAmountState extends ConsumerState<PaymentAmount> {
-  PaymentMethod? selectedPaymentMethod;
-  PaymentMethod? selectedPaymentMethod2;
+  @override
+  void initState() {
+    super.initState();
+    // Listen to received amount changes
+    widget.receivedAmountController.addListener(() {
+      final amount =
+          double.tryParse(
+            widget.receivedAmountController.text.replaceAll(',', ''),
+          ) ??
+          0.0;
+      ref.read(paymentAmountProvider.notifier).setReceivedAmount(amount);
+    });
+    widget.receivedAmount2Controller.addListener(() {
+      final amount =
+          double.tryParse(
+            widget.receivedAmount2Controller.text.replaceAll(',', ''),
+          ) ??
+          0.0;
+      ref.read(paymentAmountProvider.notifier).setReceivedAmount2(amount);
+    });
+  }
 
   // Payment Method
   List<Widget> _buildPaymentMethodButtons(
     List<PaymentMethod> methods, {
     bool isSecondary = false,
   }) {
+    final paymentAmount = ref.watch(paymentAmountProvider);
     return methods.map((e) {
       final isSelected =
           isSecondary
-              ? selectedPaymentMethod2?.id == e.id
-              : selectedPaymentMethod?.id == e.id;
+              ? paymentAmount.selectedPaymentMethod2?.id == e.id
+              : paymentAmount.selectedPaymentMethod?.id == e.id;
 
       return CheckoutButton(
         text: e.paymentName,
         icon: _getPaymentMethodIcon(e.methodType),
         isSelected: isSelected,
         onTap: () {
-          setState(() {
-            if (isSecondary) {
-              selectedPaymentMethod2 = e;
-            } else {
-              selectedPaymentMethod = e;
-            }
-          });
+          if (isSecondary) {
+            ref.read(paymentAmountProvider.notifier).setPaymentMethod2(e);
+          } else {
+            ref.read(paymentAmountProvider.notifier).setPaymentMethod(e);
+          }
         },
       );
     }).toList();

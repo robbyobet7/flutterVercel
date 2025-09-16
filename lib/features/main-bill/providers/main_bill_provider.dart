@@ -3,6 +3,7 @@ import 'package:rebill_flutter/core/models/customers.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/discounts_provider.dart';
+import 'package:rebill_flutter/core/providers/checkout_discount_provider.dart';
 import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/core/middleware/customer_middleware.dart';
 
@@ -23,6 +24,9 @@ void resetMainBill(WidgetRef ref) {
 
   // Clear all applied discounts
   ref.invalidate(selectedDiscountsProvider);
+
+  // Clear checkout discount
+  ref.read(checkoutDiscountProvider.notifier).clearDiscounts();
 
   // Clear the currently selected customer
   ref.read(knownIndividualProvider.notifier).setKnownIndividual(null);

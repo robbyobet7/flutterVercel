@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,11 +7,13 @@ import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/core_exports.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
+import 'package:rebill_flutter/core/providers/checkout_discount_provider.dart';
 import 'package:rebill_flutter/core/providers/merge_bill_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_material.dart';
+import 'package:rebill_flutter/features/checkout/models/checkout_discount.dart';
 import 'package:rebill_flutter/features/home/presentation/widgets/user_bills_dropdown.dart';
 import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
@@ -68,9 +72,18 @@ class _HomeBillState extends ConsumerState<HomeBill> {
     final customerType = ref.watch(customerTypeProvider);
     final knownIndividual = ref.watch(knownIndividualProvider);
     final cart = ref.watch(cartProvider);
+    final checkoutDiscount = ref.watch(checkoutDiscountProvider);
     final mainBillComponent = ref.watch(mainBillProvider);
     final selectedBill = ref.watch(selectedBillProvider);
     int roundUpToThousand(double value) => ((value / 1000).ceil()) * 1000;
+
+    // Calculate total with checkout discount
+    final total =
+        checkoutDiscount.appliedDiscounts.isNotEmpty
+            ? cart.getTotalWithCheckoutDiscount(
+              checkoutDiscount.totalDiscountAmount,
+            )
+            : cart.total;
 
     BillItem? activeBill;
     if (mainBillComponent != MainBillComponent.defaultComponent &&
@@ -82,8 +95,8 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                     knownIndividual != null
                 ? knownIndividual.customerName
                 : 'Guest',
-        total: roundUpToThousand(cart.total).toDouble(),
-        finalTotal: roundUpToThousand(cart.total).toDouble(),
+        total: roundUpToThousand(total).toDouble(),
+        finalTotal: roundUpToThousand(total).toDouble(),
         status: 'open',
         createdAt: DateTime.now(),
       );
@@ -477,11 +490,48 @@ class _HomeBillState extends ConsumerState<HomeBill> {
             // Logic for closed bill
             ref.read(billProvider.notifier).selectBill(fullBillModel);
             ref.read(cartProvider.notifier).loadCartFromBill(fullBillModel);
+
+            // <-- MULAI PERUBAHAN DI SINI UNTUK BILL CLOSED
+            // Memuat kembali diskon yang tersimpan di bill
+            if (fullBillModel.discountList != null &&
+                fullBillModel.discountList!.isNotEmpty) {
+              try {
+                final List<dynamic> decodedList = jsonDecode(
+                  fullBillModel.discountList!,
+                );
+                final List<DiscountModel> appliedDiscounts =
+                    decodedList
+                        .map(
+                          (item) => DiscountModel.fromJson(
+                            item as Map<String, dynamic>,
+                          ),
+                        )
+                        .toList();
+
+                final subtotal = ref.read(cartProvider).subtotal;
+                ref
+                    .read(checkoutDiscountProvider.notifier)
+                    .applyDiscounts(appliedDiscounts, subtotal);
+              } catch (e) {
+                // Jika gagal parse JSON, bersihkan provider diskon
+                ref.read(checkoutDiscountProvider.notifier).clearDiscounts();
+              }
+            } else {
+              // Jika bill tidak punya diskon, pastikan provider bersih
+              ref.read(checkoutDiscountProvider.notifier).clearDiscounts();
+            }
+            // <-- AKHIR PERUBAHAN
+
             ref
                 .read(mainBillProvider.notifier)
                 .setMainBill(MainBillComponent.billsComponent);
           } else {
             // Logic for open bill
+
+            // <-- TAMBAHKAN INI UNTUK BILL OPEN
+            // Bersihkan diskon dari bill sebelumnya sebelum memuat bill baru
+            ref.read(checkoutDiscountProvider.notifier).clearDiscounts();
+
             ref
                 .read(billProvider.notifier)
                 .loadBillIntoCart(
