@@ -7,6 +7,8 @@ import 'package:rebill_flutter/core/models/product.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_material.dart';
+import 'package:rebill_flutter/core/widgets/app_dialog.dart';
+import 'package:rebill_flutter/features/home/presentation/widgets/product_detail.dart';
 import 'package:rebill_flutter/features/main-bill/constants/bill_constants.dart';
 import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
 
@@ -65,19 +67,31 @@ class ProductCard extends ConsumerWidget {
           return;
         }
 
-        ref.read(cartProvider.notifier).addSimpleProduct(product, ref);
+        // Check if product has options
+        if (product.hasOptions) {
+          // Show product detail dialog for products with options
+          AppDialog.showCustom(
+            context,
+            content: ProductDetail(product: product),
+            dialogType: DialogType.large,
+            title: product.productsName ?? 'Product Detail',
+          );
+        } else {
+          // Add product directly to cart for products without options
+          ref.read(cartProvider.notifier).addSimpleProduct(product, ref);
 
-        // Succes add product
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${product.productsName ?? "Product"} added to bill.',
+          // Success add product
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${product.productsName ?? "Product"} added to bill.',
+              ),
+              duration: const Duration(milliseconds: 1000),
+              behavior: SnackBarBehavior.floating,
             ),
-            duration: const Duration(milliseconds: 1000),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          );
+        }
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

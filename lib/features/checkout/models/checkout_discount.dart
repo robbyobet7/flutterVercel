@@ -28,6 +28,19 @@ class DiscountModel {
     required this.isActive,
   });
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'type': type,
+      'amount': amount,
+      'today_remaining': todayRemaining,
+      'minimum': minimum,
+      'capped_to': cappedTo,
+      'is_active': isActive,
+    };
+  }
+
   factory DiscountModel.fromJson(Map<String, dynamic> json) {
     String discountType =
         json['discount_type'] == 'bill' ? 'percentage' : 'fixed';

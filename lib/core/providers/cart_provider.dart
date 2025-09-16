@@ -69,6 +69,16 @@ class CartState {
     return subtotal + serviceFee + taxTotal + gratuity - discountAmount;
   }
 
+  // Calculate total with checkout discount applied
+  double getTotalWithCheckoutDiscount(double checkoutDiscountAmount) {
+    return subtotal -
+        checkoutDiscountAmount +
+        serviceFee +
+        taxTotal +
+        gratuity -
+        discountAmount;
+  }
+
   // Get the total number of items in the cart
   int get itemCount {
     return items.fold(0, (sum, item) => sum + item.quantity.toInt());
