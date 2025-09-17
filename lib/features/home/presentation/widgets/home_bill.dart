@@ -8,6 +8,7 @@ import 'package:rebill_flutter/core/core_exports.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/checkout_discount_provider.dart';
+import 'package:rebill_flutter/core/providers/checkout_rewards_provider.dart';
 import 'package:rebill_flutter/core/providers/merge_bill_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
@@ -73,17 +74,25 @@ class _HomeBillState extends ConsumerState<HomeBill> {
     final knownIndividual = ref.watch(knownIndividualProvider);
     final cart = ref.watch(cartProvider);
     final checkoutDiscount = ref.watch(checkoutDiscountProvider);
+    final checkoutRewards = ref.watch(checkoutRewardsProvider);
     final mainBillComponent = ref.watch(mainBillProvider);
     final selectedBill = ref.watch(selectedBillProvider);
     int roundUpToThousand(double value) => ((value / 1000).ceil()) * 1000;
 
-    // Calculate total with checkout discount
-    final total =
-        checkoutDiscount.appliedDiscounts.isNotEmpty
-            ? cart.getTotalWithCheckoutDiscount(
-              checkoutDiscount.totalDiscountAmount,
-            )
-            : cart.total;
+    // Calculate total with checkout discount and rewards
+    double total = cart.total;
+
+    // Apply checkout discount first
+    if (checkoutDiscount.appliedDiscounts.isNotEmpty) {
+      total = cart.getTotalWithCheckoutDiscount(
+        checkoutDiscount.totalDiscountAmount,
+      );
+    }
+
+    // Apply reward discount
+    if (checkoutRewards.selectedReward != null) {
+      total = checkoutRewards.subtotalAfterDiscount;
+    }
 
     BillItem? activeBill;
     if (mainBillComponent != MainBillComponent.defaultComponent &&

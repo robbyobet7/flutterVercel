@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/checkout_discount_provider.dart';
+import 'package:rebill_flutter/core/providers/checkout_rewards_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/features/checkout/presetantions/widges/checkout_dialog.dart';
@@ -20,20 +21,30 @@ class TotalPriceCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final cart = ref.watch(cartProvider);
     final checkoutDiscount = ref.watch(checkoutDiscountProvider);
+    final checkoutRewards = ref.watch(checkoutRewardsProvider);
     final isClosed = ref.watch(billProvider.notifier).billStatus == 'closed';
     final isEmpty = cart.items.isEmpty;
     final billStatus = ref.watch(billProvider.notifier).billStatus;
     final selectedBill = ref.watch(billProvider).selectedBill;
 
-    // Calculate total with checkout discount
-    final total =
-        billStatus == 'closed' && selectedBill != null
-            ? selectedBill.finalTotal
-            : checkoutDiscount.appliedDiscounts.isNotEmpty
-            ? cart.getTotalWithCheckoutDiscount(
-              checkoutDiscount.totalDiscountAmount,
-            )
-            : cart.total;
+    // Calculate total with checkout discount and rewards
+    double total = cart.total;
+
+    if (billStatus == 'closed' && selectedBill != null) {
+      total = selectedBill.finalTotal;
+    } else {
+      // Apply checkout discount first
+      if (checkoutDiscount.appliedDiscounts.isNotEmpty) {
+        total = cart.getTotalWithCheckoutDiscount(
+          checkoutDiscount.totalDiscountAmount,
+        );
+      }
+
+      // Apply reward discount
+      if (checkoutRewards.selectedReward != null) {
+        total = checkoutRewards.subtotalAfterDiscount;
+      }
+    }
 
     final totalRounded = roundUpToThousand(total);
     final numberFormat = NumberFormat.currency(
