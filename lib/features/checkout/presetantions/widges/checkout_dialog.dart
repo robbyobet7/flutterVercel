@@ -21,6 +21,7 @@ import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/models/bill.dart';
 import 'package:rebill_flutter/features/main-bill/providers/main_bill_provider.dart';
+import 'package:rebill_flutter/features/login/providers/staff_auth_provider.dart';
 
 enum PaymentType { full, split }
 
@@ -261,9 +262,9 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+        color: theme.colorScheme.primaryContainer.withAlpha(77),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.5)),
+        border: Border.all(color: theme.colorScheme.primary.withAlpha(128)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,9 +387,9 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.secondaryContainer.withOpacity(0.3),
+        color: theme.colorScheme.secondaryContainer.withAlpha(77),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.colorScheme.secondary.withOpacity(0.5)),
+        border: Border.all(color: theme.colorScheme.secondary..withAlpha(128)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,7 +427,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
               Text(
                 'Points Used: ${checkoutRewards.selectedReward!.points}',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface..withAlpha(179),
                 ),
               ),
               Text(
@@ -573,9 +574,17 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     final cartNotifier = ref.read(cartProvider.notifier);
     final checkoutDiscount = ref.read(checkoutDiscountProvider);
     final checkoutRewards = ref.read(checkoutRewardsProvider);
+
+    // Resolve logged-in staff for cashier info
+    final staffState = ref.read(staffAuthProvider);
+    final cashierName = staffState.loggedInStaff?.name ?? 'Cashier';
+    final cashierId = staffState.loggedInStaff?.id ?? 1;
+
     var bill = cartNotifier.createBill(
       customerName: customerName ?? finalCustomerName,
       delivery: selectedDelivery ?? 'Direct',
+      cashierId: cashierId,
+      cashierName: cashierName,
     );
 
     final cart = ref.read(cartProvider);
