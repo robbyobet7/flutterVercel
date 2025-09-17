@@ -120,7 +120,7 @@ class AvailableRewardsDialog extends ConsumerWidget {
                                               ? theme
                                                   .colorScheme
                                                   .surfaceContainerHighest
-                                                  .withOpacity(0.5)
+                                                  .withAlpha(128)
                                               : isSelected
                                               ? theme
                                                   .colorScheme
@@ -149,7 +149,7 @@ class AvailableRewardsDialog extends ConsumerWidget {
                                           textColor:
                                               !canApply
                                                   ? theme.colorScheme.onSurface
-                                                      .withOpacity(0.5)
+                                                      .withAlpha(128)
                                                   : null,
                                         ),
                                         _buildCell(
@@ -158,7 +158,7 @@ class AvailableRewardsDialog extends ConsumerWidget {
                                           textColor:
                                               !canApply
                                                   ? theme.colorScheme.onSurface
-                                                      .withOpacity(0.5)
+                                                      .withAlpha(128)
                                                   : null,
                                         ),
                                         _buildCell(
@@ -167,7 +167,7 @@ class AvailableRewardsDialog extends ConsumerWidget {
                                           textColor:
                                               !canApply
                                                   ? theme.colorScheme.onSurface
-                                                      .withOpacity(0.5)
+                                                      .withAlpha(128)
                                                   : null,
                                         ),
                                         _buildCell(
@@ -178,7 +178,7 @@ class AvailableRewardsDialog extends ConsumerWidget {
                                           textColor:
                                               !canApply
                                                   ? theme.colorScheme.onSurface
-                                                      .withOpacity(0.5)
+                                                      .withAlpha(128)
                                                   : null,
                                         ),
                                         _buildCell(
@@ -189,7 +189,7 @@ class AvailableRewardsDialog extends ConsumerWidget {
                                           textColor:
                                               !canApply
                                                   ? theme.colorScheme.onSurface
-                                                      .withOpacity(0.5)
+                                                      .withAlpha(128)
                                                   : null,
                                         ),
                                       ],

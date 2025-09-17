@@ -131,8 +131,7 @@ class BillMiddleware {
   // Get a single bill by ID
   BillModel? getBillById(int id) {
     if (!_isInitialized) {
-      print('Bill middleware not initialized');
-      return null;
+      throw Exception('Bill middleware not initialized');
     }
     return _bills.firstWhereOrNull((bill) => bill.billId == id);
   }
