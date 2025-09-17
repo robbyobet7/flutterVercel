@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/providers/discounts_provider.dart';
 import 'package:rebill_flutter/core/providers/payment_amount_provider.dart';
 import 'package:rebill_flutter/core/providers/checkout_discount_provider.dart';
+import 'package:rebill_flutter/core/providers/checkout_rewards_provider.dart';
+import 'package:rebill_flutter/core/providers/rewards_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/label_text.dart';
@@ -64,6 +66,12 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
 
     _receivedAmountController = TextEditingController();
     _receivedAmount2Controller = TextEditingController();
+
+    // Clear any existing reward state when dialog opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(checkoutRewardsProvider.notifier).clearReward();
+      ref.read(selectedRewardProvider.notifier).state = null;
+    });
 
     // Initialize data once
     _discounts = [
@@ -134,13 +142,19 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
 
   List<Widget> _buildDiscountButtons(List<DiscountModel> appliedDiscounts) {
     final isDiscountApplied = appliedDiscounts.isNotEmpty;
+    final checkoutRewards = ref.watch(checkoutRewardsProvider);
+    final isRewardApplied = checkoutRewards.selectedReward != null;
 
     return _discounts
         .map(
           (e) => CheckoutButton(
             text: e.name,
             isSelected:
-                e.name == 'Show Available Discount' ? isDiscountApplied : false,
+                e.name == 'Show Available Discount'
+                    ? isDiscountApplied
+                    : e.name == 'Reward'
+                    ? isRewardApplied
+                    : false,
             onTap: e.onTap,
           ),
         )
@@ -168,12 +182,22 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
                 if (e == PaymentType.full) {
                   final cart = ref.read(cartProvider);
                   final checkoutDiscount = ref.read(checkoutDiscountProvider);
-                  final total =
-                      checkoutDiscount.appliedDiscounts.isNotEmpty
-                          ? cart.getTotalWithCheckoutDiscount(
-                            checkoutDiscount.totalDiscountAmount,
-                          )
-                          : cart.total;
+                  final checkoutRewards = ref.read(checkoutRewardsProvider);
+
+                  double total = cart.total;
+
+                  // Apply checkout discount first
+                  if (checkoutDiscount.appliedDiscounts.isNotEmpty) {
+                    total = cart.getTotalWithCheckoutDiscount(
+                      checkoutDiscount.totalDiscountAmount,
+                    );
+                  }
+
+                  // Apply reward discount
+                  if (checkoutRewards.selectedReward != null) {
+                    total = checkoutRewards.subtotalAfterDiscount;
+                  }
+
                   final roundedTotal = roundUpToThousand(total);
                   _receivedAmountController.text = numberFormat.format(
                     roundedTotal,
@@ -185,12 +209,22 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
                 } else if (e == PaymentType.split) {
                   final cart = ref.read(cartProvider);
                   final checkoutDiscount = ref.read(checkoutDiscountProvider);
-                  final total =
-                      checkoutDiscount.appliedDiscounts.isNotEmpty
-                          ? cart.getTotalWithCheckoutDiscount(
-                            checkoutDiscount.totalDiscountAmount,
-                          )
-                          : cart.total;
+                  final checkoutRewards = ref.read(checkoutRewardsProvider);
+
+                  double total = cart.total;
+
+                  // Apply checkout discount first
+                  if (checkoutDiscount.appliedDiscounts.isNotEmpty) {
+                    total = cart.getTotalWithCheckoutDiscount(
+                      checkoutDiscount.totalDiscountAmount,
+                    );
+                  }
+
+                  // Apply reward discount
+                  if (checkoutRewards.selectedReward != null) {
+                    total = checkoutRewards.subtotalAfterDiscount;
+                  }
+
                   final roundedTotal = roundUpToThousand(total);
                   final splitAmount = roundedTotal / 2;
 
@@ -281,6 +315,154 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                onPressed: () {
+                  // Remove discount
+                  ref.read(checkoutDiscountProvider.notifier).clearDiscounts();
+                  ref.read(selectedDiscountsProvider.notifier).state = [];
+                  // Re-apply reward if still active
+                  final checkoutRewards = ref.read(checkoutRewardsProvider);
+                  final selectedReward = checkoutRewards.selectedReward;
+                  final cart = ref.read(cartProvider);
+
+                  double total = cart.total;
+                  if (selectedReward != null) {
+                    // If reward is still active, apply reward to new total
+                    ref
+                        .read(checkoutRewardsProvider.notifier)
+                        .applyReward(selectedReward, cart.total);
+                    total =
+                        ref.read(checkoutRewardsProvider).subtotalAfterDiscount;
+                  }
+
+                  // Update received amount (and receivedAmount2 if split)
+                  final numberFormat = NumberFormat.currency(
+                    locale: 'id',
+                    symbol: '',
+                    decimalDigits: 0,
+                  );
+                  final roundedTotal = roundUpToThousand(total);
+                  _receivedAmountController.text = numberFormat.format(
+                    roundedTotal,
+                  );
+                  ref
+                      .read(paymentAmountProvider.notifier)
+                      .setReceivedAmount(roundedTotal.toDouble());
+                  _receivedAmount2Controller.clear();
+                },
+                icon: Icon(
+                  Icons.close,
+                  size: 16,
+                  color: theme.colorScheme.error,
+                ),
+                label: Text(
+                  'Remove Discount',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Build reward info widget
+  Widget _buildRewardInfo(CheckoutRewardsState checkoutRewards) {
+    final theme = Theme.of(context);
+    final numberFormat = NumberFormat.currency(
+      locale: 'id',
+      symbol: '',
+      decimalDigits: 0,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondaryContainer.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.colorScheme.secondary.withOpacity(0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Applied Reward',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.secondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                checkoutRewards.selectedReward!.rewardType == 'percent'
+                    ? 'Discount ${checkoutRewards.selectedReward!.amount}%'
+                    : 'Discount ${checkoutRewards.selectedReward!.amount.toCurrency()}',
+                style: theme.textTheme.bodyMedium,
+              ),
+              Text(
+                '-${numberFormat.format(checkoutRewards.discountAmount)}',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Points Used: ${checkoutRewards.selectedReward!.points}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+              Text(
+                'Final Amount: ${numberFormat.format(roundUpToThousand(checkoutRewards.subtotalAfterDiscount))}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.secondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                onPressed: () {
+                  // Remove reward
+                  ref.read(checkoutRewardsProvider.notifier).clearReward();
+                  ref.read(selectedRewardProvider.notifier).state = null;
+                },
+                icon: Icon(
+                  Icons.close,
+                  size: 16,
+                  color: theme.colorScheme.error,
+                ),
+                label: Text(
+                  'Remove Reward',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -295,6 +477,31 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     ref
         .read(checkoutDiscountProvider.notifier)
         .applyDiscounts(selectedDiscounts, subtotal);
+
+    // --- Additional: update received amount ---
+    final checkoutDiscount = ref.read(checkoutDiscountProvider);
+    final checkoutRewards = ref.read(checkoutRewardsProvider);
+
+    double total = cart.total;
+    if (checkoutDiscount.appliedDiscounts.isNotEmpty) {
+      total = cart.getTotalWithCheckoutDiscount(
+        checkoutDiscount.totalDiscountAmount,
+      );
+    }
+    if (checkoutRewards.selectedReward != null) {
+      total = checkoutRewards.subtotalAfterDiscount;
+    }
+    final numberFormat = NumberFormat.currency(
+      locale: 'id',
+      symbol: '',
+      decimalDigits: 0,
+    );
+    final roundedTotal = roundUpToThousand(total);
+    _receivedAmountController.text = numberFormat.format(roundedTotal);
+    ref
+        .read(paymentAmountProvider.notifier)
+        .setReceivedAmount(roundedTotal.toDouble());
+    _receivedAmount2Controller.clear();
   }
 
   // Validation method
@@ -365,41 +572,55 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
 
     final cartNotifier = ref.read(cartProvider.notifier);
     final checkoutDiscount = ref.read(checkoutDiscountProvider);
+    final checkoutRewards = ref.read(checkoutRewardsProvider);
     var bill = cartNotifier.createBill(
       customerName: customerName ?? finalCustomerName,
       delivery: selectedDelivery ?? 'Direct',
     );
 
-    // Apply checkout discount to bill
+    final cart = ref.read(cartProvider);
+    double finalTotal = cart.total;
+    double totalDiscountAmount = 0.0;
+    String discountListJson = '[]';
+    String rewardListJson = '[]';
+
+    // Apply checkout discount first
     if (checkoutDiscount.appliedDiscounts.isNotEmpty) {
-      final cart = ref.read(cartProvider);
-      final discountedTotal = cart.getTotalWithCheckoutDiscount(
+      finalTotal = cart.getTotalWithCheckoutDiscount(
         checkoutDiscount.totalDiscountAmount,
       );
-      final roundedTotal = roundUpToThousand(discountedTotal);
-
-      bill = bill.copyWith(
-        total: cart.total, // Original total before discount
-        finalTotal: roundedTotal.toDouble(),
-        totalafterrounding: roundedTotal.toDouble(),
-        totalDiscount: checkoutDiscount.totalDiscountAmount.toInt(),
-        totalafterdiscount: checkoutDiscount.subtotalAfterDiscount,
-        discountList: jsonEncode(
-          checkoutDiscount.appliedDiscounts.map((d) => d.toJson()).toList(),
-        ),
-      );
-    } else {
-      final cart = ref.read(cartProvider);
-      final roundedTotal = roundUpToThousand(cart.total);
-
-      bill = bill.copyWith(
-        total: cart.total,
-        finalTotal: roundedTotal.toDouble(),
-        totalafterrounding: roundedTotal.toDouble(),
+      totalDiscountAmount += checkoutDiscount.totalDiscountAmount;
+      discountListJson = jsonEncode(
+        checkoutDiscount.appliedDiscounts.map((d) => d.toJson()).toList(),
       );
     }
 
-    final roundedTotal = roundUpToThousand(bill.finalTotal);
+    // Apply reward discount
+    if (checkoutRewards.selectedReward != null) {
+      finalTotal = checkoutRewards.subtotalAfterDiscount;
+      totalDiscountAmount += checkoutRewards.discountAmount;
+      rewardListJson = jsonEncode({
+        'reward_id': checkoutRewards.selectedReward!.id,
+        'reward_type': checkoutRewards.selectedReward!.rewardType,
+        'discount_amount': checkoutRewards.discountAmount,
+        'points_used': checkoutRewards.selectedReward!.points,
+      });
+    }
+
+    final roundedTotal = roundUpToThousand(finalTotal);
+
+    bill = bill.copyWith(
+      total: cart.total, // Original total before any discount
+      finalTotal: roundedTotal.toDouble(),
+      totalafterrounding: roundedTotal.toDouble(),
+      totalDiscount: totalDiscountAmount.toInt(),
+      totalafterdiscount: finalTotal,
+      discountList: discountListJson,
+      rewardBill: rewardListJson,
+      rewardPoints: checkoutRewards.selectedReward?.points.toString() ?? '0',
+      totalReward: checkoutRewards.discountAmount.toInt(),
+    );
+
     bill = BillModel(
       customerId: finalCustomerId,
       billId: bill.billId,
@@ -474,6 +695,9 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
 
     // Clear checkout discount
     ref.read(checkoutDiscountProvider.notifier).clearDiscounts();
+
+    // Clear checkout rewards
+    ref.read(checkoutRewardsProvider.notifier).clearReward();
 
     //Clear checkout payment
     ref.read(paymentAmountProvider.notifier).reset();
@@ -556,6 +780,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     // Cache buttons if not already cached or if selection changed
     final appliedDiscounts = ref.watch(selectedDiscountsProvider);
     final checkoutDiscount = ref.watch(checkoutDiscountProvider);
+    final checkoutRewards = ref.watch(checkoutRewardsProvider);
     _cachedDeliveryButtons ??= _buildDeliveryButtons();
     _cachedPaymentButtons ??= _buildPaymentButtons();
     final discountButtons = _buildDiscountButtons(appliedDiscounts);
@@ -589,6 +814,11 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
                   if (checkoutDiscount.appliedDiscounts.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     _buildDiscountInfo(checkoutDiscount),
+                  ],
+                  // Show applied reward information
+                  if (checkoutRewards.selectedReward != null) ...[
+                    const SizedBox(height: 16),
+                    _buildRewardInfo(checkoutRewards),
                   ],
                   const SizedBox(height: 16),
                   _buildSection(

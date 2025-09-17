@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/cart_provider.dart';
 import 'package:rebill_flutter/core/providers/checkout_discount_provider.dart';
+import 'package:rebill_flutter/core/providers/checkout_rewards_provider.dart';
 import 'package:rebill_flutter/core/utils/extensions.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
@@ -18,6 +19,7 @@ class Bill extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(cartProvider);
     final checkoutDiscount = ref.watch(checkoutDiscountProvider);
+    final checkoutRewards = ref.watch(checkoutRewardsProvider);
     final theme = Theme.of(context);
 
     int roundUpToThousand(double value) {
@@ -42,8 +44,21 @@ class Bill extends ConsumerWidget {
       totalBeforeRounding = selectedBill.totalaftertax;
       finalTotal = selectedBill.finalTotal;
     } else {
-      final discountAmount = checkoutDiscount.totalDiscountAmount;
-      totalBeforeRounding = cart.getTotalWithCheckoutDiscount(discountAmount);
+      double total = cart.total;
+
+      // Apply checkout discount first
+      if (checkoutDiscount.appliedDiscounts.isNotEmpty) {
+        total = cart.getTotalWithCheckoutDiscount(
+          checkoutDiscount.totalDiscountAmount,
+        );
+      }
+
+      // Apply reward discount
+      if (checkoutRewards.selectedReward != null) {
+        total = checkoutRewards.subtotalAfterDiscount;
+      }
+
+      totalBeforeRounding = total;
       final roundingAmount =
           roundUpToThousand(totalBeforeRounding) - totalBeforeRounding;
       finalTotal = totalBeforeRounding + roundingAmount;

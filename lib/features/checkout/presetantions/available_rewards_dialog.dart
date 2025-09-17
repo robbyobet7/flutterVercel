@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/providers/rewards_provider.dart';
+import 'package:rebill_flutter/core/providers/checkout_rewards_provider.dart';
+import 'package:rebill_flutter/core/providers/cart_provider.dart';
+import 'package:rebill_flutter/core/providers/checkout_discount_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_material.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
@@ -19,6 +22,8 @@ class AvailableRewardsDialog extends ConsumerWidget {
     final theme = Theme.of(context);
     final rewardsAsyncValue = ref.watch(rewardsProvider);
     final selectedReward = ref.watch(selectedRewardProvider);
+    final cart = ref.watch(cartProvider);
+    final checkoutDiscount = ref.watch(checkoutDiscountProvider);
 
     return Expanded(
       child: Column(
@@ -71,6 +76,18 @@ class AvailableRewardsDialog extends ConsumerWidget {
                         itemBuilder: (context, index) {
                           final reward = rewards[index];
                           final isSelected = selectedReward?.id == reward.id;
+                          // Calculate total after discount for validation
+                          double totalAfterDiscount = cart.total;
+                          if (checkoutDiscount.appliedDiscounts.isNotEmpty) {
+                            totalAfterDiscount = cart
+                                .getTotalWithCheckoutDiscount(
+                                  checkoutDiscount.totalDiscountAmount,
+                                );
+                          }
+
+                          final canApply = ref
+                              .read(checkoutRewardsProvider.notifier)
+                              .canApplyReward(reward, totalAfterDiscount);
 
                           return Column(
                             children: [
@@ -80,12 +97,16 @@ class AvailableRewardsDialog extends ConsumerWidget {
                                 ),
                                 child: AppMaterial(
                                   borderRadius: BorderRadius.circular(8),
-                                  onTap: () {
-                                    final notifier = ref.read(
-                                      selectedRewardProvider.notifier,
-                                    );
-                                    notifier.state = isSelected ? null : reward;
-                                  },
+                                  onTap:
+                                      canApply
+                                          ? () {
+                                            final notifier = ref.read(
+                                              selectedRewardProvider.notifier,
+                                            );
+                                            notifier.state =
+                                                isSelected ? null : reward;
+                                          }
+                                          : null,
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
                                     height: 60,
@@ -95,7 +116,12 @@ class AvailableRewardsDialog extends ConsumerWidget {
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(8),
                                       color:
-                                          isSelected
+                                          !canApply
+                                              ? theme
+                                                  .colorScheme
+                                                  .surfaceContainerHighest
+                                                  .withOpacity(0.5)
+                                              : isSelected
                                               ? theme
                                                   .colorScheme
                                                   .primaryContainer
@@ -117,27 +143,54 @@ class AvailableRewardsDialog extends ConsumerWidget {
                                           theme,
                                           reward.rewardType == 'percent'
                                               ? 'Diskon ${reward.amount}%'
-                                              : 'Potongan ${reward.rewardRules.toCurrency()}',
+                                              : 'Potongan ${reward.amount.toCurrency()}',
                                           flex: 2,
                                           isBold: true,
+                                          textColor:
+                                              !canApply
+                                                  ? theme.colorScheme.onSurface
+                                                      .withOpacity(0.5)
+                                                  : null,
                                         ),
-                                        _buildCell(theme, '${reward.points}'),
+                                        _buildCell(
+                                          theme,
+                                          '${reward.points}',
+                                          textColor:
+                                              !canApply
+                                                  ? theme.colorScheme.onSurface
+                                                      .withOpacity(0.5)
+                                                  : null,
+                                        ),
                                         _buildCell(
                                           theme,
                                           reward.count.toString(),
+                                          textColor:
+                                              !canApply
+                                                  ? theme.colorScheme.onSurface
+                                                      .withOpacity(0.5)
+                                                  : null,
                                         ),
                                         _buildCell(
                                           theme,
-                                          reward.rewardType == 'flat' &&
-                                                  reward.rewardRules > 0
+                                          reward.rewardRules > 0
                                               ? reward.rewardRules.toCurrency()
                                               : '-',
+                                          textColor:
+                                              !canApply
+                                                  ? theme.colorScheme.onSurface
+                                                      .withOpacity(0.5)
+                                                  : null,
                                         ),
                                         _buildCell(
                                           theme,
                                           reward.rewardCapped > 0
                                               ? reward.rewardCapped.toCurrency()
                                               : '-',
+                                          textColor:
+                                              !canApply
+                                                  ? theme.colorScheme.onSurface
+                                                      .withOpacity(0.5)
+                                                  : null,
                                         ),
                                       ],
                                     ),
@@ -171,6 +224,23 @@ class AvailableRewardsDialog extends ConsumerWidget {
                 const SizedBox(width: 12),
                 AppButton(
                   onPressed: () {
+                    if (selectedReward != null) {
+                      // Calculate total after discount first
+                      double totalAfterDiscount = cart.total;
+                      if (checkoutDiscount.appliedDiscounts.isNotEmpty) {
+                        totalAfterDiscount = cart.getTotalWithCheckoutDiscount(
+                          checkoutDiscount.totalDiscountAmount,
+                        );
+                      }
+
+                      // Apply reward to checkout using total after discount
+                      ref
+                          .read(checkoutRewardsProvider.notifier)
+                          .applyReward(selectedReward, totalAfterDiscount);
+                    } else {
+                      // Apply without reward (clear any existing reward)
+                      ref.read(checkoutRewardsProvider.notifier).clearReward();
+                    }
                     Navigator.pop(context);
                   },
                   text: 'Apply Reward',
@@ -205,6 +275,7 @@ class AvailableRewardsDialog extends ConsumerWidget {
     String text, {
     int flex = 1,
     bool isBold = false,
+    Color? textColor,
   }) {
     return Expanded(
       flex: flex,
@@ -214,6 +285,7 @@ class AvailableRewardsDialog extends ConsumerWidget {
         overflow: TextOverflow.ellipsis,
         style: theme.textTheme.titleSmall?.copyWith(
           fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          color: textColor,
         ),
       ),
     );
