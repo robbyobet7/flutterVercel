@@ -357,7 +357,7 @@ class MainBillPage extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 4),
                 Expanded(
                   child: AppButton(
                     onPressed: () {},
@@ -369,7 +369,7 @@ class MainBillPage extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 4),
                 Expanded(
                   child: AppButton(
                     onPressed: () {},
@@ -384,6 +384,7 @@ class MainBillPage extends ConsumerWidget {
               ],
             ),
           ),
+        const SizedBox(height: 1),
         TotalPriceCard(),
       ],
     );

@@ -1,7 +1,6 @@
-// HomeProducts.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rebill_flutter/core/widgets/qr_product.dart';
 import 'package:rebill_flutter/features/home/providers/category_mode_provider.dart';
 import 'package:rebill_flutter/core/theme/app_theme.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
@@ -107,16 +106,28 @@ class HomeProducts extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      width: 40,
-                      height: double.infinity,
-                      child: Icon(
-                        Icons.qr_code_scanner,
-                        color: theme.colorScheme.onSurface,
+                    GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return const QRProduct(
+                              qrData: 'https://www.rebill-pos.com',
+                            );
+                          },
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        width: 40,
+                        height: double.infinity,
+                        child: Icon(
+                          Icons.qr_code_scanner,
+                          color: theme.colorScheme.onSurface,
+                        ),
                       ),
                     ),
                   ],
