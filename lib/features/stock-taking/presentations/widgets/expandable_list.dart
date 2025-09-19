@@ -26,6 +26,7 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
     with SingleTickerProviderStateMixin {
   // Use a map for better access patterns with large lists
   final Map<int, TextEditingController> _controllerCache = {};
+  final Map<int, bool> _checkedItems = {};
   bool _isExpanded = true;
   late final AnimationController _controller;
   late final ScrollController _scrollController;
@@ -122,7 +123,20 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
                             color: theme.colorScheme.onSurface,
                           ),
                           SizedBox(width: 12),
-                          AppCheckbox(),
+                          AppCheckbox(
+                            value:
+                                stockTakings.isNotEmpty &&
+                                stockTakings.every(
+                                  (e) => _checkedItems[e.id] ?? false,
+                                ),
+                            onChanged: (newValue) {
+                              setState(() {
+                                for (var item in stockTakings) {
+                                  _checkedItems[item.id] = newValue;
+                                }
+                              });
+                            },
+                          ),
                         ],
                       ),
                     ],
@@ -245,7 +259,19 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.end,
-                                        children: [AppCheckbox()],
+                                        children: [
+                                          AppCheckbox(
+                                            value:
+                                                _checkedItems[item
+                                                    .id], // kalau null -> internal state di AppCheckbox yang jalan
+                                            onChanged: (newValue) {
+                                              setState(() {
+                                                _checkedItems[item.id] =
+                                                    newValue;
+                                              });
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],

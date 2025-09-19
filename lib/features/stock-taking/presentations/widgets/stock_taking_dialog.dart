@@ -5,6 +5,7 @@ import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_divider.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
 import 'package:rebill_flutter/core/widgets/list_header.dart';
+import 'package:rebill_flutter/features/home/providers/search_provider.dart';
 import 'package:rebill_flutter/features/stock-taking/models/stock_taking.dart';
 import 'package:rebill_flutter/features/stock-taking/presentations/widgets/expandable_list.dart';
 import 'package:rebill_flutter/features/stock-taking/presentations/widgets/type_filter_container.dart';
@@ -19,7 +20,6 @@ class StockTakingDialog extends ConsumerStatefulWidget {
 
 class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
   // Track search text
-  String _searchQuery = '';
   late final ScrollController _scrollController;
 
   @override
@@ -34,18 +34,19 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
     super.dispose();
   }
 
-  // Filter lists based on search
-  List<StockTaking> _filterList(List<StockTaking> list) {
-    if (_searchQuery.isEmpty) return list;
-    return list
-        .where((item) => item.productName.toLowerCase().contains(_searchQuery))
-        .toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isWeb = ref.watch(isWebProvider);
+    final searchQuery = ref.watch(stockTakingSearchProvider);
+
+    List<StockTaking> filterList(List<StockTaking> list) {
+      if (searchQuery.isEmpty) return list;
+      return list
+          .where((item) => item.productName.toLowerCase().contains(searchQuery))
+          .toList();
+    }
+
     final headers = [
       Header(flex: 2, text: 'Item'),
       Header(flex: 1, text: 'Current Stock', textAlign: TextAlign.center),
@@ -71,15 +72,17 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                 TypeFilterContainer(type: 'Preps'),
                 Expanded(
                   child: AppSearchBar(
+                    key: const ValueKey('stock_taking_search'),
+                    searchProvider: stockTakingSearchProvider,
                     onSearch: (value) {
-                      setState(() {
-                        _searchQuery = value.toLowerCase();
-                      });
+                      ref
+                          .read(stockTakingSearchProvider.notifier)
+                          .updateSearchQuery(value);
                     },
                     onClear: () {
-                      setState(() {
-                        _searchQuery = '';
-                      });
+                      ref
+                          .read(stockTakingSearchProvider.notifier)
+                          .clearSearch();
                     },
                   ),
                 ),
@@ -105,9 +108,9 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
 
-                final ingredients = _filterList(ref.watch(ingredientsProvider));
-                final products = _filterList(ref.watch(productStockProvider));
-                final preps = _filterList(ref.watch(prepsProvider));
+                final ingredients = filterList(ref.watch(ingredientsProvider));
+                final products = filterList(ref.watch(productStockProvider));
+                final preps = filterList(ref.watch(prepsProvider));
 
                 return ListView.builder(
                   controller: _scrollController,
