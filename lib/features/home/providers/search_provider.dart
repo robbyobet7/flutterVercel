@@ -15,6 +15,12 @@ final customerSearchQueryProvider =
       return SearchNotifier();
     });
 
+final stockTakingSearchProvider = StateNotifierProvider<SearchNotifier, String>(
+  (ref) {
+    return SearchNotifier();
+  },
+);
+
 /// Notifier class to handle search query state
 class SearchNotifier extends StateNotifier<String> {
   SearchNotifier() : super('');

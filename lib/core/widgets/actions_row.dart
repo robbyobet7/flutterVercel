@@ -46,6 +46,8 @@ class ActionsRow extends ConsumerWidget {
               AppButton(
                 onPressed: () {
                   Navigator.pop(context);
+                  // Clear selected table so it doesn't stay active next time
+                  ref.read(selectedQRTable.notifier).state = null;
                 },
                 text: 'Cancel',
                 backgroundColor: theme.colorScheme.errorContainer,
@@ -62,6 +64,9 @@ class ActionsRow extends ConsumerWidget {
                       MainBillComponent.currentBillComponent,
                     );
                     billTypeNotifier.setBillType(BillType.qrBill);
+
+                    // Clear selection after successful submit
+                    ref.read(selectedQRTable.notifier).state = null;
                   },
                   text: 'Submit',
                   disabled: ref.watch(selectedQRTable) == null,

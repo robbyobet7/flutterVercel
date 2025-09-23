@@ -13,10 +13,14 @@ class ExpandableList extends ConsumerStatefulWidget {
     super.key,
     required this.stockTakings,
     required this.title,
+    required this.onStockChanged,
+    required this.onCheckChanged,
   });
 
   final List<StockTaking> stockTakings;
   final String title;
+  final void Function(int id, int value) onStockChanged;
+  final void Function(int id, bool checked) onCheckChanged;
 
   @override
   ConsumerState<ExpandableList> createState() => _ExpandableListState();
@@ -26,6 +30,7 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
     with SingleTickerProviderStateMixin {
   // Use a map for better access patterns with large lists
   final Map<int, TextEditingController> _controllerCache = {};
+  final Map<int, bool> _checkedItems = {};
   bool _isExpanded = true;
   late final AnimationController _controller;
   late final ScrollController _scrollController;
@@ -62,7 +67,8 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
 
   @override
   Widget build(BuildContext context) {
-    final stockTakings = widget.stockTakings;
+    final List<StockTaking> stockTakings =
+        widget.stockTakings.cast<StockTaking>();
     final theme = Theme.of(context);
 
     if (_isExpanded) {
@@ -122,7 +128,20 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
                             color: theme.colorScheme.onSurface,
                           ),
                           SizedBox(width: 12),
-                          AppCheckbox(),
+                          AppCheckbox(
+                            value:
+                                stockTakings.isNotEmpty &&
+                                stockTakings.every(
+                                  (e) => _checkedItems[e.id] ?? false,
+                                ),
+                            onChanged: (newValue) {
+                              setState(() {
+                                for (var item in stockTakings) {
+                                  _checkedItems[item.id] = newValue;
+                                }
+                              });
+                            },
+                          ),
                         ],
                       ),
                     ],
@@ -164,6 +183,10 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
                               final item = stockTakings[index];
                               // Get or create controller for this item
                               final controller = _getController(item.id);
+                              // Set initial value if not present
+                              if (controller.text.isEmpty) {
+                                controller.text = '0';
+                              }
 
                               return Container(
                                 padding: EdgeInsets.symmetric(
@@ -212,6 +235,10 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
                                                   controller.text =
                                                       (currentValue - 1)
                                                           .toString();
+                                                  widget.onStockChanged(
+                                                    item.id,
+                                                    currentValue - 1,
+                                                  );
                                                 }
                                               },
                                             ),
@@ -221,6 +248,14 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
                                                 controller: controller,
                                                 keyboardType:
                                                     TextInputType.number,
+                                                onChanged: (val) {
+                                                  final v =
+                                                      int.tryParse(val) ?? 0;
+                                                  widget.onStockChanged(
+                                                    item.id,
+                                                    v,
+                                                  );
+                                                },
                                               ),
                                             ),
                                             IncrementButton(
@@ -233,6 +268,10 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
                                                 controller.text =
                                                     (currentValue + 1)
                                                         .toString();
+                                                widget.onStockChanged(
+                                                  item.id,
+                                                  currentValue + 1,
+                                                );
                                               },
                                             ),
                                           ],
@@ -245,7 +284,21 @@ class _ExpandableListState extends ConsumerState<ExpandableList>
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.end,
-                                        children: [AppCheckbox()],
+                                        children: [
+                                          AppCheckbox(
+                                            value: _checkedItems[item.id],
+                                            onChanged: (newValue) {
+                                              setState(() {
+                                                _checkedItems[item.id] =
+                                                    newValue;
+                                              });
+                                              widget.onCheckChanged(
+                                                item.id,
+                                                newValue ?? false,
+                                              );
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
