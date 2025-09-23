@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 class StockTaking {
-  final int id;
+  int id;
+  int productStock;
   final int productId;
   final String productName;
-  final int productStock;
   final int productInfinityStock;
   final String productCategory;
   final int status;

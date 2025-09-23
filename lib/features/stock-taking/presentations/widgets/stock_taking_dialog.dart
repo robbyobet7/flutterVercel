@@ -21,16 +21,26 @@ class StockTakingDialog extends ConsumerStatefulWidget {
 class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
   // Track search text
   late final ScrollController _scrollController;
+  late final TextEditingController _notesController;
+  bool _isNotesVisible = false;
+  late Future<void> _initStockFuture;
+
+  // Structure to store stock changes (increment and checklist)
+  final Map<int, int> _actualStockChanges = {}; // id -> increment value
+  final Map<int, bool> _checkedItems = {}; // id -> checklist
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _notesController = TextEditingController();
+    _initStockFuture = initializeStockTakings();
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -65,11 +75,13 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
             height: 45,
             width: double.infinity,
             child: Row(
-              spacing: 12,
               children: [
                 TypeFilterContainer(type: 'Products'),
+                const SizedBox(width: 12),
                 TypeFilterContainer(type: 'Ingredients'),
+                const SizedBox(width: 12),
                 TypeFilterContainer(type: 'Preps'),
+                const SizedBox(width: 12),
                 Expanded(
                   child: AppSearchBar(
                     key: const ValueKey('stock_taking_search'),
@@ -98,7 +110,7 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
           //Expandable list
           Expanded(
             child: FutureBuilder<void>(
-              future: initializeStockTakings(),
+              future: _initStockFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
@@ -133,6 +145,16 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                               child: ExpandableList(
                                 title: 'Products',
                                 stockTakings: products,
+                                onStockChanged: (id, value) {
+                                  setState(() {
+                                    _actualStockChanges[id] = value;
+                                  });
+                                },
+                                onCheckChanged: (id, checked) {
+                                  setState(() {
+                                    _checkedItems[id] = checked;
+                                  });
+                                },
                               ),
                             );
                       case 1:
@@ -141,12 +163,35 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                           child: ExpandableList(
                             title: 'Ingredients',
                             stockTakings: ingredients,
+                            onStockChanged: (id, value) {
+                              setState(() {
+                                _actualStockChanges[id] = value;
+                              });
+                            },
+                            onCheckChanged: (id, checked) {
+                              setState(() {
+                                _checkedItems[id] = checked;
+                              });
+                            },
                           ),
                         );
                       case 2:
                         return Column(
                           children: [
-                            ExpandableList(title: 'Preps', stockTakings: preps),
+                            ExpandableList(
+                              title: 'Preps',
+                              stockTakings: preps,
+                              onStockChanged: (id, value) {
+                                setState(() {
+                                  _actualStockChanges[id] = value;
+                                });
+                              },
+                              onCheckChanged: (id, checked) {
+                                setState(() {
+                                  _checkedItems[id] = checked;
+                                });
+                              },
+                            ),
                           ],
                         );
                       default:
@@ -157,18 +202,42 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
               },
             ),
           ),
-          SizedBox(height: 16),
 
-          //bottom row
+          const SizedBox(height: 16),
+
+          _isNotesVisible
+              ? Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: TextField(
+                  controller: _notesController,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: 'Add Notes',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    alignLabelWithHint: true,
+                  ),
+                ),
+              )
+              : const SizedBox.shrink(),
+
           SizedBox(
             height: 45,
             width: double.infinity,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                AppButton(text: 'Add Notes', onPressed: () {}),
+                AppButton(
+                  text: _isNotesVisible ? 'Hide Notes' : 'Add Notes',
+                  onPressed: () {
+                    setState(() {
+                      _isNotesVisible = !_isNotesVisible;
+                    });
+                  },
+                ),
+
                 Row(
-                  spacing: 12,
                   children: [
                     AppButton(
                       text: 'Cancel',
@@ -180,9 +249,78 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                         color: theme.colorScheme.error,
                       ),
                     ),
+                    const SizedBox(width: 12),
                     AppButton(
                       text: 'Submit',
-                      onPressed: () {},
+                      onPressed: () {
+                        // Validation: if there is increment > 0 but checklist is not active, show failed dialog
+                        bool hasInvalid = false;
+                        _actualStockChanges.forEach((id, increment) {
+                          if ((increment > 0) && (_checkedItems[id] != true)) {
+                            hasInvalid = true;
+                          }
+                        });
+                        if (hasInvalid) {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (context) => AlertDialog(
+                                  title: Text('Failed'),
+                                  content: Text(
+                                    'Please Activate the checklist before submit.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                          );
+                          return;
+                        }
+                        // Dummy submit process
+                        setState(() {
+                          // Take all ids that are checked
+                          _checkedItems.forEach((id, checked) {
+                            if (checked == true) {
+                              final allStocks = [
+                                ...ref.read(ingredientsProvider),
+                                ...ref.read(productStockProvider),
+                                ...ref.read(prepsProvider),
+                              ];
+                              StockTaking? stock;
+                              try {
+                                stock = allStocks.firstWhere((s) => s.id == id);
+                              } catch (_) {
+                                stock = null;
+                              }
+                              if (stock != null) {
+                                final increment = _actualStockChanges[id] ?? 0;
+                                if (increment > 0) {
+                                  stock.productStock += increment;
+                                }
+                              }
+                            }
+                          });
+                        });
+                        showDialog(
+                          context: context,
+                          builder:
+                              (context) => AlertDialog(
+                                title: Text('Success'),
+                                content: Text(
+                                  'Stock berhasil di-submit (dummy).',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text('OK'),
+                                  ),
+                                ],
+                              ),
+                        );
+                      },
                       backgroundColor: theme.colorScheme.primary,
                       textStyle: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onPrimary,

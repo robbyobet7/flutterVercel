@@ -11,8 +11,8 @@ class AppCheckbox extends StatefulWidget {
   });
 
   final double size;
-  final bool? value; // kalau null -> pakai state internal
-  final ValueChanged<bool>? onChanged; // opsional
+  final bool? value; // if null -> use internal state
+  final ValueChanged<bool>? onChanged; // optional
   final double? borderRadius;
 
   @override
