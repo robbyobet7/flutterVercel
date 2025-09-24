@@ -94,33 +94,50 @@ class _HomeBillState extends ConsumerState<HomeBill> {
       total = checkoutRewards.subtotalAfterDiscount;
     }
 
+    // Active Bill DUMMY
     BillItem? activeBill;
-    if (mainBillComponent != MainBillComponent.defaultComponent &&
-        selectedBill == null) {
+    if (mainBillComponent == MainBillComponent.currentBillComponent &&
+        selectedBill != null) {
       activeBill = BillItem(
-        billId: 9999,
+        billId: selectedBill.billId,
+        // Get real-time name from customer provider
         name:
             customerType == CustomerType.knownIndividual &&
                     knownIndividual != null
                 ? knownIndividual.customerName
                 : 'Guest',
+        // Gets real-time total from provider cart
         total: roundUpToThousand(total).toDouble(),
         finalTotal: roundUpToThousand(total).toDouble(),
         status: 'open',
-        createdAt: DateTime.now(),
+        createdAt: selectedBill.createdAt,
       );
     }
 
-    // Combine activeBill with the first billsByDate group (or create a new one if empty)
+    // Prepare a list of main bills from the saved state.
     List<BillsByDate> displayBills = List.from(allBills);
+
+    // Smartly merge 'activeBill' into the display list.
     if (activeBill != null) {
-      if (displayBills.isNotEmpty && displayBills[0].date == 'Today') {
-        final todayBills = displayBills[0].bills;
-        // Remove the previous activeBill if any to avoid duplicates
-        todayBills.removeWhere((b) => b.billId == 9999);
-        todayBills.insert(0, activeBill);
+      final todayIndex = displayBills.indexWhere(
+        (group) => group.date == 'Today',
+      );
+
+      if (todayIndex != -1) {
+        // If there is a "Today" group, look for the appropriate bill in it.
+        final billIndex = displayBills[todayIndex].bills.indexWhere(
+          (b) => b.billId == activeBill!.billId,
+        );
+
+        if (billIndex != -1) {
+          // If found: Replace the existing bill with the real-time 'activeBill' version.
+          displayBills[todayIndex].bills[billIndex] = activeBill;
+        } else {
+          // If not found (new bill case): Add at the top.
+          displayBills[todayIndex].bills.insert(0, activeBill);
+        }
       } else {
-        // If there is no "Today" group, create a new one and put it at the top
+        // If the "Today" group doesn't exist, create a new one and add 'activeBill'.
         displayBills.insert(0, BillsByDate(date: 'Today', bills: [activeBill]));
       }
     }
@@ -329,7 +346,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                           ),
                         ),
                         Expanded(
-                          flex: 3,
+                          flex: 4,
                           child: Text(
                             'Total',
                             style: theme.textTheme.labelLarge?.copyWith(
@@ -338,7 +355,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                           ),
                         ),
                         Expanded(
-                          flex: 2,
+                          flex: 3,
                           child: Text(
                             'Status',
                             textAlign: TextAlign.center,
@@ -470,7 +487,12 @@ class _HomeBillState extends ConsumerState<HomeBill> {
           statusColor == theme.colorScheme.primary
               ? theme.colorScheme.onPrimary
               : theme.colorScheme.error;
-      final bool isActive = bill.billId == activeBillId;
+
+      final outlineBorderColor =
+          statusColor == theme.colorScheme.errorContainer
+              ? theme.colorScheme.error
+              : Colors.transparent;
+
       return AppMaterial(
         borderRadius: BorderRadius.circular(0),
         onTap: () {
@@ -494,8 +516,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
             ref.read(billProvider.notifier).selectBill(fullBillModel);
             ref.read(cartProvider.notifier).loadCartFromBill(fullBillModel);
 
-            // <-- MULAI PERUBAHAN DI SINI UNTUK BILL CLOSED
-            // Memuat kembali diskon yang tersimpan di bill
+            // Reloads the discount stored in the bill
             if (fullBillModel.discountList != null &&
                 fullBillModel.discountList!.isNotEmpty) {
               try {
@@ -516,23 +537,20 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                     .read(checkoutDiscountProvider.notifier)
                     .applyDiscounts(appliedDiscounts, subtotal);
               } catch (e) {
-                // Jika gagal parse JSON, bersihkan provider diskon
+                // If JSON parse fails, clear discount provider
                 ref.read(checkoutDiscountProvider.notifier).clearDiscounts();
               }
             } else {
-              // Jika bill tidak punya diskon, pastikan provider bersih
+              // If the bill has no discount, make sure the provider is clean
               ref.read(checkoutDiscountProvider.notifier).clearDiscounts();
             }
-            // <-- AKHIR PERUBAHAN
 
             ref
                 .read(mainBillProvider.notifier)
                 .setMainBill(MainBillComponent.billsComponent);
           } else {
             // Logic for open bill
-
-            // <-- TAMBAHKAN INI UNTUK BILL OPEN
-            // Bersihkan diskon dari bill sebelumnya sebelum memuat bill baru
+            // Clear discount from previous bill before loading new bill
             ref.read(checkoutDiscountProvider.notifier).clearDiscounts();
 
             ref
@@ -542,6 +560,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                   ref.read(cartProvider.notifier),
                   ref.read(knownIndividualProvider.notifier),
                   ref.read(customerTypeProvider.notifier),
+                  ref,
                 );
             ref
                 .read(mainBillProvider.notifier)
@@ -553,8 +572,8 @@ class _HomeBillState extends ConsumerState<HomeBill> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color:
-                isActive
-                    ? theme.colorScheme.primaryContainer
+                selectedBill?.billId == bill.billId
+                    ? theme.colorScheme.errorContainer
                     : theme.colorScheme.surface,
             border: Border(
               top:
@@ -580,7 +599,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
               const SizedBox(width: 8),
               // Status indicator
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 2,
@@ -589,6 +608,7 @@ class _HomeBillState extends ConsumerState<HomeBill> {
                   decoration: BoxDecoration(
                     color: statusColor,
                     borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: outlineBorderColor),
                   ),
                   child: Text(
                     bill.status,

@@ -147,12 +147,14 @@ class TableBillNotifier extends StateNotifier<TableBillState> {
     CartNotifier cartNotifier,
     KnownIndividualNotifier knownIndividualNotifier,
     CustomerTypeNotifier customerTypeNotifier,
+    WidgetRef? ref,
   ) async {
     try {
       final bill = await _tableBillMiddleware.getBillById(billId);
       if (bill != null) {
         state = state.copyWith(selectedBill: bill);
         bill.loadIntoCart(cartNotifier);
+
         if (bill.customerId != null) {
           final customer = await knownIndividualNotifier.getCustomerById(
             bill.customerId!,

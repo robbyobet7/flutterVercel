@@ -25,7 +25,7 @@ class BillMiddleware {
   final FlutterSecureStorage storage = FlutterSecureStorage();
 
   // ADD BILL DUMMY
-  void addBill(BillModel bill) {
+  BillModel addBill(BillModel bill) {
     // Create a copy of the incoming bill and assign a unique negative ID
     final newBillWithId = bill.copyWith(billId: _nextLocalBillId--);
 
@@ -34,6 +34,9 @@ class BillMiddleware {
 
     // Send updates to the UI via the stream
     _billStreamController.add(List.unmodifiable(_bills));
+
+    // Return the newly inserted bill instance
+    return newBillWithId;
   }
 
   //Bills API
@@ -115,6 +118,20 @@ class BillMiddleware {
 
     // Send the updated list to the stream to keep the UI updated.
     _billStreamController.add(List.unmodifiable(_bills));
+  }
+
+  // Update bill DUMMY
+  void updateBill(BillModel updatedBill) {
+    // Find and update the bill in local list
+    final index = _bills.indexWhere(
+      (bill) => bill.billId == updatedBill.billId,
+    );
+    if (index != -1) {
+      _bills[index] = updatedBill;
+
+      // Send the updated list to the stream to keep the UI updated.
+      _billStreamController.add(List.unmodifiable(_bills));
+    }
   }
 
   // Check if initialized

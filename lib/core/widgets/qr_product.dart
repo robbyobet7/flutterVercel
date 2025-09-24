@@ -5,18 +5,27 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/table_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class QRProduct extends StatelessWidget {
   final String? qrData;
 
   const QRProduct({super.key, this.qrData});
 
+  // Show Menu Direct
+  Future<void> _launchURL(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      print('Could not launch $urlString');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final String safeData =
         (qrData == null || qrData!.isEmpty)
-            ? 'https://www.rebill-pos.com'
+            ? 'https://pos-qa.rebill-pos.com/menu/eyJpdiI6ImhPSkoza1dqNkxsdTdpYytHN094bkE9PSIsInZhbHVlIjoialh5QWNxTmxuVlB3cXVSenkvYlZNQT09IiwibWFjIjoiYmQ5N2U4NmEyNTk2OGE4MjRlNzcyYWU0MjkzZDI3YjdlMjYwOGE4N2I2MWIxZjQ5YmVmNWQyYjlkNzEzMWUxNCIsInRhZyI6IiJ9'
             : qrData!;
 
     return Dialog(
@@ -64,6 +73,7 @@ class QRProduct extends StatelessWidget {
                       );
                     },
                     text: 'Choose Table',
+                    textStyle: TextStyle(color: Colors.white),
                     backgroundColor: theme.colorScheme.primary,
                   ),
                 ),
@@ -71,9 +81,11 @@ class QRProduct extends StatelessWidget {
                 Expanded(
                   child: AppButton(
                     onPressed: () {
+                      _launchURL(safeData);
                       Navigator.of(context).pop();
                     },
                     text: 'Show Menu',
+                    textStyle: TextStyle(color: Colors.white),
                     backgroundColor: theme.colorScheme.primary,
                   ),
                 ),

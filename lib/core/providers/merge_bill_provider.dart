@@ -219,11 +219,13 @@ class MergeBillNotifier extends StateNotifier<MergeBillState> {
     CartNotifier cartNotifier,
     KnownIndividualNotifier knownIndividualNotifier,
     CustomerTypeNotifier customerTypeNotifier,
+    WidgetRef? ref,
   ) async {
     final bill = await _mergeBillMiddleware.getBill(billId);
     if (bill != null) {
       selectBill(bill);
       bill.loadIntoCart(cartNotifier);
+
       if (bill.customerId != null) {
         final customer = await knownIndividualNotifier.getCustomerById(
           bill.customerId!,
