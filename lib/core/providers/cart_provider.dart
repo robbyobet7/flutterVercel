@@ -3,6 +3,7 @@ import 'package:rebill_flutter/core/models/cart_item.dart';
 import 'dart:convert';
 import 'package:rebill_flutter/core/models/product.dart';
 import 'package:rebill_flutter/core/models/bill.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/providers/product_provider.dart';
 
 /// Class representing the full state of a cart
@@ -108,7 +109,9 @@ class CartState {
 
 /// Notifier that manages the cart state
 class CartNotifier extends StateNotifier<CartState> {
-  CartNotifier() : super(const CartState());
+  final StateNotifierProviderRef ref;
+
+  CartNotifier(this.ref) : super(const CartState());
 
   void addSimpleProduct(Product product, WidgetRef ref, {int quantity = 1}) {
     final productNotifier = ref.read(productProvider.notifier);
@@ -161,6 +164,23 @@ class CartNotifier extends StateNotifier<CartState> {
     );
   }
 
+  void _updateBillTotals() {
+    // Use safe ref to read other providers
+    final billNotifier = ref.read(billProvider.notifier);
+    final selectedBill = ref.read(billProvider).selectedBill;
+    final cartState = state; // 'state' adalah state saat ini dari CartNotifier
+
+    if (selectedBill != null && selectedBill.states.toLowerCase() == 'open') {
+      int roundUpToThousand(double value) => ((value / 1000).ceil()) * 1000;
+      final roundedTotal = roundUpToThousand(cartState.total);
+
+      billNotifier.updateSelectedBillTotals(
+        cartState.total,
+        roundedTotal.toDouble(),
+      );
+    }
+  }
+
   // Add an item to the cart
   void addItem(CartItem item) {
     final items = [...state.items];
@@ -179,6 +199,7 @@ class CartNotifier extends StateNotifier<CartState> {
     }
 
     state = state.copyWith(items: items);
+    _updateBillTotals();
   }
 
   // Add a product to the cart directly
@@ -337,6 +358,7 @@ class CartNotifier extends StateNotifier<CartState> {
     items[index] = item;
 
     state = state.copyWith(items: items);
+    _updateBillTotals();
   }
 
   // Remove an item from the cart
@@ -347,6 +369,7 @@ class CartNotifier extends StateNotifier<CartState> {
     items.removeAt(index);
 
     state = state.copyWith(items: items);
+    _updateBillTotals();
   }
 
   // Increment the quantity of an item
@@ -358,6 +381,7 @@ class CartNotifier extends StateNotifier<CartState> {
 
     items[index] = item.copyWith(quantity: item.quantity + 1);
     state = state.copyWith(items: items);
+    _updateBillTotals();
   }
 
   // Decrement the quantity of an item
@@ -370,6 +394,7 @@ class CartNotifier extends StateNotifier<CartState> {
     if (item.quantity > 1) {
       items[index] = item.copyWith(quantity: item.quantity - 1);
       state = state.copyWith(items: items);
+      _updateBillTotals();
     } else {
       // Remove item if quantity would become 0
       removeItem(index);
@@ -387,21 +412,25 @@ class CartNotifier extends StateNotifier<CartState> {
     final items = [...state.items];
     items[index] = items[index].copyWith(quantity: quantity);
     state = state.copyWith(items: items);
+    _updateBillTotals();
   }
 
   // Update service fee percentage
   void updateServiceFeePercentage(double percentage) {
     state = state.copyWith(serviceFeePercentage: percentage);
+    _updateBillTotals();
   }
 
   // Update tax percentage
   void updateTaxPercentage(double percentage) {
     state = state.copyWith(taxPercentage: percentage);
+    _updateBillTotals();
   }
 
   // Update gratuity percentage
   void updateGratuityPercentage(double percentage) {
     state = state.copyWith(gratuityPercentage: percentage);
+    _updateBillTotals();
   }
 
   //Load cart from Bill
@@ -409,11 +438,13 @@ class CartNotifier extends StateNotifier<CartState> {
     clearCart();
 
     state = CartState(items: List.from(bill.items ?? []));
+    _updateBillTotals();
   }
 
   // Clear all items from the cart
   void clearCart() {
     state = const CartState();
+    _updateBillTotals();
   }
 
   // Add a method to convert a Product to a CartItem
@@ -448,29 +479,28 @@ class CartNotifier extends StateNotifier<CartState> {
 
   // Add a method to load a BillModel directly into the cart
   void loadBill(BillModel bill) {
-    // Clear existing cart
-    clearCart();
-
-    // Set tax and service fee percentages from the bill
+    // Set state awal tanpa memicu update berulang
     double serviceFeePercent = double.tryParse(bill.servicefee) ?? 5.0;
     double taxPercent = double.tryParse(bill.vat) ?? 10.0;
     double gratuityPercent = double.tryParse(bill.gratuity) ?? 0.0;
 
-    updateServiceFeePercentage(serviceFeePercent);
-    updateTaxPercentage(taxPercent);
-    updateGratuityPercentage(gratuityPercent);
-
-    // Load items from bill
+    List<CartItem> itemsFromBill = [];
     if (bill.items != null && bill.items!.isNotEmpty) {
-      // If bill has parsed items, add them directly
-      for (var item in bill.items!) {
-        if (item.discount > 0) {}
-        addItem(item);
-      }
+      itemsFromBill = List.from(bill.items!);
     } else if (bill.orderCollection.isNotEmpty) {
       // If bill only has order collection string, parse and add items
       addItemsFromBill(bill.orderCollection);
     }
+
+    state = state.copyWith(
+      items: itemsFromBill,
+      serviceFeePercentage: serviceFeePercent,
+      taxPercentage: taxPercent,
+      gratuityPercentage: gratuityPercent,
+    );
+
+    // Once the state is set, call update just once at the end
+    _updateBillTotals();
 
     // Check individual items
     for (int i = 0; i < state.items.length; i++) {
@@ -563,7 +593,7 @@ class CartNotifier extends StateNotifier<CartState> {
 
 // Provider for the cart state
 final cartProvider = StateNotifierProvider<CartNotifier, CartState>((ref) {
-  return CartNotifier();
+  return CartNotifier(ref);
 });
 
 // Convenience providers to access specific cart properties

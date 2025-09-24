@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:rebill_flutter/core/models/bill.dart';
@@ -79,14 +81,75 @@ class BillNotifier extends StateNotifier<BillState> {
     });
   }
 
+  void saveCartToSelectedBill(
+    CartState cartState,
+    String customerName,
+    int? customerId,
+  ) {
+    if (state.selectedBill != null) {
+      final double newTotal = cartState.total;
+      int roundUpToThousand(double value) => ((value / 1000).ceil() * 1000);
+      final double newFinalTotal = roundUpToThousand(newTotal).toDouble();
+
+      final updatedBill = state.selectedBill!.copyWith(
+        customerName: customerName,
+        items: cartState.items,
+        orderCollection: jsonEncode(
+          cartState.items.map((item) => item.toJson()).toList(),
+        ),
+        total: newTotal,
+        finalTotal: newFinalTotal,
+        totalDiscount: cartState.totalProductDiscount.toInt(),
+        productDiscount: cartState.totalProductDiscount.toInt(),
+        totalservicefee: cartState.serviceFee,
+        totalvat: cartState.taxTotal,
+        totalgratuity: cartState.gratuity,
+        totalafterrounding: newFinalTotal,
+      );
+
+      final bills = List<BillModel>.from(state.bills);
+      final index = bills.indexWhere((b) => b.billId == updatedBill.billId);
+
+      if (index != -1) {
+        bills[index] = updatedBill;
+      }
+
+      _billMiddleware.updateBill(updatedBill);
+
+      state = state.copyWith(bills: bills, selectedBill: updatedBill);
+    }
+  }
+
   // Delete bill DUMMY
   void deleteBill(int billId) {
     _billMiddleware.deleteBill(billId);
   }
 
   // Add Dummy Bill
-  void addBill(BillModel bill) {
-    _billMiddleware.addBill(bill);
+  BillModel addBill(BillModel bill) {
+    return _billMiddleware.addBill(bill);
+  }
+
+  // Update the currently selected bill with new totals
+  void updateSelectedBillTotals(double total, double finalTotal) {
+    if (state.selectedBill != null) {
+      final updatedBill = state.selectedBill!.copyWith(
+        total: total,
+        finalTotal: finalTotal,
+        totalafterrounding: finalTotal,
+        totalaftertax: total,
+      );
+
+      final bills = List<BillModel>.from(state.bills);
+      final index = bills.indexWhere((b) => b.billId == updatedBill.billId);
+
+      if (index != -1) {
+        bills[index] = updatedBill;
+      }
+
+      _billMiddleware.updateBill(updatedBill);
+      state = state.copyWith(bills: bills, selectedBill: updatedBill);
+    }
   }
 
   String? get createdAt {
@@ -228,11 +291,13 @@ class BillNotifier extends StateNotifier<BillState> {
     CartNotifier cartNotifier,
     KnownIndividualNotifier knownIndividualNotifier,
     CustomerTypeNotifier customerTypeNotifier,
+    WidgetRef? ref,
   ) async {
     final bill = _billMiddleware.getBillById(billId);
     if (bill != null) {
       selectBill(bill);
       bill.loadIntoCart(cartNotifier);
+
       if (bill.customerId != null) {
         final customer = await knownIndividualNotifier.getCustomerById(
           bill.customerId!,

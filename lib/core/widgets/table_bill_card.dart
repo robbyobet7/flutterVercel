@@ -32,6 +32,7 @@ class TableBillCard extends ConsumerWidget {
               ref.read(cartProvider.notifier),
               ref.read(knownIndividualProvider.notifier),
               ref.read(customerTypeProvider.notifier),
+              ref,
             );
 
         ref

@@ -21,9 +21,28 @@ import 'package:rebill_flutter/features/login/providers/staff_auth_provider.dart
 class MainBillPage extends ConsumerWidget {
   const MainBillPage({super.key});
 
-  // Function to cancel and reset bill
+  // Function to cancel and close dialog (but keep the bill)
   void _cancelBill(WidgetRef ref) {
-    resetMainBill(ref);
+    final cart = ref.read(cartProvider);
+    final knownIndividual = ref.read(knownIndividualProvider);
+    final customerName = knownIndividual?.customerName ?? 'Guest';
+    final customerId = knownIndividual?.customerId;
+
+    // SAVE all data (including customer name)
+    ref
+        .read(billProvider.notifier)
+        .saveCartToSelectedBill(cart, customerName, customerId);
+
+    // CHANGE UI VIEW back to default
+    ref
+        .read(mainBillProvider.notifier)
+        .setMainBill(MainBillComponent.defaultComponent);
+
+    // CLEAR ALL states related to previous bill
+    ref.read(billProvider.notifier).clearSelectedBill();
+    ref.read(cartProvider.notifier).clearCart();
+    ref.read(knownIndividualProvider.notifier).setKnownIndividual(null);
+    ref.read(customerTypeProvider.notifier).setCustomerType(CustomerType.guest);
   }
 
   // Function to create receipt text and share it
@@ -200,7 +219,7 @@ class MainBillPage extends ConsumerWidget {
 
     if (isConfirmed == true && context.mounted) {
       ref.read(billProvider.notifier).deleteBill(selectedBill.billId);
-      _cancelBill(ref);
+      resetMainBill(ref);
     }
   }
 
@@ -296,18 +315,17 @@ class MainBillPage extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          if (isClosed)
-                            Tooltip(
-                              message: 'Delete Bill',
-                              child: GestureDetector(
-                                onTap: () => _handleDeleteBill(context, ref),
-                                child: Icon(
-                                  Icons.delete_forever_outlined,
-                                  color: theme.colorScheme.onSurface,
-                                ),
+                          Tooltip(
+                            message: 'Delete Bill',
+                            child: GestureDetector(
+                              onTap: () => _handleDeleteBill(context, ref),
+                              child: Icon(
+                                Icons.delete_forever_outlined,
+                                color: theme.colorScheme.onSurface,
                               ),
                             ),
-                          if (isClosed) const SizedBox(width: 12),
+                          ),
+                          const SizedBox(width: 12),
                           Tooltip(
                             message: 'Cancel',
                             child: GestureDetector(

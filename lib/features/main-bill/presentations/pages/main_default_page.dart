@@ -14,7 +14,6 @@ class MainDefaultPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final mainBillNotifier = ref.watch(mainBillProvider.notifier);
     final billTypeNotifier = ref.watch(billTypeProvider.notifier);
 
     final curBillFeature = [
@@ -23,7 +22,8 @@ class MainDefaultPage extends ConsumerWidget {
         'icon': Icons.receipt,
         'title': 'New Bill',
         'event': () {
-          mainBillNotifier.setMainBill(MainBillComponent.currentBillComponent);
+          // Create a new bill with open status
+          createNewOpenBill(ref);
           billTypeNotifier.setBillType(BillType.newBill);
         },
       },

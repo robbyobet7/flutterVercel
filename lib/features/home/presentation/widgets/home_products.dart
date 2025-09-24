@@ -112,7 +112,8 @@ class HomeProducts extends ConsumerWidget {
                           context: context,
                           builder: (BuildContext context) {
                             return const QRProduct(
-                              qrData: 'https://www.rebill-pos.com',
+                              qrData:
+                                  'https://pos-qa.rebill-pos.com/menu/eyJpdiI6ImhPSkoza1dqNkxsdTdpYytHN094bkE9PSIsInZhbHVlIjoialh5QWNxTmxuVlB3cXVSenkvYlZNQT09IiwibWFjIjoiYmQ5N2U4NmEyNTk2OGE4MjRlNzcyYWU0MjkzZDI3YjdlMjYwOGE4N2I2MWIxZjQ5YmVmNWQyYjlkNzEzMWUxNCIsInRhZyI6IiJ9',
                             );
                           },
                         );

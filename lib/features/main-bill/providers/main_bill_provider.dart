@@ -40,6 +40,62 @@ void resetMainBill(WidgetRef ref) {
       .setMainBill(MainBillComponent.defaultComponent);
 }
 
+// Function to create a new bill with open status
+void createNewOpenBill(WidgetRef ref) {
+  final cartNotifier = ref.read(cartProvider.notifier);
+  final billNotifier = ref.read(billProvider.notifier);
+  final knownIndividualNotifier = ref.read(knownIndividualProvider.notifier);
+  final customerTypeNotifier = ref.read(customerTypeProvider.notifier);
+
+  // Get current customer info
+  final knownIndividual = ref.read(knownIndividualProvider);
+  final customerType = ref.read(customerTypeProvider);
+
+  String customerName = 'Guest';
+  int? customerId;
+  String? customerPhone;
+
+  if (customerType == CustomerType.knownIndividual && knownIndividual != null) {
+    customerName = knownIndividual.customerName;
+    customerId = knownIndividual.customerId;
+    customerPhone = knownIndividual.phone;
+  }
+
+  // Create a new bill with open status (with empty cart initially)
+  final newBill = cartNotifier.createBill(
+    customerName: customerName,
+    customerId: customerId,
+    customerPhone: customerPhone,
+  );
+
+  // Generate a unique cBillId for the new bill
+  final timestamp = DateTime.now();
+  final uniqueId = 'BILL-${timestamp.millisecondsSinceEpoch}';
+  final billWithId = newBill.copyWith(cBillId: uniqueId);
+
+  // Add the bill to the system and get the stored instance (with negative local id)
+  final storedBill = billNotifier.addBill(billWithId);
+
+  // Select the newly created bill (must use stored instance)
+  billNotifier.selectBill(storedBill);
+
+  // Load the bill into cart (this will populate the cart with empty state)
+  storedBill.loadIntoCart(cartNotifier);
+
+  // Set customer info
+  if (customerId != null) {
+    knownIndividualNotifier.setKnownIndividual(knownIndividual);
+    customerTypeNotifier.setCustomerType(CustomerType.knownIndividual);
+  } else {
+    customerTypeNotifier.setCustomerType(CustomerType.guest);
+  }
+
+  // Switch to current bill component
+  ref
+      .read(mainBillProvider.notifier)
+      .setMainBill(MainBillComponent.currentBillComponent);
+}
+
 final mainBillProvider =
     StateNotifierProvider<MainBillNotifier, MainBillComponent>((ref) {
       return MainBillNotifier();
