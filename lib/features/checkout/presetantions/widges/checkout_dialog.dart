@@ -580,12 +580,18 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
     final cashierName = staffState.loggedInStaff?.name ?? 'Cashier';
     final cashierId = staffState.loggedInStaff?.id ?? 1;
 
-    var bill = cartNotifier.createBill(
-      customerName: customerName ?? finalCustomerName,
-      delivery: selectedDelivery ?? 'Direct',
-      cashierId: cashierId,
-      cashierName: cashierName,
-    );
+    // Use the currently selected open bill as the base instead of creating a new one
+    final currentSelectedBill = ref.read(billProvider).selectedBill;
+    var bill =
+        (currentSelectedBill != null &&
+                currentSelectedBill.states.toLowerCase() == 'open')
+            ? currentSelectedBill
+            : cartNotifier.createBill(
+              customerName: customerName ?? finalCustomerName,
+              delivery: selectedDelivery ?? 'Direct',
+              cashierId: cashierId,
+              cashierName: cashierName,
+            );
 
     final cart = ref.read(cartProvider);
     double finalTotal = cart.total;
@@ -644,7 +650,7 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
       paymentMethod: bill.paymentMethod,
       splitPayment: bill.splitPayment,
       delivery: bill.delivery,
-      createdAt: DateTime.now(),
+      createdAt: bill.createdAt,
       updatedAt: DateTime.now(),
       deletedAt: bill.deletedAt,
       outletId: bill.outletId,
@@ -673,9 +679,10 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
       customerPhone: bill.customerPhone,
       totaldiscount: bill.totaldiscount,
       totalafterdiscount: bill.totalafterdiscount,
-      cashier: bill.cashier,
-      lastcashier: bill.lastcashier,
-      firstcashier: bill.firstcashier,
+      cashier: cashierName,
+      lastcashier: cashierName,
+      firstcashier:
+          bill.firstcashier.isNotEmpty ? bill.firstcashier : cashierName,
       totalgratuity: bill.totalgratuity,
       totalservicefee: bill.totalservicefee,
       totalbeforetax: bill.totalbeforetax,
@@ -696,8 +703,16 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> {
       items: bill.items,
     );
 
-    // Add to BillProvider with safe method
-    ref.read(billProvider.notifier).addBill(bill);
+    // Update existing bill if it exists, otherwise add as new
+    final existing = ref
+        .read(billProvider)
+        .bills
+        .any((b) => b.billId == bill.billId && bill.billId != 0);
+    if (existing) {
+      ref.read(billProvider.notifier).updateBill(bill);
+    } else {
+      ref.read(billProvider.notifier).addBill(bill);
+    }
 
     // Reset Bill
     resetMainBill(ref);

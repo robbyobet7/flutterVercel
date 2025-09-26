@@ -29,6 +29,9 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
   final Map<int, int> _actualStockChanges = {}; // id -> increment value
   final Map<int, bool> _checkedItems = {}; // id -> checklist
 
+  // Filter state
+  String _selectedFilter = 'All'; // 'All', 'Products', 'Ingredients', 'Preps'
+
   @override
   void initState() {
     super.initState();
@@ -65,104 +68,107 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
     ];
 
     return Expanded(
-      child: Column(
-        children: [
-          AppDivider(),
-
-          SizedBox(height: 16),
-          //filtering row
-          SizedBox(
-            height: 45,
-            width: double.infinity,
-            child: Row(
-              children: [
-                TypeFilterContainer(type: 'Products'),
-                const SizedBox(width: 12),
-                TypeFilterContainer(type: 'Ingredients'),
-                const SizedBox(width: 12),
-                TypeFilterContainer(type: 'Preps'),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: AppSearchBar(
-                    key: const ValueKey('stock_taking_search'),
-                    searchProvider: stockTakingSearchProvider,
-                    onSearch: (value) {
-                      ref
-                          .read(stockTakingSearchProvider.notifier)
-                          .updateSearchQuery(value);
-                    },
-                    onClear: () {
-                      ref
-                          .read(stockTakingSearchProvider.notifier)
-                          .clearSearch();
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Column(
+          children: [
+            AppDivider(),
+            //filtering row
+            SizedBox(
+              height: 45,
+              width: double.infinity,
+              child: Row(
+                children: [
+                  TypeFilterContainer(
+                    type: 'Products',
+                    isSelected: _selectedFilter == 'Products',
+                    onTap: () {
+                      setState(() {
+                        _selectedFilter = 'Products';
+                      });
                     },
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  TypeFilterContainer(
+                    type: 'Ingredients',
+                    isSelected: _selectedFilter == 'Ingredients',
+                    onTap: () {
+                      setState(() {
+                        _selectedFilter = 'Ingredients';
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  TypeFilterContainer(
+                    type: 'Preps',
+                    isSelected: _selectedFilter == 'Preps',
+                    onTap: () {
+                      setState(() {
+                        _selectedFilter = 'Preps';
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AppSearchBar(
+                      key: const ValueKey('stock_taking_search'),
+                      searchProvider: stockTakingSearchProvider,
+                      onSearch: (value) {
+                        ref
+                            .read(stockTakingSearchProvider.notifier)
+                            .updateSearchQuery(value);
+                      },
+                      onClear: () {
+                        ref
+                            .read(stockTakingSearchProvider.notifier)
+                            .clearSearch();
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          //list header
-          ListHeader(headers: headers),
+            //list header
+            ListHeader(headers: headers),
 
-          //Expandable list
-          Expanded(
-            child: FutureBuilder<void>(
-              future: _initStockFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
+            const SizedBox(height: 16),
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
+            //Expandable list
+            Expanded(
+              child: FutureBuilder<void>(
+                future: _initStockFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
 
-                final ingredients = filterList(ref.watch(ingredientsProvider));
-                final products = filterList(ref.watch(productStockProvider));
-                final preps = filterList(ref.watch(prepsProvider));
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
 
-                return ListView.builder(
-                  controller: _scrollController,
-                  physics: const ClampingScrollPhysics(),
-                  cacheExtent: 1000, // Increased cache for smoother scrolling
-                  addSemanticIndexes: false, // Performance optimization
-                  itemCount: 3, // Fixed number of expandable lists
-                  itemExtent:
-                      products.isEmpty && ingredients.isEmpty && preps.isEmpty
-                          ? 100 // Smaller height if all empty
-                          : null, // Dynamic height based on content
-                  itemBuilder: (context, index) {
-                    // Each index represents one of our expandable lists
-                    switch (index) {
-                      case 0:
-                        return isWeb
-                            ? SizedBox(height: 12)
-                            : Padding(
-                              padding: EdgeInsets.only(bottom: 12),
-                              child: ExpandableList(
-                                title: 'Products',
-                                stockTakings: products,
-                                onStockChanged: (id, value) {
-                                  setState(() {
-                                    _actualStockChanges[id] = value;
-                                  });
-                                },
-                                onCheckChanged: (id, checked) {
-                                  setState(() {
-                                    _checkedItems[id] = checked;
-                                  });
-                                },
-                              ),
-                            );
-                      case 1:
-                        return Padding(
+                  final ingredients = filterList(
+                    ref.watch(ingredientsProvider),
+                  );
+                  final products = filterList(ref.watch(productStockProvider));
+                  final preps = filterList(ref.watch(prepsProvider));
+
+                  // Filter logic based on selected filter
+                  List<Widget> expandableLists = [];
+
+                  if (_selectedFilter == 'All' ||
+                      _selectedFilter == 'Products') {
+                    if (!isWeb) {
+                      expandableLists.add(
+                        Padding(
                           padding: EdgeInsets.only(bottom: 12),
                           child: ExpandableList(
-                            title: 'Ingredients',
-                            stockTakings: ingredients,
+                            title: 'Products',
+                            stockTakings: products,
                             onStockChanged: (id, value) {
                               setState(() {
                                 _actualStockChanges[id] = value;
@@ -174,100 +180,187 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                               });
                             },
                           ),
-                        );
-                      case 2:
-                        return Column(
-                          children: [
-                            ExpandableList(
-                              title: 'Preps',
-                              stockTakings: preps,
-                              onStockChanged: (id, value) {
-                                setState(() {
-                                  _actualStockChanges[id] = value;
-                                });
-                              },
-                              onCheckChanged: (id, checked) {
-                                setState(() {
-                                  _checkedItems[id] = checked;
-                                });
-                              },
-                            ),
-                          ],
-                        );
-                      default:
-                        return SizedBox.shrink();
+                        ),
+                      );
                     }
-                  },
-                );
-              },
-            ),
-          ),
+                  }
 
-          const SizedBox(height: 16),
-
-          _isNotesVisible
-              ? Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: TextField(
-                  controller: _notesController,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText: 'Add Notes',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    alignLabelWithHint: true,
-                  ),
-                ),
-              )
-              : const SizedBox.shrink(),
-
-          SizedBox(
-            height: 45,
-            width: double.infinity,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                AppButton(
-                  text: _isNotesVisible ? 'Hide Notes' : 'Add Notes',
-                  onPressed: () {
-                    setState(() {
-                      _isNotesVisible = !_isNotesVisible;
-                    });
-                  },
-                ),
-
-                Row(
-                  children: [
-                    AppButton(
-                      text: 'Cancel',
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      backgroundColor: theme.colorScheme.errorContainer,
-                      textStyle: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.error,
+                  if (_selectedFilter == 'All' ||
+                      _selectedFilter == 'Ingredients') {
+                    expandableLists.add(
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 12),
+                        child: ExpandableList(
+                          title: 'Ingredients',
+                          stockTakings: ingredients,
+                          onStockChanged: (id, value) {
+                            setState(() {
+                              _actualStockChanges[id] = value;
+                            });
+                          },
+                          onCheckChanged: (id, checked) {
+                            setState(() {
+                              _checkedItems[id] = checked;
+                            });
+                          },
+                        ),
                       ),
+                    );
+                  }
+
+                  if (_selectedFilter == 'All' || _selectedFilter == 'Preps') {
+                    expandableLists.add(
+                      Column(
+                        children: [
+                          ExpandableList(
+                            title: 'Preps',
+                            stockTakings: preps,
+                            onStockChanged: (id, value) {
+                              setState(() {
+                                _actualStockChanges[id] = value;
+                              });
+                            },
+                            onCheckChanged: (id, checked) {
+                              setState(() {
+                                _checkedItems[id] = checked;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    controller: _scrollController,
+                    physics: const ClampingScrollPhysics(),
+                    shrinkWrap: true, // Prevent overflow when keyboard appears
+                    cacheExtent: 1000, // Increased cache for smoother scrolling
+                    addSemanticIndexes: false, // Performance optimization
+                    itemCount: expandableLists.length,
+                    itemExtent: expandableLists.isEmpty ? 100 : null,
+                    itemBuilder: (context, index) {
+                      return expandableLists[index];
+                    },
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            _isNotesVisible
+                ? Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: TextField(
+                    controller: _notesController,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      hintText: 'Add Notes',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      alignLabelWithHint: true,
                     ),
-                    const SizedBox(width: 12),
-                    AppButton(
-                      text: 'Submit',
-                      onPressed: () {
-                        // Validation: if there is increment > 0 but checklist is not active, show failed dialog
-                        bool hasInvalid = false;
-                        _actualStockChanges.forEach((id, increment) {
-                          if ((increment > 0) && (_checkedItems[id] != true)) {
-                            hasInvalid = true;
+                  ),
+                )
+                : const SizedBox.shrink(),
+
+            const SizedBox(height: 16),
+
+            SizedBox(
+              height: 45,
+              width: double.infinity,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppButton(
+                    text: _isNotesVisible ? 'Hide Notes' : 'Add Notes',
+                    onPressed: () {
+                      setState(() {
+                        _isNotesVisible = !_isNotesVisible;
+                      });
+                    },
+                  ),
+
+                  Row(
+                    children: [
+                      AppButton(
+                        text: 'Cancel',
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        backgroundColor: theme.colorScheme.errorContainer,
+                        textStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.error,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      AppButton(
+                        text: 'Submit',
+                        onPressed: () {
+                          // Validation: if there is increment > 0 but checklist is not active, show failed dialog
+                          bool hasInvalid = false;
+                          _actualStockChanges.forEach((id, increment) {
+                            if ((increment > 0) &&
+                                (_checkedItems[id] != true)) {
+                              hasInvalid = true;
+                            }
+                          });
+                          if (hasInvalid) {
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (context) => AlertDialog(
+                                    title: Text('Failed'),
+                                    content: Text(
+                                      'Please Activate the checklist before submit.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                            );
+                            return;
                           }
-                        });
-                        if (hasInvalid) {
+                          // Dummy submit process
+                          setState(() {
+                            // Take all ids that are checked
+                            _checkedItems.forEach((id, checked) {
+                              if (checked == true) {
+                                final allStocks = [
+                                  ...ref.read(ingredientsProvider),
+                                  ...ref.read(productStockProvider),
+                                  ...ref.read(prepsProvider),
+                                ];
+                                StockTaking? stock;
+                                try {
+                                  stock = allStocks.firstWhere(
+                                    (s) => s.id == id,
+                                  );
+                                } catch (_) {
+                                  stock = null;
+                                }
+                                if (stock != null) {
+                                  final increment =
+                                      _actualStockChanges[id] ?? 0;
+                                  if (increment > 0) {
+                                    stock.productStock += increment;
+                                  }
+                                }
+                              }
+                            });
+                          });
                           showDialog(
                             context: context,
                             builder:
                                 (context) => AlertDialog(
-                                  title: Text('Failed'),
+                                  title: Text('Success'),
                                   content: Text(
-                                    'Please Activate the checklist before submit.',
+                                    'Stock berhasil di-submit (dummy).',
                                   ),
                                   actions: [
                                     TextButton(
@@ -277,61 +370,19 @@ class _StockTakingDialogState extends ConsumerState<StockTakingDialog> {
                                   ],
                                 ),
                           );
-                          return;
-                        }
-                        // Dummy submit process
-                        setState(() {
-                          // Take all ids that are checked
-                          _checkedItems.forEach((id, checked) {
-                            if (checked == true) {
-                              final allStocks = [
-                                ...ref.read(ingredientsProvider),
-                                ...ref.read(productStockProvider),
-                                ...ref.read(prepsProvider),
-                              ];
-                              StockTaking? stock;
-                              try {
-                                stock = allStocks.firstWhere((s) => s.id == id);
-                              } catch (_) {
-                                stock = null;
-                              }
-                              if (stock != null) {
-                                final increment = _actualStockChanges[id] ?? 0;
-                                if (increment > 0) {
-                                  stock.productStock += increment;
-                                }
-                              }
-                            }
-                          });
-                        });
-                        showDialog(
-                          context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: Text('Success'),
-                                content: Text(
-                                  'Stock berhasil di-submit (dummy).',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text('OK'),
-                                  ),
-                                ],
-                              ),
-                        );
-                      },
-                      backgroundColor: theme.colorScheme.primary,
-                      textStyle: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onPrimary,
+                        },
+                        backgroundColor: theme.colorScheme.primary,
+                        textStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onPrimary,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

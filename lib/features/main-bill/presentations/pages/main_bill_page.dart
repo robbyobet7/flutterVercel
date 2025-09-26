@@ -240,7 +240,11 @@ class MainBillPage extends ConsumerWidget {
           ref
               .read(customerTypeProvider.notifier)
               .setCustomerType(CustomerType.guest);
+          // Clear known individual and update selected bill name live to Guest
           ref.read(knownIndividualProvider.notifier).setKnownIndividual(null);
+          ref
+              .read(billProvider.notifier)
+              .updateSelectedBillCustomer('Guest', null);
         },
       },
       {
@@ -342,12 +346,14 @@ class MainBillPage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                if (!isClosed && billType != BillType.merchantBill)
+                if (!isClosed &&
+                    billType != BillType.merchantBill &&
+                    cart.items.isEmpty)
                   CustomerExpandable(
                     customerTypes: customerTypes,
                     disabled: false,
                   ),
-                cart.items.isEmpty ? EmptyCart() : Bill(),
+                isClosed ? Bill() : (cart.items.isEmpty ? EmptyCart() : Bill()),
               ],
             ),
           ),

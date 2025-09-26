@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import '../models/bill.dart';
 import '../middleware/bill_middleware.dart';
 
@@ -27,9 +28,12 @@ class MergeBillMiddleware {
   // Initialize the middleware
   Future<void> initialize() async {
     try {
-      if (!_billMiddleware.isInitialized) {
-        await _billMiddleware.initialize();
-      }
+      // Always refresh from BillMiddleware's current in-memory state
+      await _billMiddleware.initialize();
+      // Subscribe to BillMiddleware stream to reflect live changes (dummy/new bills)
+      _billMiddleware.billsStream.listen((bills) {
+        _billStreamController.add(bills);
+      });
       refreshBills();
     } catch (e) {
       _billErrorController.add('Failed to initialize bill data: $e');
@@ -43,6 +47,100 @@ class MergeBillMiddleware {
       _billStreamController.add(bills);
     } catch (e) {
       _billErrorController.add('Failed to load bills: $e');
+    }
+  }
+
+  // Merge two OPEN bills: secondary into primary. Primary keeps its identity
+  Future<BillModel?> mergeOpenBills({
+    required int primaryBillId,
+    required int secondaryBillId,
+  }) async {
+    try {
+      final primary = _billMiddleware.getBillById(primaryBillId);
+      final secondary = _billMiddleware.getBillById(secondaryBillId);
+
+      if (primary == null || secondary == null) {
+        throw Exception('Bill not found');
+      }
+      if (primary.states != 'open' || secondary.states != 'open') {
+        throw Exception('Only OPEN bills can be merged');
+      }
+
+      // Merge order collections
+      List<dynamic> safeJsonDecode(String s) {
+        try {
+          return s.isEmpty ? [] : (jsonDecode(s) as List<dynamic>);
+        } catch (_) {
+          return [];
+        }
+      }
+
+      final primaryOrders = safeJsonDecode(primary.orderCollection);
+      final secondaryOrders = safeJsonDecode(secondary.orderCollection);
+      final mergedOrders = <dynamic>[...primaryOrders, ...secondaryOrders];
+      final mergedOrderCollection = jsonEncode(mergedOrders);
+
+      // Sum totals
+      double sumDouble(double a, double b) => (a) + (b);
+      int sumInt(int a, int b) => (a) + (b);
+
+      final double mergedBeforeTax = sumDouble(
+        primary.totalbeforetax,
+        secondary.totalbeforetax,
+      );
+      final double mergedGratuity = sumDouble(
+        primary.totalgratuity,
+        secondary.totalgratuity,
+      );
+      final double mergedServiceFee = sumDouble(
+        primary.totalservicefee,
+        secondary.totalservicefee,
+      );
+      final double mergedVat = sumDouble(primary.totalvat, secondary.totalvat);
+      final double mergedAfterTax = sumDouble(
+        primary.totalaftertax,
+        secondary.totalaftertax,
+      );
+
+      int roundUpTo(int value, int multiple) =>
+          ((value / multiple).ceil()) * multiple;
+      final int mergedRounded = roundUpTo(
+        mergedAfterTax.toInt(),
+        primary.roundingSetting,
+      );
+
+      final updatedPrimary = primary.copyWith(
+        orderCollection: mergedOrderCollection,
+        items: [
+          if (primary.items != null) ...primary.items!,
+          if (secondary.items != null) ...secondary.items!,
+        ],
+        totalbeforetax: mergedBeforeTax,
+        totalgratuity: mergedGratuity,
+        totalservicefee: mergedServiceFee,
+        totalvat: mergedVat,
+        totalaftertax: mergedAfterTax,
+        totalafterrounding: mergedRounded.toDouble(),
+        finalTotal: mergedRounded.toDouble(),
+        total: sumDouble(primary.total, secondary.total),
+        totalDiscount: sumInt(primary.totalDiscount, secondary.totalDiscount),
+        productDiscount: sumInt(
+          primary.productDiscount,
+          secondary.productDiscount,
+        ),
+        updatedAt: DateTime.now(),
+      );
+
+      // Persist changes: update primary, delete secondary
+      _billMiddleware.updateBill(updatedPrimary);
+      _billMiddleware.deleteBill(secondary.billId);
+
+      // Broadcast updated list
+      await refreshBills();
+      return updatedPrimary;
+    } catch (e) {
+      _billErrorController.add('Failed to merge bills: $e');
+      return null;
     }
   }
 

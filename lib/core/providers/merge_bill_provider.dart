@@ -78,6 +78,25 @@ class MergeBillNotifier extends StateNotifier<MergeBillState> {
     });
   }
 
+  // Merge two open bills: first selection is the primary result
+  Future<BillModel?> mergeSelectedBills({
+    required BillModel primary,
+    required BillModel secondary,
+  }) async {
+    // Only allow open bills
+    if (primary.states != 'open' || secondary.states != 'open') {
+      state = state.copyWith(error: 'Only OPEN bills can be merged');
+      return null;
+    }
+    state = state.copyWith(isLoading: true, error: null);
+    final result = await _mergeBillMiddleware.mergeOpenBills(
+      primaryBillId: primary.billId,
+      secondaryBillId: secondary.billId,
+    );
+    state = state.copyWith(isLoading: false);
+    return result;
+  }
+
   String? get createdAt {
     final String? dateTime = state.selectedBill?.posPaidBillDate;
     if (dateTime == null) return null;

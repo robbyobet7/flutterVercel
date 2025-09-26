@@ -11,6 +11,8 @@ import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/features/main-bill/presentations/widgets/card_info.dart';
 import 'package:rebill_flutter/features/main-bill/presentations/widgets/refund_dialog.dart';
+import 'package:rebill_flutter/core/models/cart_item.dart';
+import 'package:intl/intl.dart';
 
 class Bill extends ConsumerWidget {
   const Bill({super.key});
@@ -29,6 +31,33 @@ class Bill extends ConsumerWidget {
     final billState = ref.watch(billProvider);
     final selectedBill = billState.selectedBill;
     final isClosed = billState.selectedBill?.states.toLowerCase() == 'closed';
+
+    // Formatters and formatted strings
+    final DateFormat dateFormatter = DateFormat('dd/MM/yyyy HH.mm');
+
+    String _formatDateTime(DateTime? dt) {
+      if (dt == null) return '-';
+      return dateFormatter.format(dt);
+    }
+
+    String _formatIsoString(String? iso) {
+      if (iso == null || iso.isEmpty) return '-';
+      try {
+        return dateFormatter.format(DateTime.parse(iso));
+      } catch (_) {
+        return iso;
+      }
+    }
+
+    final String createdAtText = _formatDateTime(selectedBill?.createdAt);
+    final String paidAtText = _formatIsoString(selectedBill?.posPaidBillDate);
+    final String billNoText =
+        ((selectedBill?.cBillId ?? '').replaceFirst(
+              RegExp(r'^BILL-'),
+              '',
+            )).trim().isNotEmpty
+            ? (selectedBill!.cBillId.replaceFirst(RegExp(r'^BILL-'), ''))
+            : '-';
 
     // Calculate basic values
     final subtotal = cart.subtotal;
@@ -64,6 +93,24 @@ class Bill extends ConsumerWidget {
       finalTotal = totalBeforeRounding + roundingAmount;
     }
 
+    // Build items for display: use closed bill items when bill is closed
+    List<CartItem> _itemsForDisplay() {
+      if (isClosed && selectedBill != null) {
+        if (selectedBill.items != null && selectedBill.items!.isNotEmpty) {
+          return selectedBill.items!;
+        }
+        try {
+          final List<dynamic> parsed = jsonDecode(selectedBill.orderCollection);
+          return parsed.map((e) => CartItem.fromJson(e)).toList();
+        } catch (_) {
+          return const <CartItem>[];
+        }
+      }
+      return cart.items;
+    }
+
+    final List<CartItem> displayedItems = _itemsForDisplay();
+
     return Expanded(
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(
@@ -79,22 +126,14 @@ class Bill extends ConsumerWidget {
                     children: [
                       const Expanded(child: Text('Created at')),
                       const Text(': '),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          selectedBill?.createdAt.toString() ?? 'Today, 14.24',
-                        ),
-                      ),
+                      Expanded(flex: 2, child: Text(createdAtText)),
                     ],
                   ),
                   Row(
                     children: [
                       const Expanded(child: Text('Bill No.')),
                       const Text(': '),
-                      Expanded(
-                        flex: 2,
-                        child: Text(selectedBill?.cBillId ?? '1234-467890'),
-                      ),
+                      Expanded(flex: 2, child: Text(billNoText)),
                     ],
                   ),
                   if (isClosed)
@@ -104,12 +143,7 @@ class Bill extends ConsumerWidget {
                           children: [
                             const Expanded(child: Text('Paid at')),
                             const Text(': '),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                selectedBill?.posPaidBillDate ?? '1234-467890',
-                              ),
-                            ),
+                            Expanded(flex: 2, child: Text(paidAtText)),
                           ],
                         ),
                         Row(
@@ -183,7 +217,7 @@ class Bill extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  ...cart.items.asMap().entries.map((entry) {
+                  ...displayedItems.asMap().entries.map((entry) {
                     final index = entry.key;
                     final item = entry.value;
                     return Column(
@@ -385,7 +419,7 @@ class Bill extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        if (index != cart.items.length - 1)
+                        if (index != displayedItems.length - 1)
                           Divider(
                             height: 1,
                             thickness: 1,
