@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rebill_flutter/core/models/customers.dart';
 import 'package:rebill_flutter/core/providers/customer_provider.dart';
+import 'package:rebill_flutter/core/providers/bill_provider.dart';
 import 'package:rebill_flutter/core/widgets/app_button.dart';
 import 'package:rebill_flutter/core/widgets/app_dialog.dart';
 import 'package:rebill_flutter/core/widgets/app_search_bar.dart';
@@ -343,6 +344,14 @@ class _KnownIndividualDialogState extends ConsumerState<KnownIndividualDialog> {
                           ref
                               .read(customerTypeProvider.notifier)
                               .setCustomerType(CustomerType.knownIndividual);
+                          // Update selected bill immediately so HomeBill shows the new name
+                          ref
+                              .read(billProvider.notifier)
+                              .updateSelectedBillCustomer(
+                                newCustomer.customerName,
+                                newCustomer.customerId,
+                                customerPhone: newCustomer.phone,
+                              );
                           ref.read(customerExpandableProvider.notifier).state =
                               false;
 
@@ -406,6 +415,14 @@ class _KnownIndividualDialogState extends ConsumerState<KnownIndividualDialog> {
                                 ref
                                     .read(knownIndividualProvider.notifier)
                                     .setKnownIndividual(tempSelectedCustomer);
+                                // Live update selected bill's customer info so HomeBill reflects immediately
+                                ref
+                                    .read(billProvider.notifier)
+                                    .updateSelectedBillCustomer(
+                                      tempSelectedCustomer.customerName,
+                                      tempSelectedCustomer.customerId,
+                                      customerPhone: tempSelectedCustomer.phone,
+                                    );
                                 ref
                                     .read(customerExpandableProvider.notifier)
                                     .state = false;

@@ -47,6 +47,7 @@ class AppDialog extends StatelessWidget {
   final bool? isCustom;
 
   final EdgeInsets? padding;
+  final bool? resizeToAvoidBottomInset;
 
   const AppDialog({
     super.key,
@@ -65,6 +66,7 @@ class AppDialog extends StatelessWidget {
     this.width,
     this.height,
     this.padding,
+    this.resizeToAvoidBottomInset,
   }) : assert(
          content == null || contentText == null,
          'Either provide content or contentText, not both',
@@ -74,7 +76,7 @@ class AppDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return PopScope(
+    Widget dialogContent = PopScope(
       canPop: true,
       onPopInvokedWithResult: (bool didPop, dynamic _) {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
@@ -174,6 +176,17 @@ class AppDialog extends StatelessWidget {
         ),
       ),
     );
+
+    // If resizeToAvoidBottomInset is false, wrap with MediaQuery.removeViewInsets
+    if (resizeToAvoidBottomInset == false) {
+      return MediaQuery.removeViewInsets(
+        context: context,
+        removeBottom: true,
+        child: dialogContent,
+      );
+    }
+
+    return dialogContent;
   }
 
   /// Shows a confirmation dialog with Yes/No buttons.
@@ -298,6 +311,7 @@ class AppDialog extends StatelessWidget {
     Color barrierColor = Colors.black54,
     Duration transitionDuration = const Duration(milliseconds: 400),
     bool barrierDismissible = true,
+    bool? resizeToAvoidBottomInset,
   }) {
     return showGeneralDialog<T>(
       barrierColor: barrierColor,
@@ -321,6 +335,7 @@ class AppDialog extends StatelessWidget {
               width: _getDialogWidth(context, dialogType),
               height: _getDialogHeight(context, dialogType),
               padding: padding,
+              resizeToAvoidBottomInset: resizeToAvoidBottomInset,
             ),
           ),
         );

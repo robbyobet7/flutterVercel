@@ -33,11 +33,23 @@ class _NavFeaturesState extends ConsumerState<NavFeatures> {
   }
 
   void handleStockTakingTap() {
-    AppDialog.showCustom(
-      context,
-      dialogType: DialogType.large,
-      title: 'Stock Taking',
-      content: const StockTakingDialog(),
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      useRootNavigator: true,
+      builder:
+          (context) => MediaQuery.removeViewInsets(
+            context: context,
+            removeBottom: true,
+            child: AppDialog(
+              title: 'Stock Taking',
+              content: const StockTakingDialog(),
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: MediaQuery.of(context).size.height * 0.8,
+              isCustom:
+                  true, // Set isCustom to true to prevent default OK button
+            ),
+          ),
     );
   }
 

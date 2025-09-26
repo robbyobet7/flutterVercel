@@ -130,6 +130,17 @@ class BillNotifier extends StateNotifier<BillState> {
     return _billMiddleware.addBill(bill);
   }
 
+  // Update an existing bill (by billId)
+  void updateBill(BillModel bill) {
+    _billMiddleware.updateBill(bill);
+    final bills = List<BillModel>.from(state.bills);
+    final index = bills.indexWhere((b) => b.billId == bill.billId);
+    if (index != -1) {
+      bills[index] = bill;
+    }
+    state = state.copyWith(bills: bills, selectedBill: bill);
+  }
+
   // Update the currently selected bill with new totals
   void updateSelectedBillTotals(double total, double finalTotal) {
     if (state.selectedBill != null) {
@@ -150,6 +161,31 @@ class BillNotifier extends StateNotifier<BillState> {
       _billMiddleware.updateBill(updatedBill);
       state = state.copyWith(bills: bills, selectedBill: updatedBill);
     }
+  }
+
+  void updateSelectedBillCustomer(
+    String customerName,
+    int? customerId, {
+    String? customerPhone,
+  }) {
+    final BillModel? current = state.selectedBill;
+    if (current == null) return;
+
+    final updatedBill = current.copyWith(
+      customerName: customerName,
+      customerId: customerId,
+      customerPhone: customerPhone,
+      updatedAt: DateTime.now(),
+    );
+
+    final bills = List<BillModel>.from(state.bills);
+    final index = bills.indexWhere((b) => b.billId == updatedBill.billId);
+    if (index != -1) {
+      bills[index] = updatedBill;
+    }
+
+    _billMiddleware.updateBill(updatedBill);
+    state = state.copyWith(bills: bills, selectedBill: updatedBill);
   }
 
   String? get createdAt {
