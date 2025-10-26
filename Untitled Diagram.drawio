@@ -1,9 +1,205 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36" version="28.2.8">
   <diagram name="Page-1" id="_v7zOrfZj6GnsgUrElq5">
-    <mxGraphModel>
+    <mxGraphModel dx="4593" dy="2935" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1500" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="user_roles" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Roles&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;name (VARCHAR(50))&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=90;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#FFF2CC;strokeColor=#D6B656;" parent="1" vertex="1">
+          <mxGeometry x="-160" y="-80" width="180" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="users" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Users&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (UUID/INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;role_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;first_name (VARCHAR(100))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;last_name (VARCHAR(100))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;email (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;phone (VARCHAR(20))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;password_hash (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;profile_photo_url (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;points_balance (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;created_at (TIMESTAMP)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=300;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#FFF2CC;strokeColor=#D6B656;" parent="1" vertex="1">
+          <mxGeometry x="220" y="-80" width="220" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="addresses" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Addresses&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;user_id (FK)&lt;/i&gt; (UUID/INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;label (VARCHAR(100))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;receiver_name (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;receiver_phone (VARCHAR(20))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;full_address (TEXT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;notes (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;is_default (BOOLEAN)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=240;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#FFF2CC;strokeColor=#D6B656;" parent="1" vertex="1">
+          <mxGeometry x="270" y="-450" width="220" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_users_roles" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERone;startArrow=ERmany;html=1;entryX=0.02;entryY=0.092;exitX=1;exitY=0.3;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="user_roles" target="users" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_users_addresses" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0;entryY=0.5;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="users" target="addresses" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="categories" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Categories&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;name (VARCHAR(100))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;description (TEXT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;parent_category_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=120;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#DAE8FC;strokeColor=#6C8EBF;" parent="1" vertex="1">
+          <mxGeometry x="-210" y="545" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="products" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Products&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;name (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;description (TEXT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;price (DECIMAL(10,2))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;sku (VARCHAR(100))&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=150;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#DAE8FC;strokeColor=#6C8EBF;" parent="1" vertex="1">
+          <mxGeometry x="590" y="520" width="220" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="product_category" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Product_Category (Pivot)&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;&lt;i&gt;product_id (PK, FK)&lt;/i&gt;&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;&lt;i&gt;category_id (PK, FK)&lt;/i&gt;&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=90;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#DAE8FC;strokeColor=#6C8EBF;" parent="1" vertex="1">
+          <mxGeometry x="190" y="560" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="product_images" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Product_Images&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;product_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;image_url (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;is_thumbnail (BOOLEAN)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=120;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#DAE8FC;strokeColor=#6C8EBF;" parent="1" vertex="1">
+          <mxGeometry x="560" y="750" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="branches" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Branches&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;name (VARCHAR(100))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;address (TEXT)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=90;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#DAE8FC;strokeColor=#6C8EBF;" parent="1" vertex="1">
+          <mxGeometry x="1020" y="820" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="stocks" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Stocks&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;product_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;branch_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;quantity (INT)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=120;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#DAE8FC;strokeColor=#6C8EBF;" parent="1" vertex="1">
+          <mxGeometry x="1070" y="570" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_cat_pivot" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0;entryY=0.75;exitX=1;exitY=0.5;" parent="1" source="categories" target="product_category" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_prod_pivot" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=1;entryY=0.5;exitX=0;exitY=0.5;entryDx=0;entryDy=0;" parent="1" source="products" target="product_category" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_prod_img" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0.5;entryY=0;exitX=0.5;exitY=1;entryDx=0;entryDy=0;" parent="1" source="products" target="product_images" edge="1">
+          <mxGeometry y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_prod_stock" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0;entryY=0.5;exitX=1;exitY=0.75;" parent="1" source="products" target="stocks" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_branch_stock" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0.15;entryY=1.018;exitX=0.5;exitY=1;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="branches" target="stocks" edge="1">
+          <mxGeometry y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="cart_items" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Cart_Items&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;user_id (FK)&lt;/i&gt; (UUID/INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;product_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;quantity (INT)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=0;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#F8CECC;strokeColor=#B85450;" parent="1" vertex="1">
+          <mxGeometry x="670" y="100" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="orders" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Orders&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;user_id (FK)&lt;/i&gt; (UUID/INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;shipping_address_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;shipping_method_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;order_status (VARCHAR(50))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;subtotal (DECIMAL(10,2))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;shipping_cost (DECIMAL(10,2))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;tax (DECIMAL(10,2))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;discount_amount (DECIMAL(10,2))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;grand_total (DECIMAL(10,2))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;tracking_number (VARCHAR(100))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;shipping_status (VARCHAR(50))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;created_at (TIMESTAMP)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=360;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#F8CECC;strokeColor=#B85450;" parent="1" vertex="1">
+          <mxGeometry x="590" y="-450" width="240" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="order_items" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Order_Items&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;order_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;product_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;quantity (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;price (DECIMAL(10,2))&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=150;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#F8CECC;strokeColor=#B85450;" parent="1" vertex="1">
+          <mxGeometry x="900" y="250" width="220" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="payments" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Payments&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;order_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;payment_method (VARCHAR(50))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;amount (DECIMAL(10,2))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;status (VARCHAR(50))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;external_transaction_id (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;created_at (TIMESTAMP)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=210;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#F8CECC;strokeColor=#B85450;" parent="1" vertex="1">
+          <mxGeometry x="1250" y="295" width="240" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_user_cart" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0;entryY=0.5;exitX=0.82;exitY=0.69;" parent="1" source="users" target="cart_items" edge="1">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint x="630" y="320" as="sourcePoint" />
+            <mxPoint x="730" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_prod_cart" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0.5;entryY=0;exitX=1;exitY=0.25;" parent="1" source="products" target="cart_items" edge="1">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint x="720" y="480" as="sourcePoint" />
+            <mxPoint x="820" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_user_order" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0;entryY=0.25;exitX=1;exitY=0.25;" parent="1" source="users" target="orders" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_addr_order" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERone;startArrow=ERmany;html=1;entryX=0;entryY=0.5;exitX=1;exitY=0.75;" parent="1" source="addresses" target="orders" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_order_items" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0.978;entryY=0.435;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="order_reviews" target="order_items" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1150" y="130" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_prod_items" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0.5;entryY=1;exitX=1;exitY=0.25;entryDx=0;entryDy=0;" parent="1" source="products" target="order_items" edge="1">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint x="820" y="550" as="sourcePoint" />
+            <mxPoint x="1490" y="450" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1450" y="508" />
+              <mxPoint x="1450" y="220" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_order_pay" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0.5;entryY=0;exitX=0.5;exitY=1;" parent="1" source="orders" target="payments" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="shipping_methods" value="&#xa;&lt;table style=&quot;forced-color-adjust: none; color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(236, 236, 236); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; width: 137.156px; border-collapse: collapse;&quot;&gt;&lt;tbody style=&quot;forced-color-adjust: none;&quot;&gt;&lt;tr style=&quot;forced-color-adjust: none;&quot;&gt;&lt;th style=&quot;forced-color-adjust: none; border: 1px solid light-dark(rgb(0, 0, 0), rgb(237, 237, 237)); padding: 4px;&quot; data-mx-given-colors=&quot;{&amp;quot;border-top-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-right-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-bottom-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-left-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;}&quot;&gt;Shipping_Methods&lt;/th&gt;&lt;/tr&gt;&lt;tr style=&quot;forced-color-adjust: none;&quot;&gt;&lt;td style=&quot;forced-color-adjust: none; border: 1px solid light-dark(rgb(0, 0, 0), rgb(237, 237, 237)); padding: 4px;&quot; data-mx-given-colors=&quot;{&amp;quot;border-top-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-right-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-bottom-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-left-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;}&quot;&gt;&lt;b style=&quot;forced-color-adjust: none;&quot;&gt;id (PK)&lt;/b&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;(INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr style=&quot;forced-color-adjust: none;&quot;&gt;&lt;td style=&quot;forced-color-adjust: none; border: 1px solid light-dark(rgb(0, 0, 0), rgb(237, 237, 237)); padding: 4px;&quot; data-mx-given-colors=&quot;{&amp;quot;border-top-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-right-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-bottom-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-left-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;}&quot;&gt;name (VARCHAR(100))&lt;/td&gt;&lt;/tr&gt;&lt;tr style=&quot;forced-color-adjust: none;&quot;&gt;&lt;td style=&quot;forced-color-adjust: none; border: 1px solid light-dark(rgb(0, 0, 0), rgb(237, 237, 237)); padding: 4px;&quot; data-mx-given-colors=&quot;{&amp;quot;border-top-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-right-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-bottom-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-left-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;}&quot;&gt;description (TEXT)&lt;/td&gt;&lt;/tr&gt;&lt;tr style=&quot;forced-color-adjust: none;&quot;&gt;&lt;td style=&quot;forced-color-adjust: none; border: 1px solid light-dark(rgb(0, 0, 0), rgb(237, 237, 237)); padding: 4px;&quot; data-mx-given-colors=&quot;{&amp;quot;border-top-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-right-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-bottom-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;border-left-color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;}&quot;&gt;cost (DECIMAL(10,2))&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&#xa;&#xa;" style="shape=table;startSize=120;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#D5E8D4;strokeColor=#82B366;" parent="1" vertex="1">
+          <mxGeometry x="1070" y="-450" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="order_reviews" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Order_Reviews&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;order_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;user_id (FK)&lt;/i&gt; (UUID/INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;rating (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;comment (TEXT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;created_at (TIMESTAMP)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=180;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#D5E8D4;strokeColor=#82B366;" parent="1" vertex="1">
+          <mxGeometry x="1210" y="-190" width="220" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_ship_order" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERone;startArrow=ERmany;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="shipping_methods" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="835" y="-390" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_order_review" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERone;startArrow=ERone;html=1;entryX=0.5;entryY=0;exitX=0.983;exitY=0.399;exitDx=0;exitDy=0;exitPerimeter=0;entryDx=0;entryDy=0;" parent="1" source="orders" target="order_reviews" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_user_review" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0;entryY=0.75;exitX=1;exitY=0.08;" parent="1" source="users" target="order_reviews" edge="1">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint x="530" y="110" as="sourcePoint" />
+            <mxPoint x="1490" y="110" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1000" y="125" />
+              <mxPoint x="1000" y="80" />
+              <mxPoint x="1470" y="80" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="promos" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Promos&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;code (VARCHAR(50))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;name (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;type (VARCHAR(50))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;value (DECIMAL(10,2))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;min_spend (DECIMAL(10,2))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;start_date (TIMESTAMP)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;end_date (TIMESTAMP)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=240;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#E1D5E7;strokeColor=#9673A6;" parent="1" vertex="1">
+          <mxGeometry x="1300" y="820" width="240" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="order_promos" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Order_Promos (Pivot)&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;&lt;i&gt;order_id (PK, FK)&lt;/i&gt;&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;&lt;i&gt;promo_id (PK, FK)&lt;/i&gt;&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=90;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#E1D5E7;strokeColor=#9673A6;" parent="1" vertex="1">
+          <mxGeometry x="1600" y="190" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="point_history" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Point_History&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;user_id (FK)&lt;/i&gt; (UUID/INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;order_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;points (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;type (VARCHAR(50))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;description (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;created_at (TIMESTAMP)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=210;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#E1D5E7;strokeColor=#9673A6;" parent="1" vertex="1">
+          <mxGeometry x="110" y="890" width="220" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="rewards" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Rewards&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;name (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;description (TEXT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;points_cost (INT)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=120;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#E1D5E7;strokeColor=#9673A6;" parent="1" vertex="1">
+          <mxGeometry x="930" y="1000" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="user_rewards" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;User_Rewards (Pivot)&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;user_id (FK)&lt;/i&gt; (UUID/INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;reward_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;status (VARCHAR(50))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;created_at (TIMESTAMP)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=150;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#E1D5E7;strokeColor=#9673A6;" parent="1" vertex="1">
+          <mxGeometry x="510" y="970" width="220" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_order_promo" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0;entryY=0.5;exitX=1;exitY=0.75;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="830" y="-200" as="sourcePoint" />
+            <mxPoint x="1600" y="215" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_promo_order" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0;entryY=0.75;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="promos" target="order_promos" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_user_points" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0.25;entryY=0;exitX=0.356;exitY=1.01;entryDx=0;entryDy=0;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="users" target="point_history" edge="1">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint x="190" y="200" as="sourcePoint" />
+            <mxPoint x="200" y="889.9999999999995" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="270" y="1085" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_order_points" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERone;startArrow=ERmany;html=1;entryX=1;entryY=0.75;exitX=0.75;exitY=1;" parent="1" source="orders" target="point_history" edge="1">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint x="1280" y="470" as="sourcePoint" />
+            <mxPoint x="1110" y="1020" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1350" y="1168" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_user_rewards" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0;entryY=0.5;exitX=1;exitY=0.91;" parent="1" source="users" target="user_rewards" edge="1">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint x="530" y="380" as="sourcePoint" />
+            <mxPoint x="600" y="1010" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="550" y="1075" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_reward_user" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=1;entryY=0.5;exitX=1;exitY=0.5;entryDx=0;entryDy=0;" parent="1" source="rewards" target="user_rewards" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="activity_logs" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Activity_Logs&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;user_id (FK)&lt;/i&gt; (UUID/INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;action (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;target_type (VARCHAR(100))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;target_id (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;created_at (TIMESTAMP)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=180;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#B1DDF0;strokeColor=#10739E;" parent="1" vertex="1">
+          <mxGeometry x="-240" y="130" width="220" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="notifications" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;Notifications&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;title (VARCHAR(255))&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;message (TEXT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;created_at (TIMESTAMP)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=120;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#B1DDF0;strokeColor=#10739E;" parent="1" vertex="1">
+          <mxGeometry x="-230" y="370" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="user_notifications" value="&lt;table style=&quot;width:100%;border-collapse:collapse;&quot;&gt;&lt;tr&gt;&lt;th style=&quot;border:1px solid #000;padding:4px;&quot;&gt;User_Notifications (Pivot)&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;b&gt;id (PK)&lt;/b&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;user_id (FK)&lt;/i&gt; (UUID/INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;&lt;i&gt;notification_id (FK)&lt;/i&gt; (INT)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot;border:1px solid #000;padding:4px;&quot;&gt;is_read (BOOLEAN)&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="shape=table;startSize=120;container=1;collapsible=0;childLayout=tableLayout;html=1;strokeColor=#000000;fontColor=#000000;fillColor=#B1DDF0;strokeColor=#10739E;" parent="1" vertex="1">
+          <mxGeometry x="120" y="340" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_user_logs" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0.5;entryY=0;exitX=-0.001;exitY=0.702;entryDx=0;entryDy=0;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="users" target="activity_logs" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_user_notif" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0.349;entryY=0.012;exitX=0.076;exitY=1.01;entryDx=0;entryDy=0;exitDx=0;exitDy=0;entryPerimeter=0;exitPerimeter=0;" parent="1" source="users" target="user_notifications" edge="1">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint x="259.1" y="220" as="sourcePoint" />
+            <mxPoint x="269.99999999999966" y="344.44000000000005" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_notif_user" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;html=1;entryX=0;entryY=0.75;exitX=1;exitY=0.5;" parent="1" source="notifications" target="user_notifications" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
